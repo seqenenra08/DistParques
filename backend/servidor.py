@@ -200,13 +200,14 @@ class ClienteHandler:
             
             # Si no hay fichas movibles, cambiar turno automáticamente
             if resultado.get("cambiar_turno", False):
-                # Limpiar el lanzamiento ya que no se usará
-                if hasattr(self.servidor.partidas.get(self.id_partida), 'ultimo_lanzamiento'):
-                    partida = self.servidor.partidas[self.id_partida]
-                    if self.id_jugador in partida.ultimo_lanzamiento:
-                        del partida.ultimo_lanzamiento[self.id_jugador]
+                # Limpiar el lanzamiento ya que no se usará (dentro de lock)
+                with self.servidor.lock_partidas:
+                    if self.id_partida in self.servidor.partidas:
+                        partida = self.servidor.partidas[self.id_partida]
+                        if hasattr(partida, 'ultimo_lanzamiento') and self.id_jugador in partida.ultimo_lanzamiento:
+                            del partida.ultimo_lanzamiento[self.id_jugador]
                 
-                # Cambiar turno
+                # Cambiar turno (maneja su propio lock)
                 self.servidor.cambiar_turno(self.id_partida)
         else:
             self.enviar_mensaje("ROLL_ERROR", {
@@ -647,29 +648,35 @@ class ServidorParques:
     
     def cambiar_turno(self, id_partida: str):
         """Cambia el turno al siguiente jugador."""
+        # Preparar datos dentro del lock
         with self.lock_partidas:
-            if id_partida in self.partidas:
-                partida = self.partidas[id_partida]
-                siguiente = partida.pasar_turno()
-                
-                self.broadcast_a_partida(
-                    id_partida,
-                    "TURN_CHANGE",
-                    {
-                        "turno_actual": partida.turno_actual,
-                        "jugador_actual": siguiente.to_dict(),
-                        "mensaje": f"Es el turno de {siguiente.nombre}"
-                    }
-                )
+            if id_partida not in self.partidas:
+                return
+            
+            partida = self.partidas[id_partida]
+            siguiente = partida.pasar_turno()
+            
+            datos_broadcast = {
+                "turno_actual": partida.turno_actual,
+                "jugador_actual": siguiente.to_dict(),
+                "mensaje": f"Es el turno de {siguiente.nombre}"
+            }
+        
+        # Broadcast FUERA del lock
+        self.broadcast_a_partida(id_partida, "TURN_CHANGE", datos_broadcast)
     
     def broadcast_estado_partida(self, id_partida: str):
         """Envía el estado completo de la partida a todos los jugadores."""
+        # Preparar datos dentro del lock
         with self.lock_partidas:
-            if id_partida in self.partidas:
-                partida = self.partidas[id_partida]
-                estado = partida.to_dict()
-                
-                self.broadcast_a_partida(id_partida, "UPDATE", estado)
+            if id_partida not in self.partidas:
+                return
+            
+            partida = self.partidas[id_partida]
+            estado = partida.to_dict()
+        
+        # Broadcast FUERA del lock
+        self.broadcast_a_partida(id_partida, "UPDATE", estado)
     
     def broadcast_a_partida(self, id_partida: str, tipo: str, datos: dict, excluir: str = None):
         """
