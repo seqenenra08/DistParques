@@ -1,0 +1,24 @@
+# Dependencias del proyecto Parqués - Backend Python
+
+# Core dependencies (se usarán en fases siguientes)
+# websockets==12.0  # Para comunicación en tiempo real
+# aiohttp==3.9.0    # Cliente/servidor HTTP asíncrono
+# python-socketio==5.10.0  # Para WebSocket con fallback
+
+# Utilities
+# python-dotenv==1.0.0  # Variables de entorno
+
+# Data validation (opcional pero recomendado)
+# pydantic==2.5.0  # Validación de datos
+
+# Database (para fase futura)
+# sqlalchemy==2.0.23  # ORM
+# asyncpg==0.29.0     # PostgreSQL async
+
+# Testing
+# pytest==7.4.3
+# pytest-asyncio==0.21.1
+# pytest-cov==4.1.0
+
+# Nota: La Fase 1 no requiere dependencias externas
+# Las clases están implementadas usando solo la biblioteca estándar de Python
