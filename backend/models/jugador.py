@@ -1,128 +1,70 @@
-"""
-Clase Jugador - Representa un jugador en el juego de Parqués
-"""
-from typing import List
-from enum import Enum
-
-
-class ColorJugador(Enum):
-    """Colores disponibles para los jugadores"""
-    ROJO = "rojo"
-    AZUL = "azul"
-    AMARILLO = "amarillo"
-    VERDE = "verde"
+"""Modelo de Jugador para el juego de Parqués."""
+from typing import List, Optional
+from .ficha import Ficha
 
 
 class Jugador:
-    """
-    Clase que representa a un jugador en el juego de Parqués.
+    """Representa un jugador en la partida."""
     
-    Atributos:
-        nombre (str): Nombre del jugador
-        color (ColorJugador): Color asignado al jugador
-        fichas (List[Ficha]): Lista de fichas del jugador (4 fichas)
-        turno (bool): Indica si es el turno del jugador
-        id (str): Identificador único del jugador
-    """
+    COLORES_DISPONIBLES = ["rojo", "azul", "amarillo", "verde"]
     
-    def __init__(self, nombre: str, id_jugador: str = None):
-        """
-        Inicializa un nuevo jugador.
-        
-        Args:
-            nombre (str): Nombre del jugador
-            id_jugador (str, optional): Identificador único del jugador
-        """
+    def __init__(self, nombre: str, color: str, conexion=None):
         self.nombre = nombre
-        self.color = None  # Se asigna cuando se une a la partida
-        self.fichas = []  # Se inicializa cuando se asigna el color
-        self.turno = False
-        self.id = id_jugador or nombre
-        self.posicion_orden = None  # Orden de juego (1-4)
-    
-    def asignar_color(self, color: ColorJugador):
-        """
-        Asigna un color al jugador y crea sus fichas.
-        
-        Args:
-            color (ColorJugador): Color a asignar
-        """
-        from .ficha import Ficha
-        
         self.color = color
-        # Crear 4 fichas para el jugador
-        self.fichas = [Ficha(i, color, self.id) for i in range(4)]
+        self.conexion = conexion  # Socket del cliente
+        self.fichas: List[Ficha] = [Ficha(i, color) for i in range(4)]
+        self.es_su_turno = False
+        self.pares_consecutivos = 0
+        self.casilla_salida = self._calcular_casilla_salida()
     
-    def activar_turno(self):
-        """Activa el turno del jugador"""
-        self.turno = True
-    
-    def desactivar_turno(self):
-        """Desactiva el turno del jugador"""
-        self.turno = False
+    def _calcular_casilla_salida(self) -> int:
+        """Calcula la casilla de salida según el color."""
+        salidas = {"rojo": 5, "azul": 22, "amarillo": 39, "verde": 56}
+        return salidas.get(self.color, 0)
     
     def tiene_fichas_en_carcel(self) -> bool:
-        """
-        Verifica si el jugador tiene fichas en la cárcel.
-        
-        Returns:
-            bool: True si hay fichas en la cárcel
-        """
-        return any(ficha.esta_en_carcel() for ficha in self.fichas)
-    
-    def tiene_fichas_activas(self) -> bool:
-        """
-        Verifica si el jugador tiene fichas activas en el tablero.
-        
-        Returns:
-            bool: True si hay fichas activas
-        """
-        return any(ficha.esta_activa() for ficha in self.fichas)
+        return any(f.esta_en_carcel() for f in self.fichas)
     
     def todas_fichas_en_meta(self) -> bool:
-        """
-        Verifica si todas las fichas del jugador están en la meta.
-        
-        Returns:
-            bool: True si todas las fichas están en la meta
-        """
-        return all(ficha.esta_en_final() for ficha in self.fichas)
+        """Verifica si el jugador ganó."""
+        return all(f.esta_en_meta() for f in self.fichas)
     
-    def obtener_fichas_movibles(self, pasos: int, es_par: bool = False) -> List:
-        """
-        Obtiene las fichas que pueden moverse con el número de pasos dado.
+    def puede_mover(self, id_ficha: int, dados: int) -> bool:
+        """Valida si una ficha puede moverse con el resultado de dados."""
+        if id_ficha < 0 or id_ficha >= 4:
+            return False
         
-        Args:
-            pasos (int): Número de pasos a mover
-            es_par (bool): Si se sacó un par de dados
-            
-        Returns:
-            List[Ficha]: Lista de fichas que pueden moverse
-        """
-        fichas_movibles = []
+        ficha = self.fichas[id_ficha]
         
-        for ficha in self.fichas:
-            if ficha.puede_moverse(pasos, es_par):
-                fichas_movibles.append(ficha)
+        # Si está en cárcel, solo puede salir con pares
+        if ficha.esta_en_carcel():
+            return False  # Ya validado en puede_sacar_de_carcel
         
-        return fichas_movibles
+        # Si está en meta, no puede moverse
+        if ficha.esta_en_meta():
+            return False
+        
+        return True
+    
+    def puede_sacar_de_carcel(self, dados: tuple) -> bool:
+        """Solo puede sacar con par de dados."""
+        return dados[0] == dados[1] and self.tiene_fichas_en_carcel()
+    
+    def incrementar_pares(self):
+        self.pares_consecutivos += 1
+    
+    def resetear_pares(self):
+        self.pares_consecutivos = 0
+    
+    def tiene_tres_pares(self) -> bool:
+        """Si saca 3 pares seguidos, pierde el turno y manda ficha más adelantada a cárcel."""
+        return self.pares_consecutivos >= 3
     
     def to_dict(self) -> dict:
-        """
-        Convierte el jugador a un diccionario para serialización JSON.
-        
-        Returns:
-            dict: Representación del jugador en formato diccionario
-        """
         return {
-            "id": self.id,
             "nombre": self.nombre,
-            "color": self.color.value if self.color else None,
-            "turno": self.turno,
-            "posicion_orden": self.posicion_orden,
-            "fichas": [ficha.to_dict() for ficha in self.fichas],
-            "fichas_en_meta": sum(1 for f in self.fichas if f.esta_en_final())
+            "color": self.color,
+            "fichas": [f.to_dict() for f in self.fichas],
+            "es_su_turno": self.es_su_turno,
+            "casilla_salida": self.casilla_salida
         }
-    
-    def __repr__(self):
-        return f"Jugador({self.nombre}, {self.color.value if self.color else 'sin color'})"

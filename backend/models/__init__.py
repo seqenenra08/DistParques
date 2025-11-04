@@ -1,17 +1,7 @@
-"""
-Módulo models - Clases principales del juego de Parqués
-"""
-from .jugador import Jugador, ColorJugador
+"""Modelos del juego de Parqués."""
 from .ficha import Ficha, EstadoFicha
+from .jugador import Jugador
 from .tablero import Tablero
-from .partida import Partida, EstadoPartida
+from .partida import Partida
 
-__all__ = [
-    'Jugador',
-    'ColorJugador',
-    'Ficha',
-    'EstadoFicha',
-    'Tablero',
-    'Partida',
-    'EstadoPartida'
-]
+__all__ = ["Ficha", "EstadoFicha", "Jugador", "Tablero", "Partida"]

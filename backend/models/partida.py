@@ -1,48 +1,21 @@
-"""
-Clase Partida - Gestiona el estado y la lógica de una partida de Parqués
-"""
-from typing import List, Dict, Optional
-from enum import Enum
+"""Modelo de Partida para el juego de Parqués."""
 import random
-from datetime import datetime
-
-from .jugador import Jugador, ColorJugador
+import threading
+from typing import List, Optional, Dict, Tuple
+from .jugador import Jugador
 from .tablero import Tablero
-from .ficha import Ficha
-
-
-class EstadoPartida(Enum):
-    """Estados posibles de una partida"""
-    ESPERANDO = "esperando"      # Esperando jugadores
-    EN_CURSO = "en_curso"        # Partida en progreso
-    PAUSADA = "pausada"          # Partida pausada
-    FINALIZADA = "finalizada"    # Partida terminada
-
+from .ficha import EstadoFicha
 
 class Partida:
-    """
-    Clase que gestiona una partida completa de Parqués.
-    
-    Atributos:
-        id (str): Identificador único de la partida
-        jugadores (List[Jugador]): Lista de jugadores (2-4 jugadores)
-        tablero (Tablero): Tablero de juego
-        estado (EstadoPartida): Estado actual de la partida
-        turno_actual (int): Índice del jugador con el turno actual
-        ganador (Optional[Jugador]): Jugador ganador (si la partida finalizó)
-        colores_disponibles (List[ColorJugador]): Colores aún no asignados
-        max_jugadores (int): Número máximo de jugadores (default 4)
-        ultimo_dado (int): Último valor de dado lanzado
-        turnos_consecutivos (int): Turnos consecutivos del mismo jugador
-    """
-    
+    """Representa una partida completa del juego."""
+
     MAX_JUGADORES = 4
     MIN_JUGADORES = 2
-    
+
     def __init__(self, id_partida: str, max_jugadores: int = 4):
         """
         Inicializa una nueva partida.
-        
+
         Args:
             id_partida (str): Identificador único de la partida
             max_jugadores (int): Número máximo de jugadores (2-4)
@@ -50,326 +23,424 @@ class Partida:
         self.id = id_partida
         self.jugadores: List[Jugador] = []
         self.tablero = Tablero()
-        self.estado = EstadoPartida.ESPERANDO
+        self.max_jugadores = min(max_jugadores, self.MAX_JUGADORES)
+        self.iniciada = False
         self.turno_actual = 0
         self.ganador: Optional[Jugador] = None
-        self.max_jugadores = min(max_jugadores, self.MAX_JUGADORES)
-        self.ultimo_dado = 0
-        self.turnos_consecutivos = 0
-        self.fecha_creacion = datetime.now()
-        self.fecha_inicio: Optional[datetime] = None
-        self.fecha_fin: Optional[datetime] = None
-        
-        # Colores disponibles para asignar
-        self.colores_disponibles = [
-            ColorJugador.ROJO,
-            ColorJugador.AZUL,
-            ColorJugador.AMARILLO,
-            ColorJugador.VERDE
-        ]
-        
-        # Historial de movimientos
-        self.historial_movimientos = []
-    
+        self.lock = threading.Lock()  # Para sincronización de turnos
+        self.dados_pendientes: Dict[str, List[int]] = {}  # jugador -> [dado1, dado2]
+
     def puede_unirse(self) -> bool:
         """
         Verifica si un nuevo jugador puede unirse a la partida.
-        
+
         Returns:
             bool: True si hay espacio disponible
         """
-        return (len(self.jugadores) < self.max_jugadores and 
-                self.estado == EstadoPartida.ESPERANDO)
-    
+        return (len(self.jugadores) < self.max_jugadores and
+                not self.iniciada)
+
     def agregar_jugador(self, nombre: str, id_jugador: str = None) -> Optional[Jugador]:
         """
         Agrega un nuevo jugador a la partida y le asigna un color.
-        
+
         Args:
             nombre (str): Nombre del jugador
             id_jugador (str): ID único del jugador
-            
+
         Returns:
             Optional[Jugador]: Jugador creado o None si no pudo unirse
         """
-        if not self.puede_unirse():
-            return None
-        
-        # Crear jugador
-        jugador = Jugador(nombre, id_jugador)
-        
-        # Asignar color disponible
-        if self.colores_disponibles:
-            color = self.colores_disponibles.pop(0)
-            jugador.asignar_color(color)
-            jugador.posicion_orden = len(self.jugadores) + 1
-        
-        self.jugadores.append(jugador)
-        
-        return jugador
-    
-    def remover_jugador(self, id_jugador: str) -> bool:
-        """
-        Remueve un jugador de la partida.
-        
-        Args:
-            id_jugador (str): ID del jugador a remover
-            
-        Returns:
-            bool: True si se removió exitosamente
-        """
-        for jugador in self.jugadores:
-            if jugador.id == id_jugador:
-                # Devolver el color a disponibles
-                if jugador.color:
-                    self.colores_disponibles.append(jugador.color)
-                
-                self.jugadores.remove(jugador)
-                return True
-        
-        return False
-    
+        with self.lock:
+            if self.iniciada:
+                return None
+
+            if len(self.jugadores) >= self.max_jugadores:
+                return None
+
+            # Asignar color disponible
+            colores_usados = {j.color for j in self.jugadores}
+            colores_disponibles = [c for c in Jugador.COLORES_DISPONIBLES if c not in colores_usados]
+
+            if not colores_disponibles:
+                return None
+
+            color = colores_disponibles[0]
+            jugador = Jugador(nombre, color, id_jugador)
+            self.jugadores.append(jugador)
+
+            return jugador
+
     def iniciar_partida(self) -> bool:
-        """
-        Inicia la partida si hay suficientes jugadores.
-        
-        Returns:
-            bool: True si se inició correctamente
-        """
-        if len(self.jugadores) < self.MIN_JUGADORES:
-            return False
-        
-        if self.estado != EstadoPartida.ESPERANDO:
-            return False
-        
-        # Determinar orden aleatorio de turnos
-        random.shuffle(self.jugadores)
-        for i, jugador in enumerate(self.jugadores):
-            jugador.posicion_orden = i + 1
-        
-        # Activar turno del primer jugador
-        self.jugadores[0].activar_turno()
-        self.turno_actual = 0
-        
-        self.estado = EstadoPartida.EN_CURSO
-        self.fecha_inicio = datetime.now()
-        
-        return True
-    
+        """Inicia la partida si hay al menos 2 jugadores."""
+        with self.lock:
+            if len(self.jugadores) < self.MIN_JUGADORES:
+                return False
+
+            self.iniciada = True
+            # Primer turno aleatorio
+            self.turno_actual = random.randint(0, len(self.jugadores) - 1)
+            self.jugadores[self.turno_actual].es_su_turno = True
+            return True
+
     def obtener_jugador_actual(self) -> Optional[Jugador]:
-        """
-        Obtiene el jugador que tiene el turno actual.
-        
-        Returns:
-            Optional[Jugador]: Jugador con el turno actual
-        """
-        if self.jugadores and 0 <= self.turno_actual < len(self.jugadores):
-            return self.jugadores[self.turno_actual]
-        return None
-    
-    def lanzar_dado(self) -> int:
-        """
-        Simula el lanzamiento de un dado (1-6).
-        
-        Returns:
-            int: Resultado del dado
-        """
-        self.ultimo_dado = random.randint(1, 6)
-        return self.ultimo_dado
-    
-    def puede_sacar_de_carcel(self, es_par: bool = False) -> bool:
-        """
-        Verifica si se puede sacar una ficha de la cárcel.
-        En Parqués se saca con pares (sacar dos dados iguales)
-        
-        Args:
-            es_par (bool): Si los dos dados sacados son iguales
-            
-        Returns:
-            bool: True si puede sacar (cuando es par)
-        """
-        return es_par
-    
-    def pasar_turno(self) -> Jugador:
-        """
-        Pasa el turno al siguiente jugador.
-        
-        Returns:
-            Jugador: Jugador que ahora tiene el turno
-        """
-        # Desactivar turno del jugador actual
-        if self.jugadores:
-            self.jugadores[self.turno_actual].desactivar_turno()
-        
-        # Avanzar al siguiente jugador
-        self.turno_actual = (self.turno_actual + 1) % len(self.jugadores)
-        self.turnos_consecutivos = 0
-        
-        # Activar turno del nuevo jugador
-        self.jugadores[self.turno_actual].activar_turno()
-        
+        """Retorna el jugador del turno actual."""
+        if not self.jugadores:
+            return None
         return self.jugadores[self.turno_actual]
-    
-    def otorgar_turno_extra(self):
-        """Otorga un turno extra al jugador actual (por sacar 5, comer, etc.)"""
-        self.turnos_consecutivos += 1
-    
-    def mover_ficha(self, id_jugador: str, id_ficha: int, pasos: int) -> Dict:
-        """
-        Mueve una ficha del jugador.
-        
-        Args:
-            id_jugador (str): ID del jugador
-            id_ficha (int): ID de la ficha a mover
-            pasos (int): Número de pasos a mover
+
+    def lanzar_dados(self) -> tuple:
+        """Simula el lanzamiento de 2 dados."""
+        return (random.randint(1, 6), random.randint(1, 6))
+
+    def es_par(self, dados: tuple) -> bool:
+        """Verifica si los dados son pares."""
+        return dados[0] == dados[1]
+
+    def obtener_fichas_disponibles(self, jugador: Jugador) -> List[Dict]:
+        """Retorna información de fichas que pueden moverse."""
+        fichas_info = []
+        for ficha in jugador.fichas:
+            info = {
+                "id": ficha.id,
+                "estado": ficha.estado.value,
+                "posicion": ficha.posicion,
+                "puede_mover": not ficha.esta_en_meta()
+            }
             
-        Returns:
-            Dict: Resultado del movimiento con detalles
-        """
-        resultado = {
-            "exito": False,
-            "mensaje": "",
-            "ficha_comida": None,
-            "turno_extra": False,
-            "llego_a_meta": False
-        }
-        
-        # Verificar que sea el turno del jugador
-        jugador = self.obtener_jugador_actual()
-        if not jugador or jugador.id != id_jugador:
-            resultado["mensaje"] = "No es tu turno"
-            return resultado
-        
-        # Buscar la ficha
-        ficha = None
-        for f in jugador.fichas:
-            if f.id == id_ficha:
-                ficha = f
-                break
-        
-        if not ficha:
-            resultado["mensaje"] = "Ficha no encontrada"
-            return resultado
-        
-        # Verificar si puede moverse
-        if not ficha.puede_moverse(pasos):
-            resultado["mensaje"] = "La ficha no puede moverse"
-            return resultado
-        
-        # Realizar el movimiento según el estado de la ficha
-        if ficha.esta_en_carcel():
-            # Sacar de la cárcel
-            if self.puede_sacar_de_carcel(pasos):
-                pos_salida = self.tablero.obtener_posicion_salida(jugador.color)
-                ficha.sacar_de_carcel(pos_salida)
-                self.tablero.agregar_ficha_a_casilla(ficha, pos_salida)
-                
-                resultado["exito"] = True
-                resultado["mensaje"] = "Ficha salió de la cárcel"
-                resultado["turno_extra"] = True
+            if ficha.esta_en_carcel():
+                info["descripcion"] = "🔒 En cárcel (necesita par para salir)"
+                info["puede_mover"] = False
+            elif ficha.esta_en_meta():
+                info["descripcion"] = "🏁 En la meta"
+                info["puede_mover"] = False
+            elif ficha.estado == EstadoFicha.PASILLO_FINAL:
+                faltantes = 8 - ficha.posicion_pasillo
+                info["descripcion"] = f"🏃 Pasillo final - Faltan {faltantes} casillas para meta"
+                info["posicion_pasillo"] = ficha.posicion_pasillo
+                info["puede_mover"] = True
             else:
-                resultado["mensaje"] = "No se puede sacar con ese número"
-        else:
-            # Mover ficha activa
-            pos_antigua = ficha.posicion
-            nueva_pos, entro_final = self.tablero.calcular_nueva_posicion(
-                pos_antigua, pasos, jugador.color, ficha.en_recta_final
-            )
+                info["descripcion"] = f"🎲 En posición {ficha.posicion}"
+                info["puede_mover"] = True
             
-            # Verificar si llega exactamente a la meta
-            if self.tablero.puede_llegar_a_meta(pos_antigua, pasos, 
-                                                 jugador.color, ficha.en_recta_final):
-                ficha.marcar_como_final()
-                self.tablero.remover_ficha_de_casilla(ficha, pos_antigua)
-                
-                resultado["exito"] = True
-                resultado["mensaje"] = "¡Ficha llegó a la meta!"
-                resultado["llego_a_meta"] = True
-                resultado["turno_extra"] = True
+            fichas_info.append(info)
+        
+        return fichas_info
+
+    def procesar_turno_dividido(self, jugador: Jugador, dados: tuple,
+                                movimientos: List[Dict]) -> Dict:
+        """
+        Procesa turno con dados divididos.
+        movimientos = [{"id_ficha": 0, "valor_dado": 5}, {"id_ficha": 1, "valor_dado": 6}]
+        o [{"id_ficha": 0, "valor_dado": 11}]
+        """
+        with self.lock:
+            if not jugador.es_su_turno:
+                return {"error": "No es tu turno"}
+
+            resultado = {
+                "dados": dados,
+                "es_par": self.es_par(dados),
+                "movimientos_realizados": [],
+                "fichas_capturadas": [],
+                "cambio_turno": False,
+                "tres_pares": False
+            }
+
+            # Verificar 3 pares consecutivos
+            if self.es_par(dados):
+                jugador.incrementar_pares()
+                if jugador.tiene_tres_pares():
+                    self._penalizar_tres_pares(jugador)
+                    resultado["tres_pares"] = True
+                    resultado["accion"] = "penalizacion_tres_pares"
+                    self._cambiar_turno()
+                    resultado["cambio_turno"] = True
+                    return resultado
             else:
-                # Mover normalmente
-                self.tablero.remover_ficha_de_casilla(ficha, pos_antigua)
+                jugador.resetear_pares()
+
+            # Validar que los valores de dados sumen correctamente
+            valores_usados = [m["valor_dado"] for m in movimientos]
+            suma_total = sum(valores_usados)
+
+            if suma_total != dados[0] + dados[1]:
+                return {"error": f"Los valores no suman {dados[0] + dados[1]}"}
+
+            # Validar que no se use un valor mayor que cualquier dado individual
+            # a menos que sea la suma completa
+            if len(movimientos) > 1:
+                for valor in valores_usados:
+                    if valor not in dados:
+                        return {"error": f"Valor {valor} no coincide con ningún dado"}
+
+            # Ejecutar movimientos
+            for mov in movimientos:
+                id_ficha = mov["id_ficha"]
+                valor = mov["valor_dado"]
+
+                # Intentar sacar de cárcel si es necesario
+                ficha = jugador.fichas[id_ficha]
+                if ficha.esta_en_carcel():
+                    if self.es_par(dados) and valor == dados[0]:
+                        exito = self._sacar_ficha_carcel(jugador, id_ficha)
+                        if exito:
+                            resultado["movimientos_realizados"].append({
+                                "id_ficha": id_ficha,
+                                "accion": "sacar_carcel"
+                            })
+                    else:
+                        return {"error": f"Ficha {id_ficha} está en cárcel, necesitas par para salir"}
+                else:
+                    # Mover ficha normal
+                    if not jugador.puede_mover(id_ficha, valor):
+                        return {"error": f"No puedes mover la ficha {id_ficha}"}
+
+                    capturadas = self._mover_ficha(jugador, id_ficha, valor)
+                    resultado["movimientos_realizados"].append({
+                        "id_ficha": id_ficha,
+                        "casillas": valor,
+                        "capturadas": len(capturadas)
+                    })
+                    resultado["fichas_capturadas"].extend([f.to_dict() for f in capturadas])
+
+            # Verificar victoria
+            if jugador.todas_fichas_en_meta():
+                self.ganador = jugador
+                resultado["ganador"] = jugador.nombre
+
+            # Cambiar turno si no es par
+            if not self.es_par(dados):
+                self._cambiar_turno()
+                resultado["cambio_turno"] = True
+
+            return resultado
+
+    def procesar_turno(self, jugador: Jugador, dados: tuple, id_ficha: Optional[int] = None) -> Dict:
+        """Procesa un turno completo del jugador (modo clásico: suma de dados)."""
+        with self.lock:
+            if not jugador.es_su_turno:
+                return {"error": "No es tu turno"}
+            
+            resultado = {
+                "dados": dados,
+                "es_par": self.es_par(dados),
+                "accion": None,
+                "fichas_capturadas": [],
+                "cambio_turno": False,
+                "tres_pares": False
+            }
+            
+            suma_dados = dados[0] + dados[1]
+            
+            # Verificar 3 pares consecutivos
+            if self.es_par(dados):
+                jugador.incrementar_pares()
+                if jugador.tiene_tres_pares():
+                    self._penalizar_tres_pares(jugador)
+                    resultado["tres_pares"] = True
+                    resultado["accion"] = "penalizacion_tres_pares"
+                    self._cambiar_turno()
+                    resultado["cambio_turno"] = True
+                    return resultado
+            else:
+                jugador.resetear_pares()
+            
+            # Verificar si todas las fichas están en cárcel y no hay par
+            todas_en_carcel = all(f.esta_en_carcel() for f in jugador.fichas)
+            if todas_en_carcel and not self.es_par(dados):
+                resultado["accion"] = "sin_movimiento_carcel"
+                resultado["mensaje"] = "Todas tus fichas están en la cárcel. Necesitas PAR para sacar."
+                self._cambiar_turno()
+                resultado["cambio_turno"] = True
+                return resultado
+            
+            # Intentar sacar de cárcel con pares
+            if self.es_par(dados) and jugador.puede_sacar_de_carcel(dados):
+                if id_ficha is not None:
+                    ficha = jugador.fichas[id_ficha]
+                    if not ficha.esta_en_carcel():
+                        return {"error": f"La ficha {id_ficha} no está en la cárcel. Fichas en cárcel: {[f.id for f in jugador.fichas if f.esta_en_carcel()]}"}
+                    
+                    exito = self._sacar_ficha_carcel(jugador, id_ficha)
+                    if exito:
+                        resultado["accion"] = "sacar_carcel"
+                        # Con par puede tirar de nuevo, no cambiar turno
+                        return resultado
+                else:
+                    # Sacó par pero no especificó ficha, esperar movimiento
+                    return resultado
+            
+            # Mover ficha existente
+            if id_ficha is not None:
+                ficha = jugador.fichas[id_ficha]
                 
-                es_seguro = self.tablero.es_casilla_segura(nueva_pos)
-                ficha.mover(nueva_pos, es_seguro)
-                ficha.en_recta_final = entro_final
+                if ficha.esta_en_carcel():
+                    return {"error": f"La ficha {id_ficha} está en la cárcel. Necesitas sacar PAR para liberarla."}
                 
-                if not entro_final:
-                    self.tablero.agregar_ficha_a_casilla(ficha, nueva_pos)
+                if not jugador.puede_mover(id_ficha, suma_dados):
+                    return {"error": f"No puedes mover la ficha {id_ficha}. Intenta con otra ficha."}
                 
-                # Verificar colisión (comer ficha enemiga)
-                if not es_seguro and not entro_final:
-                    ficha_enemiga = self.tablero.verificar_colision(nueva_pos, jugador.color)
-                    if ficha_enemiga:
-                        ficha_enemiga.enviar_a_carcel()
-                        self.tablero.remover_ficha_de_casilla(ficha_enemiga, nueva_pos)
-                        
-                        resultado["ficha_comida"] = ficha_enemiga.to_dict()
-                        resultado["turno_extra"] = True
-                        resultado["mensaje"] = "¡Comiste una ficha enemiga!"
+                # Verificar si el movimiento es válido (no se pasa de la meta)
+                if ficha.estado == EstadoFicha.PASILLO_FINAL:
+                    nueva_pos = ficha.posicion_pasillo + suma_dados
+                    if nueva_pos > 8:
+                        return {"error": f"No puedes mover {suma_dados} casillas. Necesitas caer EXACTO en la meta (te faltan {8 - ficha.posicion_pasillo})."}
+                elif ficha.casillas_recorridas + suma_dados > 76:  # 68 tablero + 8 pasillo
+                    casillas_faltantes = 76 - ficha.casillas_recorridas
+                    return {"error": f"No puedes mover {suma_dados} casillas. Solo te faltan {casillas_faltantes} para llegar EXACTO a la meta."}
                 
-                resultado["exito"] = True
-                if not resultado["mensaje"]:
-                    resultado["mensaje"] = "Ficha movida correctamente"
+                capturadas = self._mover_ficha(jugador, id_ficha, suma_dados)
+                
+                # Verificar si entró al pasillo
+                if ficha.estado == EstadoFicha.PASILLO_FINAL and ficha.posicion_pasillo < 8:
+                    resultado["accion"] = "entro_pasillo"
+                    resultado["mensaje"] = f"¡Entraste al pasillo final! Te faltan {8 - ficha.posicion_pasillo} casillas para la meta"
+                elif ficha.esta_en_meta():
+                    resultado["accion"] = "llego_meta"
+                    resultado["mensaje"] = f"¡Ficha {id_ficha} llegó a la META!"
+                else:
+                    resultado["accion"] = "mover"
+                
+                resultado["fichas_capturadas"] = [f.to_dict() for f in capturadas]
+                
+                # Verificar victoria
+                if jugador.todas_fichas_en_meta():
+                    self.ganador = jugador
+                    resultado["ganador"] = jugador.nombre
+                
+                # Si no es par, cambiar turno
+                if not self.es_par(dados):
+                    self._cambiar_turno()
+                    resultado["cambio_turno"] = True
+            else:
+                # No especificó ficha
+                fichas_fuera = [f for f in jugador.fichas if not f.esta_en_carcel() and not f.esta_en_meta()]
+                
+                if not fichas_fuera:
+                    resultado["accion"] = "sin_movimiento"
+                    if not self.es_par(dados):
+                        self._cambiar_turno()
+                        resultado["cambio_turno"] = True
+                else:
+                    resultado["accion"] = "esperando_movimiento"
+            
+            return resultado
+
+    def _sacar_ficha_carcel(self, jugador: Jugador, id_ficha: int) -> bool:
+        """Saca una ficha de la cárcel a su casilla de salida."""
+        ficha = jugador.fichas[id_ficha]
+        if not ficha.esta_en_carcel():
+            return False
+
+        casilla_salida = jugador.casilla_salida
+        ficha.mover_a_tablero(casilla_salida)
+        self.tablero.agregar_ficha(casilla_salida, ficha)
+        return True
+
+    def _mover_ficha(self, jugador: Jugador, id_ficha: int, casillas: int) -> List:
+        """Mueve una ficha y procesa capturas."""
+        ficha = jugador.fichas[id_ficha]
+        posicion_anterior = ficha.posicion
         
-        # Registrar en historial
-        self.historial_movimientos.append({
-            "jugador": id_jugador,
-            "ficha": id_ficha,
-            "pasos": pasos,
-            "timestamp": datetime.now().isoformat(),
-            "resultado": resultado["mensaje"]
-        })
+        # Si está en pasillo final
+        if ficha.estado == EstadoFicha.PASILLO_FINAL:
+            nueva_pos_pasillo = ficha.posicion_pasillo + casillas
+            
+            if nueva_pos_pasillo == 8:
+                # Llega exacto a la meta
+                ficha.estado = EstadoFicha.META
+                ficha.posicion_pasillo = 8
+                return []
+            elif nueva_pos_pasillo > 8:
+                # Se pasa de la meta, NO puede mover
+                return []
+            else:
+                # Movimiento válido en pasillo
+                ficha.posicion_pasillo = nueva_pos_pasillo
+                return []
         
-        # Verificar si el jugador ganó
-        if jugador.todas_fichas_en_meta():
-            self.finalizar_partida(jugador)
+        # Remover de posición anterior si está en tablero
+        if posicion_anterior is not None:
+            self.tablero.remover_ficha(posicion_anterior, ficha)
         
-        return resultado
-    
-    def finalizar_partida(self, ganador: Jugador):
-        """
-        Finaliza la partida declarando un ganador.
+        # Verificar si debe entrar al pasillo final
+        casillas_totales = ficha.casillas_recorridas + casillas
         
-        Args:
-            ganador (Jugador): Jugador ganador
-        """
-        self.estado = EstadoPartida.FINALIZADA
-        self.ganador = ganador
-        self.fecha_fin = datetime.now()
-    
-    def pausar_partida(self):
-        """Pausa la partida."""
-        if self.estado == EstadoPartida.EN_CURSO:
-            self.estado = EstadoPartida.PAUSADA
-    
-    def reanudar_partida(self):
-        """Reanuda la partida pausada."""
-        if self.estado == EstadoPartida.PAUSADA:
-            self.estado = EstadoPartida.EN_CURSO
-    
-    def to_dict(self) -> dict:
-        """
-        Convierte la partida a un diccionario para serialización JSON.
+        if casillas_totales >= 68:
+            # Entra al pasillo final
+            casillas_en_pasillo = casillas_totales - 68
+            
+            if casillas_en_pasillo == 8:
+                # Llega exacto a la meta
+                ficha.entrar_pasillo()
+                ficha.posicion_pasillo = 8
+                ficha.estado = EstadoFicha.META
+                return []
+            elif casillas_en_pasillo > 8:
+                # Se pasaría de la meta, NO puede mover
+                # Restaurar posición
+                if posicion_anterior is not None:
+                    self.tablero.agregar_ficha(posicion_anterior, ficha)
+                return []
+            else:
+                # Entra al pasillo sin llegar a meta
+                ficha.entrar_pasillo()
+                ficha.posicion_pasillo = casillas_en_pasillo
+                ficha.casillas_recorridas = casillas_totales
+                return []
         
-        Returns:
-            dict: Representación de la partida en formato diccionario
-        """
+        # Movimiento normal en el tablero
+        nueva_posicion = (posicion_anterior + casillas) % 68
+        es_seguro = self.tablero.es_seguro(nueva_posicion)
+        
+        ficha.mover(casillas, es_seguro)
+        
+        # Agregar a nueva posición
+        if ficha.posicion is not None:
+            self.tablero.agregar_ficha(ficha.posicion, ficha)
+            
+            # Verificar capturas (solo si no está en seguro)
+            if not es_seguro:
+                capturadas = self.tablero.verificar_captura(ficha.posicion, ficha)
+                for capturada in capturadas:
+                    capturada.capturar()
+                    self.tablero.remover_ficha(ficha.posicion, capturada)
+                
+                return capturadas
+        
+        return []
+
+    def _penalizar_tres_pares(self, jugador: Jugador):
+        """Penaliza al jugador por sacar 3 pares: ficha más adelantada a cárcel."""
+        fichas_en_juego = [f for f in jugador.fichas if not f.esta_en_carcel() and not f.esta_en_meta()]
+
+        if fichas_en_juego:
+            # Ficha más adelantada
+            ficha_castigada = max(fichas_en_juego, key=lambda f: f.posicion if f.posicion else -1)
+            if ficha_castigada.posicion is not None:
+                self.tablero.remover_ficha(ficha_castigada.posicion, ficha_castigada)
+            ficha_castigada.capturar()
+
+        jugador.resetear_pares()
+
+    def _cambiar_turno(self):
+        """Cambia al siguiente jugador."""
+        self.jugadores[self.turno_actual].es_su_turno = False
+        self.turno_actual = (self.turno_actual + 1) % len(self.jugadores)
+        self.jugadores[self.turno_actual].es_su_turno = True
+
+    def obtener_estado(self) -> dict:
+        """Retorna el estado completo de la partida."""
         return {
             "id": self.id,
-            "estado": self.estado.value,
-            "jugadores": [j.to_dict() for j in self.jugadores],
-            "num_jugadores": len(self.jugadores),
-            "max_jugadores": self.max_jugadores,
+            "iniciada": self.iniciada,
             "turno_actual": self.turno_actual,
-            "jugador_actual": self.jugadores[self.turno_actual].to_dict() if self.jugadores else None,
-            "ultimo_dado": self.ultimo_dado,
-            "ganador": self.ganador.to_dict() if self.ganador else None,
+            "jugador_actual": self.jugadores[self.turno_actual].nombre if self.jugadores else None,
+            "jugadores": [j.to_dict() for j in self.jugadores],
             "tablero": self.tablero.to_dict(),
-            "fecha_creacion": self.fecha_creacion.isoformat(),
-            "fecha_inicio": self.fecha_inicio.isoformat() if self.fecha_inicio else None,
-            "fecha_fin": self.fecha_fin.isoformat() if self.fecha_fin else None
+            "ganador": self.ganador.nombre if self.ganador else None
         }
-    
+
     def __repr__(self):
-        return f"Partida({self.id}, {len(self.jugadores)} jugadores, {self.estado.value})"
+        return f"Partida({self.id}, {len(self.jugadores)} jugadores, {'en curso' if self.iniciada else 'esperando'})"

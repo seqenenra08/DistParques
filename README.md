@@ -1,394 +1,396 @@
-# 🎲 Parqués - Sistema Distribuido
+# 🎲 Parqués Distribuido
 
-## ✅ Fases Completadas
-
-### ✅ Fase 1: Diseño y Planeación
-### ✅ Fase 2: Servidor TCP con Threading
-
----
-
-## 🎮 Inicio Manual de Partida
-
-**IMPORTANTE**: La partida ahora usa **inicio manual** por parte del anfitrión.
-
-- El **primer jugador** que se conecta es el **anfitrión** 👑
-- El anfitrión debe escribir **`iniciar`** cuando todos estén listos
-- Se necesitan **mínimo 2 jugadores** para iniciar
-- Ver guía completa en: [`INICIO_MANUAL.md`](INICIO_MANUAL.md)
+Juego multijugador de Parqués con servidor Python y cliente Unity (actualmente con cliente de consola funcional).
 
 ---
 
 ## 🚀 Inicio Rápido
 
-### 1. Iniciar Servidor
-```powershell
-py backend\servidor.py
+### 1️⃣ Crear y activar entorno virtual
+
+```bash
+cd /home/seqenenra/Codes/DistParques
+python3 -m venv env
+source env/bin/activate  # En Windows: .\env\Scripts\activate
+pip install -r requirements.txt
 ```
 
-### 2. Iniciar Clientes (2-4 jugadores)
-```powershell
-py cliente\cliente_consola.py
+### 2️⃣ Iniciar el servidor
+
+**Opción A - Script rápido:**
+```bash
+chmod +x run_server.sh
+./run_server.sh
 ```
 
-### 3. El Anfitrión Inicia
+**Opción B - Manual:**
+```bash
+source env/bin/activate
+python3 backend/servidor.py
 ```
+
+Verás:
+```
+✅ Servidor escuchando en 0.0.0.0:5555
+Esperando jugadores... (mínimo 2, máximo 4)
+```
+
+### 3️⃣ Conectar clientes (mínimo 2, máximo 4)
+
+**En terminales diferentes:**
+
+```bash
+# Terminal 2 - Jugador 1
+source env/bin/activate
+python3 cliente/cliente_simple.py
+# Ingresa tu nombre: Ana
+
+# Terminal 3 - Jugador 2  
+source env/bin/activate
+python3 cliente/cliente_simple.py
+# Ingresa tu nombre: Luis
+
+# (Opcional) Terminal 4 y 5 para más jugadores...
+```
+
+### 4️⃣ Iniciar y jugar
+
+**En cualquier terminal de cliente:**
+```bash
+> iniciar        # Inicia la partida (requiere 2+ jugadores)
+```
+
+**Cuando sea tu turno:**
+```bash
+> lanzar         # Lanza los dados
+🎲 Dados: (4, 5) → Suma: 9
+
+> fichas         # Ver tus fichas disponibles
+📋 TUS FICHAS:
+   ❌ Ficha 0: 🔒 En cárcel (necesita par)
+   ✅ Ficha 1: 🎲 En posición 12
+   ✅ Ficha 2: 🎲 En posición 25
+   ❌ Ficha 3: 🏁 En la meta
+
+# OPCIÓN 1: Mover con suma total
+> mover 1        # Mueve ficha 1 con 9 casillas (4+5)
+
+# OPCIÓN 2: Dividir dados en dos fichas
+> dividir 1 4 2 5   # Ficha 1 con 4, ficha 2 con 5
+```
+
+---
+
+## 🎮 Comandos del Cliente
+
+| Comando | Descripción | Ejemplo |
+|---------|-------------|---------|
+| `iniciar` | Iniciar la partida (2-4 jugadores) | `> iniciar` |
+| `lanzar` | Lanzar los dados | `> lanzar` |
+| `mover N` | Mover ficha N con suma total | `> mover 0` |
+| `dividir N1 D1 N2 D2` | Dividir dados en 2 fichas | `> dividir 0 3 1 5` |
+| `fichas` | Ver estado de tus fichas | `> fichas` |
+| `jugadores` | Ver jugadores conectados | `> jugadores` |
+| `ayuda` | Mostrar ayuda | `> ayuda` |
+| `salir` | Desconectar del servidor | `> salir` |
+
+---
+
+## 📋 Reglas del Juego (Implementadas)
+
+### ✅ Reglas Básicas
+- **2-4 jugadores** con 4 fichas cada uno
+- **Lanzar 2 dados** en cada turno
+- **Ganar:** Llevar las 4 fichas a la meta
+
+### 🎲 Mecánicas de Dados
+- **Par (ej: 3,3):** Lanzas de nuevo después de mover
+- **Suma o División:** Puedes usar la suma (6) o dividir (3+3 en dos fichas)
+- **3 pares consecutivos:** Penalización - tu ficha más adelantada vuelve a la cárcel
+
+### 🔒 Salir de la Cárcel
+- **Necesitas PAR** para sacar una ficha (ej: 4,4 o 6,6)
+- Comando: `> mover N` donde N es la ficha en cárcel
+
+### 🛡️ Seguros y Capturas
+- **Seguros (12 casillas):** No puedes ser capturado
+- **Captura:** Si caes en casilla con ficha rival (no seguro), la envías a su cárcel
+- **Casilla de salida:** Es segura para tu color
+
+### 🏁 Pasillo Final y Meta
+- Al completar la vuelta, entras al **pasillo final** (8 casillas)
+- Llegas a la **meta** y esa ficha queda inmóvil
+
+---
+
+## 📂 Estructura del Proyecto
+
+```
+DistParques/
+├── backend/
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── ficha.py          # Clase Ficha con estados
+│   │   ├── jugador.py        # Clase Jugador con fichas
+│   │   ├── tablero.py        # Tablero con 68 casillas
+│   │   └── partida.py        # Lógica del juego y turnos
+│   ├── servidor.py            # Servidor TCP multi-cliente
+│   └── cliente_consola.py     # Cliente de prueba (alternativo)
+├── cliente/
+│   ├── cliente_simple.py      # Cliente principal (RECOMENDADO)
+│   └── cliente_consola.py     # Cliente alternativo
+├── docs/
+│   └── PROTOCOLO.md           # Protocolo JSON para Unity
+├── requirements.txt           # Dependencias Python
+├── run_server.sh             # Script para iniciar servidor
+├── run_cliente.sh            # Script para iniciar cliente
+└── README.md                 # Este archivo
+```
+
+---
+
+## 🎯 Ejemplo de Partida Completa
+
+```bash
+# ========== TERMINAL 1 - SERVIDOR ==========
+$ python3 backend/servidor.py
+✅ Servidor escuchando en 0.0.0.0:5555
+🔌 Nueva conexión desde ('127.0.0.1', 45678)
+✅ Ana se unió como rojo
+🔌 Nueva conexión desde ('127.0.0.1', 45679)
+✅ Luis se unió como azul
+🎮 Partida iniciada! Turno de Ana
+🎲 Ana lanzó (4, 4)
+🚶 Ana movió ficha 0: sacar_carcel
+🎲 Ana lanzó (3, 5)
+🚶 Ana movió ficha 0: mover
+🎲 Luis lanzó (6, 6)
+...
+
+# ========== TERMINAL 2 - ANA ==========
+$ python3 cliente/cliente_simple.py
+📝 Tu nombre: Ana
+✅ Conectado a 127.0.0.1:5555
+🎨 Bienvenido Ana, eres rojo
+
+────────────────────────────────────────────────────────────
+👥 JUGADORES (2/4):
+👉 rojo     - Ana              (TÚ)
+     🏁0 🔒4 🎲0
+   azul     - Luis            
+     🏁0 🔒4 🎲0
+⏳ Esperando inicio (mín. 2 jugadores)
+────────────────────────────────────────────────────────────
+
 > iniciar
+============================================================
+🎮 Partida iniciada. Turno de Ana
+============================================================
+
+⏰ ES TU TURNO, Ana! Escribe 'lanzar'
+
+> lanzar
+🎲 Dados: (4, 4) → Suma: 8
+   ✨ ¡PAR! Puedes tirar de nuevo después de mover
+   🔓 ¡Puedes SACAR DE LA CÁRCEL! Usa: mover N
+
+📋 TUS FICHAS:
+   ❌ Ficha 0: 🔒 En cárcel (necesita par)
+   ❌ Ficha 1: 🔒 En cárcel (necesita par)
+   ❌ Ficha 2: 🔒 En cárcel (necesita par)
+   ❌ Ficha 3: 🔒 En cárcel (necesita par)
+
+> mover 0
+✅ Ficha sacada de la cárcel
+   🎲 Sacaste PAR, lanza de nuevo!
+
+> lanzar
+🎲 Dados: (3, 5) → Suma: 8
+
+📋 TUS FICHAS:
+   ✅ Ficha 0: 🎲 En posición 5
+   ❌ Ficha 1: 🔒 En cárcel (necesita par)
+   ❌ Ficha 2: 🔒 En cárcel (necesita par)
+   ❌ Ficha 3: 🔒 En cárcel (necesita par)
+
+> mover 0
+✅ Ficha movida
+   ⏭️  Fin de turno
+
+────────────────────────────────────────────────────────────
+👥 JUGADORES (2/4):
+   rojo     - Ana              (TÚ)
+     🏁0 🔒3 🎲1
+👉 azul     - Luis            
+     🏁0 🔒4 🎲0
+────────────────────────────────────────────────────────────
+
+# ========== TERMINAL 3 - LUIS ==========
+$ python3 cliente/cliente_simple.py
+📝 Tu nombre: Luis
+✅ Conectado a 127.0.0.1:5555
+🎨 Bienvenido Luis, eres azul
+...
+⏰ ES TU TURNO, Luis! Escribe 'lanzar'
+
+> lanzar
+🎲 Dados: (2, 6) → Suma: 8
+💡 Opciones:
+   1. 'mover N'        - Mover ficha N con suma (8)
+   2. 'dividir N1 D1 N2 D2' - Mover dos fichas separadas
+      Ejemplo: dividir 0 2 1 6
+
+> fichas
+📋 TUS FICHAS:
+   ❌ Ficha 0: 🔒 En cárcel (necesita par)
+   ❌ Ficha 1: 🔒 En cárcel (necesita par)
+   ❌ Ficha 2: 🔒 En cárcel (necesita par)
+   ❌ Ficha 3: 🔒 En cárcel (necesita par)
+
+> mover 0
+❌ La ficha 0 está en la cárcel. Necesitas sacar PAR para liberarla.
+💡 Intenta con otra ficha. Escribe 'fichas' para ver opciones
+
+# (No tiene fichas fuera, turno pasa)
 ```
 
 ---
 
-## 📦 Backend - Python
+## 🐛 Solución de Problemas
 
-Se han implementado todas las clases principales del sistema:
-
-#### 📦 Módulos Creados
-
-```
-backend/
-└── models/
-    ├── __init__.py          # Módulo de exportación
-    ├── jugador.py           # Clase Jugador
-    ├── ficha.py             # Clase Ficha
-    ├── tablero.py           # Clase Tablero
-    └── partida.py           # Clase Partida
+### Error: "ModuleNotFoundError: No module named 'models'"
+```bash
+cd backend
+python3 servidor.py
 ```
 
----
-
-## 🏗️ Arquitectura del Sistema
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         PARTIDA                              │
-│  - Gestiona el juego completo                                │
-│  - Control de turnos                                         │
-│  - Validación de movimientos                                 │
-│  - Detección de ganador                                      │
-└────────────┬────────────────────────────────────────────────┘
-             │
-             ├──────────┬──────────┬──────────┬──────────┐
-             ▼          ▼          ▼          ▼          ▼
-        ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐
-        │JUGADOR 1│ │JUGADOR 2│ │JUGADOR 3│ │JUGADOR 4│
-        │ (Rojo)  │ │ (Azul)  │ │(Amarillo│ │ (Verde) │
-        └────┬────┘ └────┬────┘ └────┬────┘ └────┬────┘
-             │           │           │           │
-        ┌────┴────┐ ┌────┴────┐ ┌────┴────┐ ┌────┴────┐
-        │ Fichas  │ │ Fichas  │ │ Fichas  │ │ Fichas  │
-        │(4 unid.)│ │(4 unid.)│ │(4 unid.)│ │(4 unid.)│
-        └─────────┘ └─────────┘ └─────────┘ └─────────┘
-                                 │
-                                 ▼
-                         ┌───────────────┐
-                         │   TABLERO     │
-                         │ - 68 casillas │
-                         │ - Seguros     │
-                         │ - Salidas     │
-                         │ - Zonas final │
-                         └───────────────┘
+### Error: "Address already in use" (Puerto ocupado)
+```bash
+# Usar otro puerto
+python3 servidor.py 0.0.0.0 5556
+python3 cliente/cliente_simple.py 127.0.0.1 5556
 ```
 
----
+### Error: "No se puede conectar al servidor"
+- Verifica que el servidor esté corriendo primero
+- Comprueba el puerto (por defecto 5555)
+- Si es en otra máquina, usa su IP en lugar de 127.0.0.1
 
-## 📋 Clases Implementadas
-
-### 1. 🎮 `Jugador`
-**Archivo:** `backend/models/jugador.py`
-
-**Atributos:**
-- `nombre` (str): Nombre del jugador
-- `color` (ColorJugador): Color asignado (ROJO, AZUL, AMARILLO, VERDE)
-- `fichas` (List[Ficha]): Lista de 4 fichas
-- `turno` (bool): Indica si es su turno
-- `id` (str): Identificador único
-
-**Métodos principales:**
-- `asignar_color()`: Asigna color y crea fichas
-- `activar_turno()` / `desactivar_turno()`: Control de turnos
-- `tiene_fichas_en_carcel()`: Verifica fichas en cárcel
-- `todas_fichas_en_meta()`: Verifica condición de victoria
-- `obtener_fichas_movibles()`: Obtiene fichas que pueden moverse
-- `to_dict()`: Serialización a JSON
+### El turno no cambia / No salen fichas de la cárcel
+- **Para salir de cárcel:** DEBES sacar PAR (ej: 3,3 o 6,6)
+- **Para cambiar turno:** DEBES ejecutar `mover N` después de `lanzar`
+- Si no es par, el turno cambia automáticamente después de mover
 
 ---
 
-### 2. 🎯 `Ficha`
-**Archivo:** `backend/models/ficha.py`
+## 🔌 Conexión desde Unity (Próxima Fase)
 
-**Atributos:**
-- `id` (int): Identificador (0-3)
-- `color` (ColorJugador): Color de la ficha
-- `posicion` (int): Posición en el tablero (-1 = cárcel)
-- `estado` (EstadoFicha): CARCEL, ACTIVA, SEGURO, FINAL
-- `pasos_recorridos` (int): Contador de pasos
-- `en_recta_final` (bool): Si está en zona de llegada
+Ver `docs/PROTOCOLO.md` para detalles del protocolo JSON.
 
-**Métodos principales:**
-- `esta_en_carcel()`, `esta_activa()`, `esta_en_seguro()`, `esta_en_final()`
-- `sacar_de_carcel()`: Saca ficha al tablero
-- `mover()`: Mueve a nueva posición
-- `enviar_a_carcel()`: Devuelve a cárcel (cuando es comida)
-- `marcar_como_final()`: Llega a meta
-- `puede_moverse()`: Valida si puede moverse
-- `puede_comer()`: Verifica si puede comer otra ficha
+**Conexión básica en C#:**
+```csharp
+using System.Net.Sockets;
+using System.Text;
+using Newtonsoft.Json;
 
----
+TcpClient client = new TcpClient("127.0.0.1", 5555);
+NetworkStream stream = client.GetStream();
 
-### 3. 🎲 `Tablero`
-**Archivo:** `backend/models/tablero.py`
+// Unirse
+string joinMsg = "{\"tipo\":\"JOIN\",\"nombre\":\"Player1\"}\n";
+byte[] data = Encoding.UTF8.GetBytes(joinMsg);
+stream.Write(data, 0, data.Length);
 
-**Atributos:**
-- `num_casillas` (int): 68 casillas en circuito principal
-- `casillas` (List[dict]): Configuración de cada casilla
-- `seguros` (List[int]): Posiciones seguras [5, 12, 22, 29, 39, 46, 56, 63]
-- `salidas` (Dict): Posiciones de salida por color
-- `entradas_finales` (Dict): Donde cada color entra a su zona final
-
-**Configuración del tablero:**
-- **Total de casillas:** 68 en circuito + 8 por cada zona final
-- **Salidas:**
-  - Rojo: casilla 5
-  - Azul: casilla 22
-  - Amarillo: casilla 39
-  - Verde: casilla 56
-- **Seguros:** Cada 17 casillas aproximadamente + salidas
-
-**Métodos principales:**
-- `obtener_posicion_salida()`: Obtiene salida por color
-- `es_casilla_segura()`: Verifica si es seguro
-- `calcular_nueva_posicion()`: Calcula movimiento
-- `puede_llegar_a_meta()`: Verifica llegada exacta
-- `verificar_colision()`: Detecta fichas enemigas
-- `agregar_ficha_a_casilla()` / `remover_ficha_de_casilla()`
-
----
-
-### 4. 🏆 `Partida`
-**Archivo:** `backend/models/partida.py`
-
-**Atributos:**
-- `id` (str): Identificador de la partida
-- `jugadores` (List[Jugador]): 2-4 jugadores
-- `tablero` (Tablero): Tablero de juego
-- `estado` (EstadoPartida): ESPERANDO, EN_CURSO, PAUSADA, FINALIZADA
-- `turno_actual` (int): Índice del jugador actual
-- `ganador` (Jugador): Jugador ganador
-- `ultimo_dado` (int): Último valor lanzado
-- `historial_movimientos` (List): Log de jugadas
-
-**Métodos principales:**
-- `agregar_jugador()`: Añade jugador y asigna color
-- `iniciar_partida()`: Comienza el juego
-- `lanzar_dado()`: Simula dado (1-6)
-- `puede_sacar_de_carcel()`: Valida salida (5 o pares)
-- `mover_ficha()`: Ejecuta movimiento con validaciones
-- `pasar_turno()`: Cambia de jugador
-- `otorgar_turno_extra()`: Por sacar 5, comer, etc.
-- `finalizar_partida()`: Declara ganador
-
----
-
-## 📡 Protocolo de Comunicación
-
-**Archivo:** `docs/protocolo_mensajes.md`
-
-Se ha documentado el flujo completo de mensajes JSON entre cliente y servidor:
-
-### Mensajes Implementados:
-
-1. **`JOIN`** → Cliente envía nombre
-2. **`ASSIGN_COLOR`** → Servidor asigna color
-3. **`START_GAME`** → Partida iniciada
-4. **`ROLL`** → Lanzar dados
-5. **`ROLL_RESULT`** → Resultado del dado
-6. **`MOVE`** → Mover ficha
-7. **`MOVE_SUCCESS`** / **`MOVE_ERROR`** → Resultado del movimiento
-8. **`UPDATE`** → Estado del tablero actualizado
-9. **`EATEN`** → Ficha comida
-10. **`TURN_CHANGE`** → Cambio de turno
-11. **`WIN`** → Jugador ganador
-12. **`PLAYER_DISCONNECT`** → Desconexión
-13. **`ERROR`** → Errores generales
-
-### Códigos de Error Definidos:
-- `PARTIDA_LLENA`
-- `PARTIDA_NO_ENCONTRADA`
-- `TURNO_INVALIDO`
-- `MOVIMIENTO_INVALIDO`
-- `FICHA_NO_ENCONTRADA`
-- `DADO_NO_LANZADO`
-- Y más...
-
----
-
-## 🎯 Reglas del Juego Implementadas
-
-### Salir de la Cárcel
-- Se necesita sacar **5** o un **número par** (2, 4, 6, 8, 10, 12)
-- Al sacar, la ficha va a la casilla de salida
-
-### Movimiento
-- Las fichas avanzan según el número del dado
-- Al completar 68 casillas, entran a su zona final (8 casillas)
-- Deben llegar **exactamente** a la meta
-
-### Comer Fichas
-- Una ficha puede comer fichas enemigas en la misma casilla
-- **No se puede comer** en casillas seguras
-- La ficha comida regresa a la cárcel
-- Comer otorga **turno extra**
-
-### Turnos Extra
-Se otorga turno extra al:
-- Sacar ficha de la cárcel (5 o par)
-- Comer una ficha enemiga
-- Meter una ficha en la meta
-
-### Victoria
-El primer jugador que meta sus **4 fichas** en la meta gana
-
----
-
-## 🔄 Flujo de Ejemplo
-
-```python
-# Crear partida
-partida = Partida("partida_1")
-
-# Agregar jugadores
-j1 = partida.agregar_jugador("Juan", "abc123")
-j2 = partida.agregar_jugador("María", "def456")
-
-# Iniciar partida
-partida.iniciar_partida()
-
-# Turno de Juan
-dado = partida.lanzar_dado()  # Resultado: 5
-resultado = partida.mover_ficha("abc123", 0, 5)  # Saca ficha 0
-
-# Actualizar estado
-estado = partida.to_dict()  # Para enviar a clientes
+// Leer respuesta
+byte[] buffer = new byte[4096];
+int bytes = stream.Read(buffer, 0, buffer.Length);
+string response = Encoding.UTF8.GetString(buffer, 0, bytes);
 ```
 
 ---
 
-## 📊 Diagrama de Estados de una Ficha
+## 🧪 Testing
 
-```
-    ┌─────────┐
-    │  CARCEL │ (posición: -1)
-    └────┬────┘
-         │ (Lanzar 5 o par)
-         ▼
-    ┌─────────┐
-    │  ACTIVA │ (en tablero)
-    └────┬────┘
-         │
-         ├─────────────┐
-         │             │
-         ▼             ▼
-    ┌─────────┐  ┌─────────┐
-    │  SEGURO │  │ (comida)│
-    └────┬────┘  └────┬────┘
-         │            │
-         │            └──────► CARCEL
-         │
-         ▼
-    ┌───────────────┐
-    │ RECTA FINAL   │ (8 casillas)
-    └───────┬───────┘
-            │
-            ▼
-    ┌─────────┐
-    │  FINAL  │ (meta alcanzada)
-    └─────────┘
+```bash
+# Ejecutar tests
+pytest tests/
+
+# Con cobertura
+pytest --cov=backend tests/
 ```
 
 ---
 
-## 🧪 Próximos Pasos (Fase 2)
+## 📊 Checklist de Desarrollo
 
-- [ ] Implementar servidor WebSocket
-- [ ] Crear gestor de partidas múltiples
-- [ ] Implementar persistencia (base de datos)
-- [ ] Crear API REST para consultas
-- [ ] Implementar sistema de autenticación
-- [ ] Agregar logging y monitoreo
+- [x] **Fase 1:** Diseño y planeación
+- [x] **Fase 2:** Servidor Python completo
+  - [x] Servidor TCP multi-cliente
+  - [x] Lógica de turnos con sincronización
+  - [x] Reglas del juego (dados, capturas, seguros)
+  - [x] División de dados y movimientos flexibles
+  - [x] Información de fichas disponibles
+  - [x] Reintentos en caso de error
+- [ ] **Fase 3:** Cliente Unity
+- [ ] **Fase 4:** Integración y pruebas
+- [ ] **Fase 5:** Extras (DB, bots, móvil)
 
 ---
 
-## 📝 Uso de las Clases
+## 🆕 Funcionalidades Nuevas (v2.0)
 
-### Importar módulos
-```python
-from backend.models import Jugador, Ficha, Tablero, Partida
-from backend.models import ColorJugador, EstadoFicha, EstadoPartida
+### ✨ División de Dados
+Ahora puedes dividir el resultado de los dados en dos fichas diferentes:
+```bash
+> lanzar
+🎲 Dados: (3, 5) → Suma: 8
+
+# Opción 1: Mover una ficha con la suma
+> mover 0        # Ficha 0 avanza 8 casillas
+
+# Opción 2: Dividir entre dos fichas
+> dividir 0 3 1 5   # Ficha 0 con 3, ficha 1 con 5
 ```
 
-### Crear y gestionar partida
-```python
-# Crear nueva partida
-partida = Partida("game_001", max_jugadores=4)
+### 📊 Información de Fichas
+Comando `fichas` muestra el estado detallado:
+```bash
+> fichas
+📋 TUS FICHAS:
+   ✅ Ficha 0: 🎲 En posición 12
+   ❌ Ficha 1: 🔒 En cárcel (necesita par)
+   ✅ Ficha 2: 🎲 En posición 34
+   ❌ Ficha 3: 🏁 En la meta
+```
 
-# Agregar jugadores
-jugador1 = partida.agregar_jugador("Alice", "player_1")
-jugador2 = partida.agregar_jugador("Bob", "player_2")
+### 🔄 Reintentos Inteligentes
+Si eliges una ficha incorrecta, puedes intentar con otra:
+```bash
+> mover 0
+❌ La ficha 0 está en la cárcel. Necesitas sacar PAR para liberarla.
+💡 Intenta con otra ficha. Escribe 'fichas' para ver opciones
 
-# Iniciar juego
-if partida.iniciar_partida():
-    print("¡Partida iniciada!")
-    
-# Jugar
-dado = partida.lanzar_dado()
-print(f"Resultado del dado: {dado}")
-
-# Mover ficha
-resultado = partida.mover_ficha("player_1", 0, dado)
-if resultado["exito"]:
-    print(resultado["mensaje"])
-    
-# Serializar estado
-estado_json = partida.to_dict()
+> mover 2        # Intentar con otra ficha
+✅ Ficha movida
 ```
 
 ---
 
-## 🎨 Enumeraciones Definidas
+## 📞 Soporte
 
-### `ColorJugador`
-- `ROJO`
-- `AZUL`
-- `AMARILLO`
-- `VERDE`
-
-### `EstadoFicha`
-- `CARCEL`
-- `ACTIVA`
-- `SEGURO`
-- `FINAL`
-
-### `EstadoPartida`
-- `ESPERANDO`
-- `EN_CURSO`
-- `PAUSADA`
-- `FINALIZADA`
+- **Protocolo JSON:** Ver `docs/PROTOCOLO.md`
+- **Arquitectura:** Ver código en `backend/models/`
+- **Ejemplos:** Ejecutar `python3 cliente/cliente_simple.py`
 
 ---
 
-## ✨ Características Implementadas
+## 📝 Notas
 
-✅ Sistema completo de clases orientadas a objetos  
-✅ Validación de movimientos  
-✅ Detección de colisiones y "comer fichas"  
-✅ Sistema de turnos con turnos extra  
-✅ Seguimiento de estado completo  
-✅ Serialización a JSON  
-✅ Protocolo de comunicación documentado  
-✅ Reglas completas del Parqués  
-✅ Soporte para 2-4 jugadores  
-✅ Historial de movimientos  
+- El servidor maneja hasta **4 jugadores simultáneos**
+- Mínimo **2 jugadores** para iniciar
+- Los dados se mantienen disponibles hasta que muevas, permitiendo reintentos
+- Compatible con Unity mediante sockets TCP y protocolo JSON
 
 ---
 
-**Fecha de completación:** 19 de octubre de 2025  
-**Estado:** ✅ Fase 1 Completada
+**¡Disfruta el juego! 🎲🎉**
