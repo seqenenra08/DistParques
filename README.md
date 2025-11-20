@@ -17,16 +17,17 @@ pip install -r requirements.txt
 
 ### 2️⃣ Iniciar el servidor
 
-**Opción A - Script rápido:**
+**Terminal 1:**
 ```bash
-chmod +x run_server.sh
-./run_server.sh
+cd /home/seqenenra/Codes/DistParques
+source env/bin/activate  # Si usas entorno virtual
+python3 backend/servidor.py
 ```
 
-**Opción B - Manual:**
+O con parámetros personalizados:
 ```bash
-source env/bin/activate
-python3 backend/servidor.py
+python3 backend/servidor.py [host] [puerto]
+# Ejemplo: python3 backend/servidor.py 0.0.0.0 5555
 ```
 
 Verás:
@@ -37,21 +38,48 @@ Esperando jugadores... (mínimo 2, máximo 4)
 
 ### 3️⃣ Conectar clientes (mínimo 2, máximo 4)
 
-**En terminales diferentes:**
+**Opción A - Cliente de Consola (Simple):**
 
 ```bash
 # Terminal 2 - Jugador 1
-source env/bin/activate
+cd /home/seqenenra/Codes/DistParques
+source env/bin/activate  # Si usas entorno virtual
 python3 cliente/cliente_simple.py
 # Ingresa tu nombre: Ana
 
 # Terminal 3 - Jugador 2  
-source env/bin/activate
+cd /home/seqenenra/Codes/DistParques
+source env/bin/activate  # Si usas entorno virtual
 python3 cliente/cliente_simple.py
+# Ingresa tu nombre: Luis
+```
+
+**Opción B - Dashboard Visual (Recomendado) 🆕:**
+
+```bash
+# Terminal 2 - Jugador 1
+cd /home/seqenenra/Codes/DistParques
+source env/bin/activate  # Si usas entorno virtual
+python3 cliente/cliente_dashboard.py
+# Ingresa tu nombre: Ana
+
+# Terminal 3 - Jugador 2
+cd /home/seqenenra/Codes/DistParques
+source env/bin/activate  # Si usas entorno virtual
+python3 cliente/cliente_dashboard.py
 # Ingresa tu nombre: Luis
 
 # (Opcional) Terminal 4 y 5 para más jugadores...
 ```
+
+**Conectar a servidor remoto:**
+```bash
+# Ambos clientes aceptan parámetros
+python3 cliente/cliente_simple.py 192.168.1.100 5555
+python3 cliente/cliente_dashboard.py 192.168.1.100 5555
+```
+
+> 📖 **Ver [DASHBOARD_README.md](DASHBOARD_README.md) para guía completa del dashboard visual**
 
 ### 4️⃣ Iniciar y jugar
 
@@ -137,14 +165,20 @@ DistParques/
 │   ├── servidor.py            # Servidor TCP multi-cliente
 │   └── cliente_consola.py     # Cliente de prueba (alternativo)
 ├── cliente/
-│   ├── cliente_simple.py      # Cliente principal (RECOMENDADO)
-│   └── cliente_consola.py     # Cliente alternativo
+│   ├── cliente_simple.py      # Cliente de consola simple
+│   ├── cliente_consola.py     # Cliente de consola avanzado
+│   └── cliente_dashboard.py   # Cliente visual con curses 🆕
 ├── docs/
 │   └── PROTOCOLO.md           # Protocolo JSON para Unity
 ├── requirements.txt           # Dependencias Python
-├── run_server.sh             # Script para iniciar servidor
-├── run_cliente.sh            # Script para iniciar cliente
-└── README.md                 # Este archivo
+├── verificar_dashboard.py    # Script de verificación 🆕
+├── README.md                 # Este archivo
+├── DASHBOARD_README.md       # Guía del dashboard visual 🆕
+├── IMPLEMENTACION_DASHBOARD.md  # Detalles técnicos 🆕
+├── INICIO_RAPIDO_DASHBOARD.md   # Inicio rápido 🆕
+├── RESUMEN_DASHBOARD.md      # Resumen ejecutivo 🆕
+├── INDICE_DOCUMENTACION.md   # Índice completo 🆕
+└── VISTA_VISUAL.md           # Guía visual 🆕
 ```
 
 ---
@@ -338,6 +372,28 @@ pytest --cov=backend tests/
 ---
 
 ## 🆕 Funcionalidades Nuevas (v2.0)
+
+### 🎨 Dashboard Visual con Curses 🆕
+Cliente visual interactivo con interfaz de tarjetas:
+- **Tarjetas por jugador** mostrando estado en tiempo real
+- **Navegación con flechas** entre jugadores
+- **Atajos de teclado** para acciones rápidas
+- **Colores** para identificar cada jugador
+- **Barras de progreso** visuales
+- **Mensajes temporales** con feedback inmediato
+
+```bash
+# Terminal 1: Servidor
+python3 backend/servidor.py
+
+# Terminal 2: Dashboard Jugador 1
+python3 cliente/cliente_dashboard.py
+
+# Terminal 3: Dashboard Jugador 2
+python3 cliente/cliente_dashboard.py
+```
+
+📖 **Ver [DASHBOARD_README.md](DASHBOARD_README.md) para guía completa**
 
 ### ✨ División de Dados
 Ahora puedes dividir el resultado de los dados en dos fichas diferentes:
