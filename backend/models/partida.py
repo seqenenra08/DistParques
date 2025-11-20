@@ -398,16 +398,18 @@ class Partida:
         
         # Agregar a nueva posición
         if ficha.posicion is not None:
-            self.tablero.agregar_ficha(ficha.posicion, ficha)
-            
-            # Verificar capturas (solo si no está en seguro)
+            # ✅ PRIMERO verificar capturas (ANTES de agregar la ficha)
+            capturadas = []
             if not es_seguro:
                 capturadas = self.tablero.verificar_captura(ficha.posicion, ficha)
                 for capturada in capturadas:
                     capturada.capturar()
                     self.tablero.remover_ficha(ficha.posicion, capturada)
-                
-                return capturadas
+            
+            # Luego agregar la ficha que se movió
+            self.tablero.agregar_ficha(ficha.posicion, ficha)
+            
+            return capturadas
         
         return []
 

@@ -55,8 +55,9 @@ class Tablero:
         capturadas = []
         
         for ficha in fichas_en_casilla:
-            # Capturar solo fichas de diferente color y que no sea la que se acaba de mover
-            if ficha.color != ficha_movida.color and ficha.id != ficha_movida.id:
+            # Capturar solo fichas de diferente color (comparar por objeto, no por ID)
+            # Nota: no comparamos con ficha_movida porque aún no está en el tablero
+            if ficha.color != ficha_movida.color:
                 capturadas.append(ficha)
         
         return capturadas
