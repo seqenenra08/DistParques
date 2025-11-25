@@ -1,0 +1,54 @@
+.board {
+  width: 600px;
+  height: 600px;
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  grid-template-rows: repeat(15, 1fr);
+  gap: 2px;
+  background: #2e2e2e;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+/* Casas de colores */
+.home {
+  border-radius: 10px;
+}
+
+.home-red {
+  grid-column: 1 / span 6;
+  grid-row: 1 / span 6;
+  background: #ff9999;
+}
+
+.home-blue {
+  grid-column: 10 / span 6;
+  grid-row: 1 / span 6;
+  background: #99c2ff;
+}
+
+.home-green {
+  grid-column: 1 / span 6;
+  grid-row: 10 / span 6;
+  background: #99ff99;
+}
+
+.home-yellow {
+  grid-column: 10 / span 6;
+  grid-row: 10 / span 6;
+  background: #fff599;
+}
+
+/* Centro */
+.center {
+  grid-column: 7 / span 3;
+  grid-row: 7 / span 3;
+  background: white;
+  border: 4px solid black;
+}
+
+/* Camino estándar */
+.cell {
+  background: #dedede;
+  border: 1px solid #999;
+}
