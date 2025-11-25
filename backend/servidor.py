@@ -136,9 +136,11 @@ class ServidorParques:
         if self.partida.iniciar_partida():
             jugador_actual = self.partida.obtener_jugador_actual()
             print(f"🎮 Partida iniciada! Turno de {jugador_actual.nombre}")
+            
             return {
                 "tipo": "GAME_START",
                 "exito": True,
+                "jugador_actual": jugador_actual.nombre,
                 "mensaje": f"Partida iniciada. Turno de {jugador_actual.nombre}"
             }
         else:
