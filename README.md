@@ -117,6 +117,7 @@ python3 cliente/cliente_dashboard.py 192.168.1.100 5555
 | `lanzar` | Lanzar los dados | `> lanzar` |
 | `mover N` | Mover ficha N con suma total | `> mover 0` |
 | `dividir N1 D1 N2 D2` | Dividir dados en 2 fichas | `> dividir 0 3 1 5` |
+| `sacar N` | Sacar ficha N del juego (3 pares) | `> sacar 2` |
 | `fichas` | Ver estado de tus fichas | `> fichas` |
 | `jugadores` | Ver jugadores conectados | `> jugadores` |
 | `ayuda` | Mostrar ayuda | `> ayuda` |
@@ -131,14 +132,27 @@ python3 cliente/cliente_dashboard.py 192.168.1.100 5555
 - **Lanzar 2 dados** en cada turno
 - **Ganar:** Llevar las 4 fichas a la meta
 
+### 🎯 Selección de Turno Inicial
+- Al iniciar la partida, todos los jugadores lanzan un dado
+- **El jugador con el número más alto** comienza el juego
+- En caso de empate, los jugadores empatados vuelven a lanzar
+
 ### 🎲 Mecánicas de Dados
 - **Par (ej: 3,3):** Lanzas de nuevo después de mover
 - **Suma o División:** Puedes usar la suma (6) o dividir (3+3 en dos fichas)
-- **3 pares consecutivos:** Penalización - tu ficha más adelantada vuelve a la cárcel
+- **3 pares consecutivos:** Puedes sacar una ficha del juego directamente a la meta con `> sacar N`
+- **Control de lanzamientos:** No puedes lanzar múltiples veces sin mover (excepto con pares)
+
+### 🎯 Primer Turno Especial
+Cuando ganas el turno inicial, tienes **3 oportunidades** para sacar fichas de la cárcel:
+- Lanzas hasta 3 veces buscando un **par** (dados iguales)
+- Si sacas par, liberas una ficha de la cárcel
+- Si no sacas par en las 3 oportunidades, pierdes el turno
 
 ### 🔒 Salir de la Cárcel
 - **Necesitas PAR** para sacar una ficha (ej: 4,4 o 6,6)
 - Comando: `> mover N` donde N es la ficha en cárcel
+- En el primer turno tienes 3 intentos para sacar par
 
 ### 🛡️ Seguros y Capturas
 - **Seguros (12 casillas):** No puedes ser capturado
@@ -148,6 +162,12 @@ python3 cliente/cliente_dashboard.py 192.168.1.100 5555
 ### 🏁 Pasillo Final y Meta
 - Al completar la vuelta, entras al **pasillo final** (8 casillas)
 - Llegas a la **meta** y esa ficha queda inmóvil
+
+### ⚡ Regla de 3 Pares Consecutivos
+Si sacas **3 pares seguidos** (ej: 4-4, luego 6-6, luego 2-2):
+- Puedes **sacar una ficha del juego** directamente a la meta
+- Comando: `> sacar N` donde N es la ficha que quieres enviar a la meta
+- Es una bonificación especial por tu suerte con los dados
 
 ---
 

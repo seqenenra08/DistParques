@@ -12,10 +12,18 @@ class Jugador:
         self.nombre = nombre
         self.color = color
         self.conexion = conexion  # Socket del cliente
+        # Generar ID único si no se proporciona conexión
+        self.id = id(conexion) if conexion else nombre.lower()
         self.fichas: List[Ficha] = [Ficha(i, color) for i in range(4)]
         self.es_su_turno = False
         self.pares_consecutivos = 0
         self.casilla_salida = self._calcular_casilla_salida()
+        # Sistema de 3 intentos cuando todas las fichas están en cárcel
+        self.intentos_carcel = 0
+        self.max_intentos_carcel = 3
+        # Control de lanzamiento de dados
+        self.ya_lanzo_dados = False
+        self.puede_lanzar_de_nuevo = False
     
     def _calcular_casilla_salida(self) -> int:
         """Calcula la casilla de salida según el color."""
@@ -57,14 +65,74 @@ class Jugador:
         self.pares_consecutivos = 0
     
     def tiene_tres_pares(self) -> bool:
-        """Si saca 3 pares seguidos, pierde el turno y manda ficha más adelantada a cárcel."""
+        """Si saca 3 pares seguidos, puede sacar una ficha del juego."""
         return self.pares_consecutivos >= 3
+    
+    def incrementar_intento_carcel(self):
+        """Incrementa el contador de intentos cuando todas están en cárcel."""
+        self.intentos_carcel += 1
+    
+    def agotar_intentos_carcel(self) -> bool:
+        """Verifica si se agotaron los 3 intentos.
+        
+        Returns:
+            bool: True si se agotaron los intentos
+        """
+        return self.intentos_carcel >= self.max_intentos_carcel
+    
+    def resetear_intentos_carcel(self):
+        """Resetea el contador de intentos de cárcel."""
+        self.intentos_carcel = 0
+    
+    def marcar_lanzamiento(self):
+        """Marca que el jugador lanzó los dados."""
+        # Si ya tenía permiso para lanzar de nuevo, consumirlo
+        if self.puede_lanzar_de_nuevo:
+            self.puede_lanzar_de_nuevo = False
+        
+        self.ya_lanzo_dados = True
+    
+    def permitir_lanzar_de_nuevo(self):
+        """Permite lanzar de nuevo (cuando saca par)."""
+        self.puede_lanzar_de_nuevo = True
+        # NO resetear ya_lanzo_dados, solo marcar que puede lanzar de nuevo
+    
+    def puede_lanzar(self) -> bool:
+        """Verifica si el jugador puede lanzar los dados.
+        
+        Returns:
+            bool: True si puede lanzar
+        """
+        # Si todas las fichas están en cárcel, puede lanzar hasta 3 veces
+        todas_en_carcel = all(f.esta_en_carcel() for f in self.fichas)
+        if todas_en_carcel:
+            return not self.agotar_intentos_carcel()
+        
+        # Si tiene permiso explícito para lanzar de nuevo (por par), sí puede
+        if self.puede_lanzar_de_nuevo:
+            return True
+        
+        # Si no puede lanzar de nuevo Y ya lanzó, NO puede
+        if not self.puede_lanzar_de_nuevo and self.ya_lanzo_dados:
+            return False
+        
+        # Si no ha lanzado aún en este turno, puede lanzar
+        return True
+    
+    def resetear_lanzamiento(self):
+        """Resetea el estado de lanzamiento al cambiar de turno."""
+        self.ya_lanzo_dados = False
+        self.puede_lanzar_de_nuevo = False
     
     def to_dict(self) -> dict:
         return {
+            "id": str(self.id),
             "nombre": self.nombre,
             "color": self.color,
             "fichas": [f.to_dict() for f in self.fichas],
             "es_su_turno": self.es_su_turno,
-            "casilla_salida": self.casilla_salida
+            "casilla_salida": self.casilla_salida,
+            "intentos_carcel": self.intentos_carcel,
+            "ya_lanzo_dados": self.ya_lanzo_dados,
+            "puede_lanzar_de_nuevo": self.puede_lanzar_de_nuevo
         }

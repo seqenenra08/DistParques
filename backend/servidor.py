@@ -66,7 +66,7 @@ class ServidorParques:
                     self.enviar(cliente, respuesta)
                     
                     # Broadcast de estado si hubo cambio
-                    if mensaje.get("tipo") in ["ROLL", "MOVE", "START", "MOVE_DIVIDIDO"]:
+                    if mensaje.get("tipo") in ["ROLL", "MOVE", "START", "MOVE_DIVIDIDO", "ROLL_INICIO", "SACAR_FICHA_JUEGO"]:
                         self.broadcast_estado()
                 
                 except json.JSONDecodeError:
@@ -87,6 +87,9 @@ class ServidorParques:
         elif tipo == "START":
             return self.procesar_start()
         
+        elif tipo == "ROLL_INICIO":
+            return self.procesar_roll_inicio(jugador)
+        
         elif tipo == "ROLL":
             return self.procesar_roll(jugador)
         
@@ -95,6 +98,9 @@ class ServidorParques:
         
         elif tipo == "MOVE_DIVIDIDO":
             return self.procesar_move_dividido(jugador, mensaje)
+        
+        elif tipo == "SACAR_FICHA_JUEGO":
+            return self.procesar_sacar_ficha_juego(jugador, mensaje)
         
         elif tipo == "GET_FICHAS":
             return self.procesar_get_fichas(jugador)
@@ -134,14 +140,20 @@ class ServidorParques:
     def procesar_start(self) -> dict:
         """Inicia la partida si hay suficientes jugadores."""
         if self.partida.iniciar_partida():
-            jugador_actual = self.partida.obtener_jugador_actual()
-            print(f"🎮 Partida iniciada! Turno de {jugador_actual.nombre}")
+            print(f"🎮 Partida iniciada! Todos los jugadores deben lanzar el dado para determinar quién comienza")
+            
+            # Enviar mensaje de inicio de selección con dados
+            self.broadcast_mensaje({
+                "tipo": "SELECCION_TURNO",
+                "mensaje": "Todos los jugadores deben lanzar el dado. El mayor número comienza.",
+                "esperando_dados": True
+            })
             
             return {
                 "tipo": "GAME_START",
                 "exito": True,
-                "jugador_actual": jugador_actual.nombre,
-                "mensaje": f"Partida iniciada. Turno de {jugador_actual.nombre}"
+                "esperando_dados": True,
+                "mensaje": "Partida iniciada. Todos deben lanzar el dado para determinar el orden"
             }
         else:
             return {
@@ -150,13 +162,78 @@ class ServidorParques:
                 "error": "Se necesitan al menos 2 jugadores"
             }
     
+    def procesar_roll_inicio(self, jugador) -> dict:
+        """Procesa lanzamiento de dado para determinar el primer turno."""
+        if not jugador:
+            return {"error": "No estás registrado"}
+        
+        if not self.partida.esperando_dados_inicio:
+            return {"error": "No estás en fase de selección de turno"}
+        
+        valor = self.partida.lanzar_dado_inicio(jugador)
+        
+        if valor is None:
+            return {"error": "Ya lanzaste el dado o no es válido"}
+        
+        print(f"🎲 {jugador.nombre} sacó {valor} para el orden inicial")
+        
+        # Broadcast del resultado a todos
+        self.broadcast_mensaje({
+            "tipo": "DADO_INICIO",
+            "jugador": jugador.nombre,
+            "color": jugador.color,
+            "valor": valor
+        })
+        
+        # Verificar si todos lanzaron
+        if self.partida.todos_lanzaron_inicio():
+            # Obtener el jugador actual (ya determinado)
+            jugador_actual = self.partida.obtener_jugador_actual()
+            dados_inicio = self.partida.obtener_dados_inicio()
+            
+            # Crear lista de resultados para mostrar
+            resultados = []
+            for j in self.partida.jugadores:
+                resultados.append({
+                    "nombre": j.nombre,
+                    "color": j.color,
+                    "valor": dados_inicio.get(j.id, 0)
+                })
+            
+            print(f"🏆 {jugador_actual.nombre} comienza la partida!")
+            
+            # Broadcast del ganador y inicio de juego
+            self.broadcast_mensaje({
+                "tipo": "TURNO_DETERMINADO",
+                "jugador_inicial": jugador_actual.nombre,
+                "color_inicial": jugador_actual.color,
+                "resultados": resultados,
+                "mensaje": f"¡{jugador_actual.nombre} tiene el mayor número y comienza!"
+            })
+            
+            # Enviar estado actualizado
+            self.broadcast_estado()
+        
+        return {
+            "tipo": "DADO_INICIO_RESULT",
+            "valor": valor,
+            "mensaje": f"Sacaste {valor}. Esperando a los demás jugadores..."
+        }
+    
     def procesar_roll(self, jugador) -> dict:
         """Procesa lanzamiento de dados."""
         if not jugador:
             return {"error": "No estás registrado"}
         
+        if self.partida.esperando_dados_inicio:
+            return {"error": "Primero deben lanzar el dado para determinar el orden inicial"}
+        
         if not jugador.es_su_turno:
             return {"error": "No es tu turno"}
+        
+        # Verificar si puede lanzar
+        if not jugador.puede_lanzar():
+            return {"error": "Ya lanzaste los dados. Debes mover primero o esperar a sacar par."}
         
         dados = self.partida.lanzar_dados()
         print(f"🎲 {jugador.nombre} lanzó {dados}")
@@ -165,13 +242,15 @@ class ServidorParques:
         todas_en_carcel = all(f.esta_en_carcel() for f in jugador.fichas)
         es_par = dados[0] == dados[1]
         
-        # Si todas están en cárcel y no es par, cambiar turno automáticamente
+        # TODAS EN CÁRCEL: Si no saca par, procesar automáticamente para consumir intento
         if todas_en_carcel and not es_par:
             resultado = self.partida.procesar_turno(jugador, dados, None)
             resultado["tipo"] = "DICE_RESULT"
-            print(f"⏭️  {jugador.nombre} pierde turno (todas en cárcel, sin par)")
-            # Broadcast para actualizar turnos
-            self.broadcast_estado()
+            
+            if resultado.get('cambio_turno'):
+                print(f"⏭️  {jugador.nombre} perdió el turno (intentos agotados)")
+                self.broadcast_estado()
+            
             return resultado
         
         # Verificar si puede sacar de cárcel con par
@@ -239,7 +318,33 @@ class ServidorParques:
         resultado = self.partida.procesar_turno(jugador, dados, id_ficha)
         
         if "error" not in resultado:
-            print(f"🚶 {jugador.nombre} movió ficha {id_ficha}: {resultado['accion']}")
+            accion = resultado.get('accion')
+            if accion == "primer_turno_sin_par":
+                print(f"🎲 {jugador.nombre} - Primer turno: sin par ({resultado.get('intentos_restantes')} intentos restantes)")
+            elif accion == "primer_turno_agotado":
+                print(f"⏭️  {jugador.nombre} - Primer turno agotado sin sacar par")
+            elif accion == "tres_pares_sacar_ficha":
+                print(f"🎯 {jugador.nombre} - ¡3 PARES! Puede sacar una ficha del juego")
+            else:
+                print(f"🚶 {jugador.nombre} movió ficha {id_ficha}: {accion}")
+        
+        resultado["tipo"] = "MOVE_RESULT"
+        return resultado
+    
+    def procesar_sacar_ficha_juego(self, jugador, mensaje: dict) -> dict:
+        """Procesa sacar una ficha del juego (por 3 pares consecutivos)."""
+        if not jugador:
+            return {"error": "No estás registrado"}
+        
+        id_ficha = mensaje.get("id_ficha")
+        
+        if id_ficha is None:
+            return {"error": "Debes especificar la ficha a sacar"}
+        
+        resultado = self.partida.sacar_ficha_del_juego(jugador, id_ficha)
+        
+        if "error" not in resultado:
+            print(f"🎯 {jugador.nombre} sacó la ficha {id_ficha} del juego (3 pares)")
         
         resultado["tipo"] = "MOVE_RESULT"
         return resultado
@@ -249,6 +354,15 @@ class ServidorParques:
         estado = self.partida.obtener_estado()
         mensaje = {"tipo": "UPDATE", "estado": estado}
         
+        with self.lock:
+            for cliente in list(self.clientes.keys()):
+                try:
+                    self.enviar(cliente, mensaje)
+                except:
+                    pass
+    
+    def broadcast_mensaje(self, mensaje: dict):
+        """Envía un mensaje a todos los clientes."""
         with self.lock:
             for cliente in list(self.clientes.keys()):
                 try:

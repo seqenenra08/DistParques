@@ -115,7 +115,7 @@ Este documento describe el protocolo de comunicación entre el cliente y el serv
 
 **Dirección:** Servidor → Todos los Clientes
 
-**Descripción:** La partida ha comenzado (enviado después de que el anfitrión ejecuta START).
+**Descripción:** La partida ha comenzado. Todos los jugadores deben lanzar el dado para determinar quién comienza.
 
 **Mensaje del Servidor:**
 ```json
@@ -137,16 +137,113 @@ Este documento describe el protocolo de comunicación entre el cliente y el serv
         "posicion_orden": 2
       }
     ],
-    "turno_actual": 0,
-    "jugador_actual": {
-      "id": "abc123",
-      "nombre": "Juan",
-      "color": "rojo"
-    },
-    "mensaje": "¡La partida ha comenzado!"
+    "esperando_dados": true,
+    "mensaje": "¡La partida ha comenzado! Todos deben lanzar el dado para determinar el orden."
   }
 }
 ```
+
+**Nota:** Después de este mensaje, se envía inmediatamente `SELECCION_TURNO` para iniciar la fase de selección.
+
+---
+
+### 4.1 `SELECCION_TURNO` - Fase de selección de turno
+
+**Dirección:** Servidor → Todos los Clientes
+
+**Descripción:** Indica que todos los jugadores deben lanzar un dado para determinar el orden inicial.
+
+**Mensaje del Servidor:**
+```json
+{
+  "type": "SELECCION_TURNO",
+  "data": {
+    "mensaje": "Todos los jugadores deben lanzar el dado. El mayor número comienza.",
+    "esperando_dados": true
+  }
+}
+```
+
+---
+
+### 4.2 `ROLL_INICIO` - Lanzar dado para determinar orden
+
+**Dirección:** Cliente → Servidor
+
+**Descripción:** El jugador lanza un dado para participar en la selección del orden inicial.
+
+**Mensaje del Cliente:**
+```json
+{
+  "tipo": "ROLL_INICIO",
+  "data": {
+    "id_jugador": "abc123",
+    "id_partida": "partida_123"
+  }
+}
+```
+
+**Respuesta del Servidor:**
+```json
+{
+  "tipo": "DADO_INICIO_RESULT",
+  "data": {
+    "valor": 5,
+    "mensaje": "Sacaste 5. Esperando a los demás jugadores..."
+  }
+}
+```
+
+**Broadcast del Servidor (a todos los clientes):**
+```json
+{
+  "type": "DADO_INICIO",
+  "data": {
+    "jugador": "Juan",
+    "color": "rojo",
+    "valor": 5
+  }
+}
+```
+
+---
+
+### 4.3 `TURNO_DETERMINADO` - Turno inicial determinado
+
+**Dirección:** Servidor → Todos los Clientes
+
+**Descripción:** Se ha determinado qué jugador comienza la partida basándose en los dados.
+
+**Mensaje del Servidor:**
+```json
+{
+  "type": "TURNO_DETERMINADO",
+  "data": {
+    "jugador_inicial": "Juan",
+    "color_inicial": "rojo",
+    "resultados": [
+      {
+        "nombre": "Juan",
+        "color": "rojo",
+        "valor": 6
+      },
+      {
+        "nombre": "María",
+        "color": "azul",
+        "valor": 4
+      },
+      {
+        "nombre": "Pedro",
+        "color": "amarillo",
+        "valor": 3
+      }
+    ],
+    "mensaje": "¡Juan tiene el mayor número y comienza!"
+  }
+}
+```
+
+**Nota:** Después de este mensaje, se envía `UPDATE` con el estado completo del juego, donde `jugador_actual` indica quién tiene el turno.
 
 ---
 
@@ -445,17 +542,28 @@ Este documento describe el protocolo de comunicación entre el cliente y el serv
 3. Cliente B → JOIN → Servidor
 4. Servidor → ASSIGN_COLOR → Cliente B (color: azul)
 
-5. Servidor → START_GAME → Todos los clientes
+5. Cliente A (anfitrión) → START → Servidor
+6. Servidor → START_GAME → Todos los clientes
+7. Servidor → SELECCION_TURNO → Todos los clientes
 
-6. Cliente A → ROLL → Servidor
-7. Servidor → ROLL_RESULT → Cliente A (resultado: 5)
-8. Cliente A → MOVE → Servidor (ficha: 0)
-9. Servidor → MOVE_SUCCESS → Cliente A
-10. Servidor → UPDATE → Todos los clientes
+--- FASE DE SELECCIÓN DE TURNO ---
+8. Cliente A → ROLL_INICIO → Servidor
+9. Servidor → DADO_INICIO (valor: 5) → Todos los clientes
+10. Cliente B → ROLL_INICIO → Servidor
+11. Servidor → DADO_INICIO (valor: 3) → Todos los clientes
+12. Servidor → TURNO_DETERMINADO (ganador: A) → Todos los clientes
+13. Servidor → UPDATE → Todos los clientes
 
-11. Cliente B → ROLL → Servidor
-12. Servidor → ROLL_RESULT → Cliente B (resultado: 3)
-13. Servidor → TURN_CHANGE → Todos los clientes (turno de A)
+--- INICIA EL JUEGO ---
+14. Cliente A → ROLL → Servidor
+15. Servidor → ROLL_RESULT → Cliente A (resultado: 5, 3)
+16. Cliente A → MOVE → Servidor (ficha: 0)
+17. Servidor → MOVE_SUCCESS → Cliente A
+18. Servidor → UPDATE → Todos los clientes
+
+19. Cliente B → ROLL → Servidor
+20. Servidor → ROLL_RESULT → Cliente B (resultado: 2, 4)
+21. Servidor → TURN_CHANGE → Todos los clientes (turno de A)
 
 ... (continúa el juego) ...
 
