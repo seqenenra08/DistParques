@@ -1,0 +1,249 @@
+/* Estilos para el componente Board - Tablero con imagen estática */
+
+.boardContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+  min-height: 100vh;
+  width: 100%;
+}
+
+.board {
+  position: relative;
+  border: 4px solid #654321;
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.boardBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Información del juego superpuesta */
+.gameInfo {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.currentPlayer {
+  margin-bottom: 5px;
+}
+
+.playerIndicator {
+  font-weight: bold;
+}
+
+.playerIndicator.red {
+  color: #ff4444;
+}
+
+.playerIndicator.blue {
+  color: #4444ff;
+}
+
+.playerIndicator.green {
+  color: #44ff44;
+}
+
+.playerIndicator.yellow {
+  color: #ffff44;
+}
+
+.diceDisplay {
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Información de jugadores */
+.playersInfo {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  max-width: 700px;
+  margin-top: 10px;
+}
+
+.playerInfo {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 2px solid;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  min-width: 120px;
+  text-align: center;
+}
+
+.playerInfo.red {
+  border-color: #ff4444;
+  background: linear-gradient(135deg, rgba(255, 68, 68, 0.1), rgba(255, 255, 255, 0.9));
+}
+
+.playerInfo.blue {
+  border-color: #4444ff;
+  background: linear-gradient(135deg, rgba(68, 68, 255, 0.1), rgba(255, 255, 255, 0.9));
+}
+
+.playerInfo.green {
+  border-color: #44ff44;
+  background: linear-gradient(135deg, rgba(68, 255, 68, 0.1), rgba(255, 255, 255, 0.9));
+}
+
+.playerInfo.yellow {
+  border-color: #ffff44;
+  background: linear-gradient(135deg, rgba(255, 255, 68, 0.1), rgba(255, 255, 255, 0.9));
+}
+
+.playerName {
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.playerStats {
+  font-size: 12px;
+  color: #666;
+}
+
+/* Resaltado de cárceles cuando la cuadrícula está activa */
+.prisonHighlight {
+  position: absolute;
+  border: 2px dashed rgba(255, 255, 255, 0.6);
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.1);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.prisonLabel {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  z-index: 25;
+  pointer-events: none;
+  transform: translate(-50%, -100%);
+  margin-top: -5px;
+}
+
+/* Cuadrícula de referencia */
+.gridLine {
+  position: absolute;
+  background-color: rgba(255, 0, 0, 0.5);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.gridLineVertical {
+  width: 1px;
+  height: 100%;
+  top: 0;
+}
+
+.gridLineHorizontal {
+  height: 1px;
+  width: 100%;
+  left: 0;
+}
+
+.coordinateLabel {
+  position: absolute;
+  font-size: 8px;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 1px 2px;
+  border-radius: 2px;
+  z-index: 15;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  color: #000;
+  font-weight: bold;
+  font-family: monospace;
+}
+
+.gridToggleButton {
+  margin-bottom: 10px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.gridToggleButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.gridToggleButton.active {
+  background-color: #ff4444;
+  color: white;
+}
+
+.gridToggleButton.inactive {
+  background-color: #44ff44;
+  color: white;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .boardContainer {
+    padding: 10px;
+  }
+  
+  .gameInfo {
+    font-size: 12px;
+    padding: 8px;
+  }
+  
+  .playersInfo {
+    gap: 10px;
+  }
+  
+  .playerInfo {
+    padding: 8px 10px;
+    min-width: 100px;
+  }
+  
+  .playerName {
+    font-size: 12px;
+  }
+  
+  .playerStats {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .playersInfo {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .playerInfo {
+    width: 150px;
+  }
+}

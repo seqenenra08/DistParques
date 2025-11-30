@@ -1,0 +1,344 @@
+.menuContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #2d2d4d 100%);
+  padding: 2rem;
+}
+
+.menuBox {
+  background: rgba(45, 45, 77, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 2.5rem;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 
+              0 0 0 1px rgba(74, 222, 128, 0.1);
+  backdrop-filter: blur(10px);
+  animation: slideIn 0.6s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.titleContainer {
+  flex: 1;
+}
+
+.title {
+  font-size: 2.75rem;
+  font-weight: 700;
+  color: #4ade80;
+  margin-bottom: 0.25rem;
+  text-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: #a1a1aa;
+  font-weight: 400;
+  text-align: center;
+}
+
+.gameIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: -15px;
+  right: -15px;
+}
+
+.iconShape {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  box-shadow: 0 8px 32px rgba(251, 191, 36, 0.3);
+  transform: rotate(15deg);
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: rotate(15deg) translateY(0px);
+  }
+  50% {
+    transform: rotate(15deg) translateY(-10px);
+  }
+}
+
+.mainContent {
+  width: 100%;
+}
+
+.playersSection {
+  margin-bottom: 2rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  gap: 0.5rem;
+}
+
+.sectionIcon {
+  font-size: 1.25rem;
+  color: #4ade80;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.playerCards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  width: 100%;
+}
+
+.playerCard {
+  background: #3b3b5c;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem 0.75rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.playerCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(74, 222, 128, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.playerCard:hover::before {
+  left: 100%;
+}
+
+.playerCard:hover {
+  transform: translateY(-4px);
+  border-color: #4ade80;
+  box-shadow: 0 12px 32px rgba(74, 222, 128, 0.2);
+}
+
+.playerCard.selected {
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  border-color: #4ade80;
+  box-shadow: 0 12px 32px rgba(74, 222, 128, 0.4);
+  color: #000000;
+}
+
+.playerNumber {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.playerCard.selected .playerNumber {
+  color: #000000;
+}
+
+.playerLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #a1a1aa;
+}
+
+.playerCard.selected .playerLabel {
+  color: #000000;
+}
+
+.actionSection {
+  margin-bottom: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.createGameButton,
+.multiplayerButton {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 0.875rem 1.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.createGameButton {
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  color: #000000;
+  box-shadow: 0 8px 24px rgba(74, 222, 128, 0.3);
+}
+
+.createGameButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(74, 222, 128, 0.4);
+}
+
+.multiplayerButton {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+}
+
+.multiplayerButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(59, 130, 246, 0.4);
+}
+
+.buttonIcon {
+  font-size: 1.125rem;
+}
+
+.bottomActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.rulesButton,
+.settingsButton {
+  background: transparent;
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.rulesButton:hover,
+.settingsButton:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: #4ade80;
+  transform: translateY(-2px);
+}
+
+.instructionText {
+  text-align: center;
+  color: #a1a1aa;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .menuContainer {
+    padding: 1rem;
+  }
+
+  .menuBox {
+    padding: 2rem;
+    max-width: 400px;
+  }
+
+  .title {
+    font-size: 2.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
+  }
+
+  .gameIcon {
+    top: -10px;
+    right: -10px;
+  }
+
+  .iconShape {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .playerCards {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .playerCard {
+    padding: 1rem;
+  }
+
+  .playerNumber {
+    font-size: 1.75rem;
+  }
+
+  .bottomActions {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .menuBox {
+    padding: 1.5rem;
+    max-width: 350px;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .createGameButton {
+    font-size: 1rem;
+    padding: 0.75rem 1.25rem;
+  }
+
+  .rulesButton,
+  .settingsButton {
+    font-size: 0.8rem;
+    padding: 0.625rem 0.875rem;
+  }
+}

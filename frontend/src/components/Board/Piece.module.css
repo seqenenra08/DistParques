@@ -1,0 +1,97 @@
+.piece {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  transform: translate(-50%, -50%); /* Centrar la ficha en la posición */
+  transition: all 0.3s ease-in-out;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.piece:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+.piece.selected {
+  transform: translate(-50%, -50%) scale(1.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 6px 12px rgba(255, 255, 255, 0.8);
+  }
+  100% {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.innerPiece {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-sizing: border-box;
+}
+
+/* Colores de las fichas */
+.red {
+  background: linear-gradient(135deg, #ff4444, #cc0000);
+}
+
+.blue {
+  background: linear-gradient(135deg, #4444ff, #0000cc);
+}
+
+.green {
+  background: linear-gradient(135deg, #44ff44, #00cc00);
+}
+
+.yellow {
+  background: linear-gradient(135deg, #ffff44, #cccc00);
+}
+
+/* Animación de movimiento */
+.piece.moving {
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Efecto cuando la ficha está en la cárcel */
+.piece.inPrison {
+  opacity: 0.7;
+  transform: translate(-50%, -50%) scale(0.9);
+}
+
+/* Efecto cuando la ficha llega al centro */
+.piece.finished {
+  opacity: 0.8;
+  transform: translate(-50%, -50%) scale(0.8);
+  box-shadow: 0 0 10px gold;
+}
+
+/* Efecto cuando la ficha se puede mover */
+.piece.canMove {
+  cursor: pointer;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 8px rgba(255, 215, 0, 0.5);
+  }
+  to {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 16px rgba(255, 215, 0, 0.8);
+  }
+}
+
+.piece.canMove:hover {
+  transform: translate(-50%, -50%) scale(1.15);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 215, 0, 0.9);
+}

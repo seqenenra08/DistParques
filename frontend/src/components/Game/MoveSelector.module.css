@@ -1,0 +1,165 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.selector {
+  background: linear-gradient(135deg, #2d2d4d 0%, #1a1a2e 100%);
+  border: 2px solid rgba(74, 222, 128, 0.3);
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.title {
+  color: #4ade80;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  text-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
+}
+
+.subtitle {
+  color: #a1a1aa;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.moveButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.moveButton {
+  background: rgba(74, 222, 128, 0.1);
+  border: 2px solid rgba(74, 222, 128, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.moveButton:hover {
+  background: rgba(74, 222, 128, 0.2);
+  border-color: rgba(74, 222, 128, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+}
+
+.moveButton.selected {
+  background: rgba(74, 222, 128, 0.3);
+  border-color: #4ade80;
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
+}
+
+.moveValue {
+  color: #ffffff;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.moveCount {
+  color: #fbbf24;
+  font-size: 1rem;
+  font-weight: 600;
+  background: rgba(251, 191, 36, 0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+}
+
+.sumLabel {
+  color: #60a5fa;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(96, 165, 250, 0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+}
+
+.moveLabel {
+  color: #a1a1aa;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.cancelButton {
+  width: 100%;
+  background: transparent;
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .selector {
+    padding: 1.5rem;
+    max-width: 350px;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .moveValue {
+    font-size: 1.75rem;
+  }
+}

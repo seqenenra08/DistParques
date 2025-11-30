@@ -1,0 +1,360 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #2d2d4d 100%);
+  padding: 2rem;
+}
+
+.card {
+  background: rgba(45, 45, 77, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 2.5rem;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 
+              0 0 0 1px rgba(74, 222, 128, 0.1);
+  backdrop-filter: blur(10px);
+  animation: slideIn 0.6s ease-out;
+  position: relative;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.title {
+  color: #4ade80;
+  font-size: 2.25rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2rem;
+  text-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
+}
+
+.currentPlayerInfo {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.playerTitle {
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.instruction {
+  color: #a1a1aa;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.nameInput {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.nameInput label {
+  display: block;
+  color: #ffffff;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #4ade80;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2);
+}
+
+.input::placeholder {
+  color: #a1a1aa;
+}
+
+.colorsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.colorButton {
+  padding: 1.25rem;
+  border: 3px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.colorButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.colorButton:active {
+  transform: translateY(0);
+}
+
+.colorName {
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  z-index: 1;
+}
+
+.hint {
+  color: #a1a1aa;
+  font-size: 0.85rem;
+  font-style: italic;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.summary {
+  margin-bottom: 1.5rem;
+}
+
+.summaryTitle {
+  color: #ffffff;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.playersList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.playerSummary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  border-left: 4px solid transparent;
+}
+
+.colorIndicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.playerName {
+  font-weight: 600;
+  color: #ffffff;
+  flex-grow: 1;
+  text-align: left;
+}
+
+.playerColor {
+  color: #a1a1aa;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.nextStep {
+  color: #4ade80;
+  font-weight: 500;
+  background: rgba(74, 222, 128, 0.1);
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid #4ade80;
+  font-size: 0.9rem;
+}
+
+.selectedColors {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.selectedColors h3 {
+  color: #ffffff;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.selectedColorsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.selectedColor {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #ffffff;
+}
+
+.colorDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.backButton {
+  background: transparent;
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.backButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #4ade80;
+  transform: translateY(-2px);
+}
+
+.continueButton {
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  color: #000000;
+  padding: 0.875rem 1.75rem;
+  font-size: 1rem;
+}
+
+.continueButton:hover {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.progressBar {
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #4ade80, #22c55e);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.progressText {
+  color: #a1a1aa;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+  
+  .card {
+    padding: 2rem;
+    max-width: 400px;
+  }
+  
+  .title {
+    font-size: 2rem;
+  }
+  
+  .colorsGrid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 1.5rem;
+    max-width: 350px;
+  }
+  
+  .title {
+    font-size: 1.75rem;
+  }
+  
+  .colorButton {
+    min-height: 60px;
+    padding: 1rem;
+  }
+}

@@ -1,0 +1,219 @@
+/* Estilos para el componente Prison */
+
+.prison {
+  width: 120px;
+  height: 120px;
+  border: 3px solid;
+  border-radius: 15px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.prison:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Etiqueta del jugador */
+.prisonLabel {
+  font-size: 10px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 2px;
+  text-transform: capitalize;
+}
+
+/* Título del color */
+.prisonTitle {
+  font-size: 8px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-align: center;
+  margin-bottom: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Grid de casillas de la prisión */
+.prisonGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  width: 100%;
+  flex: 1;
+  align-items: center;
+}
+
+/* Casilla individual de la prisión */
+.prisonCell {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 2px dashed;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.5);
+  position: relative;
+}
+
+.prisonCell:hover {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.prisonCell.hasPiece {
+  border-style: solid;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.prisonCell.empty {
+  opacity: 0.7;
+}
+
+/* Ficha en la prisión */
+.piece {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.piece:hover {
+  transform: scale(1.2);
+}
+
+/* Slot vacío */
+.emptySlot {
+  width: 16px;
+  height: 16px;
+  border: 2px dashed;
+  border-radius: 50%;
+  opacity: 0.3;
+}
+
+/* Contador de fichas */
+.pieceCount {
+  font-size: 10px;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 2px;
+}
+
+/* Colores específicos para cada prisión */
+.prison_red {
+  border-color: #dc2626;
+  background-color: #fef2f2;
+}
+
+.prison_blue {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+}
+
+.prison_green {
+  border-color: #16a34a;
+  background-color: #f0fdf4;
+}
+
+.prison_yellow {
+  border-color: #ca8a04;
+  background-color: #fefce8;
+}
+
+/* Posicionamiento en el tablero */
+.top_left {
+  grid-area: top-left;
+}
+
+.top_right {
+  grid-area: top-right;
+}
+
+.bottom_left {
+  grid-area: bottom-left;
+}
+
+.bottom_right {
+  grid-area: bottom-right;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .prison {
+    width: 100px;
+    height: 100px;
+    padding: 6px;
+  }
+  
+  .prisonLabel {
+    font-size: 9px;
+  }
+  
+  .prisonTitle {
+    font-size: 7px;
+    padding: 1px 4px;
+  }
+  
+  .piece {
+    width: 16px;
+    height: 16px;
+    font-size: 8px;
+  }
+  
+  .emptySlot {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .pieceCount {
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 480px) {
+  .prison {
+    width: 80px;
+    height: 80px;
+    padding: 4px;
+  }
+  
+  .prisonLabel {
+    font-size: 8px;
+  }
+  
+  .prisonTitle {
+    font-size: 6px;
+    padding: 1px 3px;
+  }
+  
+  .piece {
+    width: 12px;
+    height: 12px;
+    font-size: 7px;
+  }
+  
+  .emptySlot {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .pieceCount {
+    font-size: 8px;
+  }
+}
