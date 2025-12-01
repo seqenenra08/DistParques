@@ -1,5 +1,5 @@
 /**
- * Constantes del juego Parcheesi
+ * Constantes del juego Parchese
  */
 
 export const GAME_CONFIG = {

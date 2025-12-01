@@ -25,8 +25,8 @@
 
 /* Contenedor de la notificación */
 .notification {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 16px;
+  background: linear-gradient(135deg, #00ff41 0%, #00ffff 100%);
+  border-radius: 4px;
   padding: 24px 28px;
   min-width: 320px;
   max-width: 500px;
@@ -66,7 +66,7 @@
 }
 
 .notification.info {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #00ff41 0%, #00ffff 100%);
 }
 
 /* Icono */
@@ -88,7 +88,7 @@
 /* Contenido */
 .content {
   flex: 1;
-  color: white;
+  color: #00ff41;
 }
 
 .message {
@@ -96,7 +96,7 @@
   font-size: 1rem;
   font-weight: 500;
   line-height: 1.5;
-  color: white;
+  color: #00ff41;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
@@ -107,7 +107,7 @@
   right: 8px;
   background: rgba(255, 255, 255, 0.2);
   border: none;
-  color: white;
+  color: #00ff41;
   width: 28px;
   height: 28px;
   border-radius: 50%;

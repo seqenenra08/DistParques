@@ -1,15 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
 .overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   animation: fadeIn 0.2s ease-out;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.overlay::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: 
+    repeating-linear-gradient(0deg, rgba(0, 255, 65, 0.03) 0px, transparent 1px, transparent 2px, rgba(0, 255, 65, 0.03) 3px);
+  pointer-events: none;
+  animation: scanlines 8s linear infinite;
+}
+
+@keyframes scanlines {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(10px); }
 }
 
 @keyframes fadeIn {
@@ -22,14 +40,43 @@
 }
 
 .selector {
-  background: linear-gradient(135deg, #2d2d4d 0%, #1a1a2e 100%);
-  border: 2px solid rgba(74, 222, 128, 0.3);
-  border-radius: 20px;
+  background: rgba(0, 10, 0, 0.95);
+  border: 2px solid #00ff41;
+  border-radius: 4px;
   padding: 2rem;
   max-width: 400px;
   width: 90%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  animation: slideUp 0.3s ease-out;
+  box-shadow: 
+    0 0 40px rgba(0, 255, 65, 0.6),
+    inset 0 0 20px rgba(0, 255, 65, 0.1);
+  animation: slideUp 0.3s ease-out, selector-glow 2s ease-in-out infinite alternate;
+  position: relative;
+}
+
+.selector::before {
+  content: '> SELECT_MOVE //';
+  position: absolute;
+  top: -12px;
+  left: 12px;
+  background: #000000;
+  padding: 0 8px;
+  color: #00ff41;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+@keyframes selector-glow {
+  0% {
+    box-shadow: 
+      0 0 40px rgba(0, 255, 65, 0.6),
+      inset 0 0 20px rgba(0, 255, 65, 0.1);
+  }
+  100% {
+    box-shadow: 
+      0 0 60px rgba(0, 255, 255, 0.7),
+      inset 0 0 30px rgba(0, 255, 255, 0.15);
+  }
 }
 
 @keyframes slideUp {
@@ -44,19 +91,26 @@
 }
 
 .title {
-  color: #4ade80;
+  color: #00ff41;
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
   text-align: center;
-  text-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
+  text-shadow: 
+    0 0 15px #00ff41,
+    0 0 30px #00ff41;
+  font-family: 'Share Tech Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 3px;
 }
 
 .subtitle {
-  color: #a1a1aa;
+  color: #00ffff;
   font-size: 0.9rem;
   text-align: center;
   margin-bottom: 1.5rem;
+  font-family: 'Share Tech Mono', monospace;
+  text-shadow: 0 0 10px #00ffff;
 }
 
 .moveButtons {
@@ -67,9 +121,9 @@
 }
 
 .moveButton {
-  background: rgba(74, 222, 128, 0.1);
-  border: 2px solid rgba(74, 222, 128, 0.3);
-  border-radius: 12px;
+  background: rgba(0, 20, 10, 0.6);
+  border: 2px solid rgba(0, 255, 65, 0.4);
+  border-radius: 4px;
   padding: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -78,74 +132,124 @@
   justify-content: center;
   gap: 0.5rem;
   position: relative;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.moveButton::before {
+  content: '>';
+  position: absolute;
+  left: 8px;
+  color: #00ff41;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.moveButton:hover::before {
+  opacity: 1;
 }
 
 .moveButton:hover {
-  background: rgba(74, 222, 128, 0.2);
-  border-color: rgba(74, 222, 128, 0.5);
+  background: rgba(0, 30, 15, 0.8);
+  border-color: #00ff41;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+  box-shadow: 
+    0 0 20px rgba(0, 255, 65, 0.5),
+    inset 0 0 10px rgba(0, 255, 65, 0.2);
 }
 
 .moveButton.selected {
-  background: rgba(74, 222, 128, 0.3);
-  border-color: #4ade80;
-  box-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
+  background: rgba(0, 255, 65, 0.2);
+  border-color: #00ffff;
+  box-shadow: 
+    0 0 30px rgba(0, 255, 255, 0.6),
+    inset 0 0 15px rgba(0, 255, 255, 0.2);
+  animation: selected-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes selected-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 30px rgba(0, 255, 255, 0.6),
+      inset 0 0 15px rgba(0, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 0 45px rgba(0, 255, 255, 0.8),
+      inset 0 0 25px rgba(0, 255, 255, 0.3);
+  }
 }
 
 .moveValue {
-  color: #ffffff;
+  color: #00ff41;
   font-size: 2rem;
   font-weight: 700;
+  font-family: 'Share Tech Mono', monospace;
+  text-shadow: 0 0 15px #00ff41;
 }
 
 .moveCount {
-  color: #fbbf24;
+  color: #ffff00;
   font-size: 1rem;
   font-weight: 600;
-  background: rgba(251, 191, 36, 0.2);
+  background: rgba(255, 255, 0, 0.2);
   padding: 0.25rem 0.5rem;
-  border-radius: 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 0, 0.4);
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
+  font-family: 'Share Tech Mono', monospace;
+  text-shadow: 0 0 10px #ffff00;
 }
 
 .sumLabel {
-  color: #60a5fa;
+  color: #00ffff;
   font-size: 0.8rem;
   font-weight: 600;
-  background: rgba(96, 165, 250, 0.2);
+  background: rgba(0, 255, 255, 0.2);
   padding: 0.25rem 0.5rem;
-  border-radius: 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 255, 255, 0.4);
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
+  font-family: 'Share Tech Mono', monospace;
+  text-shadow: 0 0 10px #00ffff;
 }
 
 .moveLabel {
-  color: #a1a1aa;
+  color: #00ff41;
   font-size: 0.9rem;
   font-weight: 500;
+  font-family: 'Share Tech Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .cancelButton {
   width: 100%;
-  background: transparent;
-  color: #ffffff;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 10px;
+  background: rgba(20, 0, 0, 0.6);
+  color: #ff0033;
+  border: 2px solid rgba(255, 0, 50, 0.4);
+  border-radius: 4px;
   padding: 0.75rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  font-family: 'Share Tech Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
 .cancelButton:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(239, 68, 68, 0.5);
-  color: #ef4444;
+  background: rgba(30, 0, 0, 0.9);
+  border-color: #ff0033;
+  color: #ff0033;
+  box-shadow: 
+    0 0 20px rgba(255, 0, 50, 0.5),
+    inset 0 0 10px rgba(255, 0, 50, 0.2);
+  text-shadow: 0 0 10px #ff0033;
 }
 
 /* Responsive */

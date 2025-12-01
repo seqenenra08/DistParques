@@ -120,9 +120,9 @@ export default function Home() {
     // Si estamos en juego, obtener jugadores reales del gameState
     if (gameState?.players && Array.isArray(gameState.players)) {
       // Filtrar solo jugadores humanos (no bots) SOLO PARA LA UI DEL PANEL DE JUGADORES
-      // Los bots tienen IDs que empiezan con "bot_"
+      // Los bots tienen IDs que empiezan con "bot_" o "player_"
       return gameState.players
-        .filter(p => !p.player_id.startsWith('bot_'))
+        .filter(p => p.player_id && typeof p.player_id === 'string' && !p.player_id.startsWith('bot_') && !p.isHuman === false)
         .map(p => p.color);
     }
     
@@ -136,7 +136,7 @@ export default function Home() {
     // Si tenemos activePlayers, usarlos (filtrar bots)
     if (activePlayers.length > 0) {
       return activePlayers
-        .filter(p => !p.id.startsWith('bot_'))
+        .filter(p => p.isHuman !== false && (!p.id || typeof p.id !== 'string' || !p.id.startsWith('bot_')))
         .map(p => p.color);
     }
     
@@ -722,7 +722,10 @@ export default function Home() {
         // Mapear correctamente los campos del backend al frontend
         const newGameState = {
           ...data.game_state,
-          currentPlayer: data.game_state.current_player, // Mapear current_player -> currentPlayer
+          // Si current_player es null, buscar el jugador con is_turn = true
+          currentPlayer: data.game_state.current_player || 
+            (data.game_state.players && data.game_state.players.find(p => p.is_turn)?.name) || 
+            (data.game_state.players && data.game_state.players[0]?.name) || null,
           canMove: data.game_state.can_move, // También mapear can_move -> canMove
           diceValue: data.game_state.dice_value // Y dice_value -> diceValue
         };
@@ -743,6 +746,14 @@ export default function Home() {
           console.log('[DEBUG] Actualizando jugadores activos al iniciar (con bots):', newActivePlayers);
           setActivePlayers(newActivePlayers);
         }
+        
+        // ✅ IMPORTANTE: Activar el juego para mostrar el tablero
+        console.log('[DEBUG] Activando gameStarted = true');
+        setGameStarted(true);
+        setInLobby(false);
+        setInTurnOrderDetermination(false);
+        
+        audioService.playSuccess();
       } else {
         console.error('Error al iniciar juego:', data.error);
       }
@@ -860,13 +871,6 @@ export default function Home() {
         setRoomCode(data.room_code);
         setRoomState(data.room_state);
         setIsHost(true);
-        setInLobby(true);
-        setGameStarted(false);
-        
-        // Actualizar colores disponibles
-        if (data.available_colors) {
-          setAvailableColors(data.available_colors);
-        }
         
         // Guardar en sessionStorage para reconexión
         if (typeof window !== 'undefined') {
@@ -875,6 +879,14 @@ export default function Home() {
         }
         
         audioService.playSuccess();
+        
+        // Iniciar la partida automáticamente (sin pasar por el lobby)
+        console.log('[ROOM] Iniciando partida automáticamente...');
+        setTimeout(() => {
+          emit('start_game_from_lobby', {
+            roomCode: data.room_code
+          });
+        }, 500);
       } else {
         audioService.playError();
         showNotification('Error al crear sala: ' + data.error, 'error');
@@ -1132,17 +1144,23 @@ export default function Home() {
   };
 
   const handleDiceRoll = () => {
-    // En modo test, permitir juego local sin servidor
-    if (isTestMode) {
+    // Verificar si estamos en modo offline (sin conexión al servidor)
+    const isOfflineMode = !connected;
+    
+    // En modo test o modo offline, permitir juego local sin servidor
+    if (isTestMode || isOfflineMode) {
       // No permitir lanzar si ya se puede mover
       if (isRolling || canMove) {
-        console.log('[DEBUG] handleDiceRoll bloqueado en test mode:', { isRolling, canMove });
+        console.log('[DEBUG] handleDiceRoll bloqueado en modo local:', { isRolling, canMove });
         return;
       }
       
-      console.log('[DEBUG] Lanzando dado en modo test local...');
+      console.log('[DEBUG] Lanzando dado en modo local...', isOfflineMode ? '(offline)' : '(test)');
       setIsRolling(true);
       setSelectedPiece(null);
+      
+      // Reproducir sonido de dados
+      audioService.playDiceRoll();
       
       // Simular lanzamiento de dados con animación
       setTimeout(() => {
@@ -1153,13 +1171,68 @@ export default function Home() {
         console.log('[DEBUG] Dados lanzados:', diceResult);
         setDiceValue(diceResult);
         setIsRolling(false);
-        setCanMove(true);
-      }, 500);
+        
+        // Verificar si es fase de inicio
+        if (gameState.startPhase) {
+          const isDoubles = dice1 === dice2;
+          
+          if (isDoubles) {
+            console.log('[DEBUG] ¡DOBLES! Puede sacar ficha de la cárcel');
+            audioService.playDoubles();
+            setCanMove(true);
+            setMessage('¡DOBLES! Selecciona una ficha para sacar de la cárcel');
+            
+            // Actualizar estado con pendingPieceRelease
+            setGameState(prev => ({
+              ...prev,
+              pendingPieceRelease: true,
+              piecesInPrison: [0, 1, 2, 3], // Todas las fichas en prisión disponibles
+              currentAttempts: (prev.currentAttempts || 0) + 1,
+              attemptsRemaining: 3 - ((prev.currentAttempts || 0) + 1)
+            }));
+          } else {
+            // No sacó dobles
+            const newAttempts = (gameState.currentAttempts || 0) + 1;
+            const remaining = 3 - newAttempts;
+            
+            console.log('[DEBUG] No dobles, intentos:', newAttempts, '/', 3);
+            
+            if (remaining > 0) {
+              setMessage(`No sacaste dobles. Te quedan ${remaining} intentos.`);
+              setCanMove(false);
+              
+              // Actualizar intentos
+              setGameState(prev => ({
+                ...prev,
+                currentAttempts: newAttempts,
+                attemptsRemaining: remaining
+              }));
+              
+              setTimeout(() => {
+                setMessage('');
+              }, 3000);
+            } else {
+              // Se acabaron los intentos
+              setMessage('No sacaste dobles en 3 intentos. Pasando turno...');
+              setCanMove(false);
+              
+              setTimeout(() => {
+                setDiceValue(null);
+                setMessage('');
+                nextTurn();
+              }, 2000);
+            }
+          }
+        } else {
+          // Juego normal
+          setCanMove(true);
+        }
+      }, 1000);
       
       return;
     }
     
-    // Modo normal: requiere conexión al servidor
+    // Modo online: requiere conexión al servidor
     // No permitir lanzar dado si:
     // - No está conectado
     // - Ya está rodando
@@ -1177,7 +1250,7 @@ export default function Home() {
       return;
     }
     
-    console.log('[DEBUG] Lanzando dado...');
+    console.log('[DEBUG] Lanzando dado (online)...');
     setIsRolling(true);
     setSelectedPiece(null);
     
@@ -1238,8 +1311,8 @@ export default function Home() {
     }
     
     // Validación adicional: verificar que sea mi turno (para multijugador)
-    if (myPlayerColor && gameState.currentPlayer !== myPlayerColor && !isTestMode) {
-      console.log('[ERROR] No es tu turno! Mi color:', myPlayerColor, ', Turno actual:', gameState.currentPlayer);
+    if (myPlayerName && gameState.currentPlayer !== myPlayerName && !isTestMode) {
+      console.log('[ERROR] No es tu turno! Mi nombre:', myPlayerName, ', Turno actual:', gameState.currentPlayer);
       audioService.playError();
       return;
     }
@@ -1357,8 +1430,8 @@ export default function Home() {
       }
       
       // Validación adicional: verificar que sea mi turno (para multijugador)
-      if (myPlayerColor && gameState.currentPlayer !== myPlayerColor && !isTestMode) {
-        console.log('[ERROR] No es tu turno! Mi color:', myPlayerColor, ', Turno actual:', gameState.currentPlayer);
+      if (myPlayerName && gameState.currentPlayer !== myPlayerName && !isTestMode) {
+        console.log('[ERROR] No es tu turno! Mi nombre:', myPlayerName, ', Turno actual:', gameState.currentPlayer);
         audioService.playError();
         setMessage('¡No es tu turno!');
         setTimeout(() => setMessage(''), 2000);
@@ -1388,25 +1461,70 @@ export default function Home() {
         }
       } else {
         // La ficha SÍ está en la cárcel, proceder a liberarla
-        console.log('[DEBUG] ✅ Validación pasada, enviando release_piece al servidor');
+        console.log('[DEBUG] ✅ Validación pasada, liberando ficha');
         console.log('[DEBUG] Liberando ficha con ID:', pieceIndexNum);
         
         // ✅ Marcar que estamos procesando una liberación
         setIsReleasingPiece(true);
         
-        // Enviar evento al servidor para liberar la ficha
-        emit('release_piece', { piece_id: pieceIndexNum });
+        // Verificar si estamos en modo offline
+        const isOfflineMode = !connected;
         
-        // ✅ NO limpiar el estado aquí - esperar la respuesta del servidor
-        // El servidor enviará piece_released con can_release_more y actualizará el estado
-        console.log('[DEBUG] Esperando respuesta del servidor...');
-        return;
+        if (isTestMode || isOfflineMode) {
+          // Modo local: liberar la ficha directamente
+          console.log('[DEBUG] Modo local - liberando ficha sin servidor');
+          
+          audioService.playPieceMove();
+          
+          // Obtener la posición de salida según el color
+          const startPositions = { red: 39, blue: 22, green: 5, yellow: 56 };
+          const startPosition = startPositions[color];
+          
+          // Actualizar el estado del juego
+          setGameState(prev => {
+            const newState = { ...prev };
+            const player = newState.players.find(p => p.color === color);
+            if (player && player.pieces[pieceIndexNum]) {
+              player.pieces[pieceIndexNum].position = startPosition;
+              console.log('[DEBUG] Ficha movida de prisión a posición:', startPosition);
+            }
+            
+            // Limpiar el estado de liberación
+            return {
+              ...newState,
+              pendingPieceRelease: false,
+              piecesInPrison: [],
+              startPhase: false, // Terminar fase de inicio después de liberar
+              currentAttempts: 0,
+              attemptsRemaining: 3
+            };
+          });
+          
+          setIsReleasingPiece(false);
+          setCanMove(false);
+          setDiceValue(null);
+          setMessage('¡Ficha liberada! Tira los dados de nuevo');
+          
+          setTimeout(() => {
+            setMessage('');
+          }, 2000);
+          
+          return;
+        } else {
+          // Modo online: enviar evento al servidor
+          emit('release_piece', { piece_id: pieceIndexNum });
+          
+          // ✅ NO limpiar el estado aquí - esperar la respuesta del servidor
+          // El servidor enviará piece_released con can_release_more y actualizará el estado
+          console.log('[DEBUG] Esperando respuesta del servidor...');
+          return;
+        }
       }
     }
     
     // Durante la fase de inicio normal (no liberación), NO se pueden mover fichas
-    if (gameState.startPhase) {
-      console.log('[ERROR] No se pueden mover fichas durante la fase de inicio!');
+    if (gameState.startPhase && !gameState.pendingPieceRelease) {
+      console.log('[ERROR] No se pueden mover fichas durante la fase de inicio sin dobles!');
       return;
     }
     
@@ -1598,23 +1716,43 @@ export default function Home() {
       console.log(`[DEBUG] No conectado, iniciando modo offline`);
       // Modo offline - iniciar localmente con los jugadores seleccionados
       setGameStarted(true);
+      setActivePlayers(orderedPlayers);
       
       // Crear estado inicial del juego con los jugadores seleccionados
       const initialState = {
-        ...initialGameState,
+        currentPlayer: orderedPlayers[0].color,
+        diceValue: null,
+        startPhase: true, // Fase de inicio
+        currentAttempts: 0,
+        attemptsRemaining: 3,
+        canMove: false,
+        status: 'playing',
         players: orderedPlayers.map((player, index) => ({
-          id: player.id,
+          player_id: player.id,
           name: player.name,
           color: player.color,
-          isHuman: player.isHuman !== undefined ? player.isHuman : true, // Preservar valor original
+          isHuman: player.isHuman !== undefined ? player.isHuman : true,
           turnOrder: index,
-          pieces: initialGameState.players[index]?.pieces || []
-        })).slice(0, numPlayers),
-        currentPlayer: orderedPlayers[0].color,
-        status: 'playing'
+          pieces_in_goal: 0,
+          pieces: [
+            { piece_id: 0, position: -1, is_in_goal: false },
+            { piece_id: 1, position: -1, is_in_goal: false },
+            { piece_id: 2, position: -1, is_in_goal: false },
+            { piece_id: 3, position: -1, is_in_goal: false }
+          ]
+        }))
       };
       
+      console.log('[DEBUG] Estado inicial del juego offline:', initialState);
       setGameState(initialState);
+      
+      // Si el primer jugador es un bot, hacer que lance automáticamente
+      if (!orderedPlayers[0].isHuman) {
+        console.log('[DEBUG] Primer jugador es un bot, iniciando turno automático en 2s');
+        setTimeout(() => {
+          handleDiceRoll();
+        }, 2000);
+      }
     }
   };
 
@@ -1676,7 +1814,15 @@ export default function Home() {
     return myPlayer ? myPlayer.color : null;
   };
   
+  // Helper: Obtener el nombre del jugador local
+  const getMyPlayerName = () => {
+    if (!socket?.id || !gameState.players) return null;
+    const myPlayer = gameState.players.find(p => p.player_id === socket.id);
+    return myPlayer ? myPlayer.name : null;
+  };
+  
   const myPlayerColor = getMyPlayerColor();
+  const myPlayerName = getMyPlayerName();
 
   // Obtener el estado actual del juego
   // Si estamos en determinación de orden desde lobby
@@ -1790,7 +1936,7 @@ export default function Home() {
       
       <main className={styles.main}>
         <div className={styles.header}>
-          <h1 className={styles.title}>Parcheesi Game</h1>
+          <h1 className={styles.title}>Parchese Game</h1>
         </div>
 
         {/* Panel de debug en esquina superior derecha */}
@@ -1916,7 +2062,7 @@ export default function Home() {
             {/* Header del juego */}
             <div className={styles.gameHeader}>
               <div className={styles.gameTitle}>
-                <h2>Parcheesi</h2>
+                <h2>Parchese</h2>
                 <button className={styles.menuButton}>
                   <span>←</span> Menú
                 </button>
@@ -1964,18 +2110,18 @@ export default function Home() {
                 })()}
               </h2>
               {/* Indicador de turno propio */}
-              {myPlayerColor && gameState.currentPlayer && (
+              {myPlayerName && gameState.currentPlayer && (
                 <div style={{
                   marginTop: '8px',
                   padding: '6px 12px',
                   borderRadius: '12px',
                   fontSize: '0.85rem',
                   fontWeight: '600',
-                  backgroundColor: myPlayerColor === gameState.currentPlayer ? '#10b981' : '#6b7280',
+                  backgroundColor: myPlayerName === gameState.currentPlayer ? '#10b981' : '#6b7280',
                   color: 'white',
                   textAlign: 'center'
                 }}>
-                  {myPlayerColor === gameState.currentPlayer ? '🎮 ¡Tu turno!' : '⏳ Esperando...'}
+                  {myPlayerName === gameState.currentPlayer ? '🎮 ¡Tu turno!' : '⏳ Esperando...'}
                 </div>
               )}
               <div className={styles.turnStatus}>
@@ -2013,8 +2159,8 @@ export default function Home() {
                   (canMove && !gameState.startPhase) ||
                   showingNoMovesResult ||
                   gameState.pendingPieceRelease ||
-                  (gameState.currentPlayer && myPlayerColor && gameState.currentPlayer !== myPlayerColor) ||
-                  (isTransitioning && myPlayerColor && gameState.currentPlayer !== myPlayerColor)
+                  (gameState.currentPlayer && myPlayerName && gameState.currentPlayer !== myPlayerName) ||
+                  (isTransitioning && myPlayerName && gameState.currentPlayer !== myPlayerName)
                 }
                 playerColor={gameState.currentPlayer || 'blue'}
                 noMovesAvailable={showingNoMovesResult}
@@ -2123,7 +2269,7 @@ export default function Home() {
       <footer className={styles.gameFooter}>
         <div className={styles.footerContent}>
           <div className={styles.footerSection}>
-            <h3>🎲 Parcheesi Digital</h3>
+            <h3>🎲 Parchese Digital</h3>
             <p>Juego tradicional de mesa adaptado para la era digital</p>
           </div>
           
@@ -2171,7 +2317,7 @@ export default function Home() {
         </div>
         
         <div className={styles.footerBottom}>
-          <p>&copy; 2025 Parcheesi Digital - Proyecto de Sistemas Distribuidos</p>
+          <p>&copy; 2025 Parchese Digital - Proyecto de Sistemas Distribuidos</p>
           <p>Universidad - Semestre 8</p>
         </div>
       </footer>

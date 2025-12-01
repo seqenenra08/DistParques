@@ -13,7 +13,7 @@
 .gameInfo {
   text-align: center;
   margin-bottom: 20px;
-  color: white;
+  color: #00ff41;
 }
 
 .gameInfo h2 {
@@ -216,7 +216,7 @@
   position: absolute;
   width: 60px;
   height: 60px;
-  background: linear-gradient(45deg, #dc2626, #2563eb, #16a34a, #eab308);
+  background: linear-gradient(45deg, #dc2626, #0066cc, #16a34a, #eab308);
   border-radius: 50%;
   border: 2px solid #8b4513;
 }
@@ -224,7 +224,7 @@
 .centerArea::after {
   content: 'META';
   position: absolute;
-  color: white;
+  color: #00ff41;
   font-weight: bold;
   font-size: 10px;
   z-index: 2;
@@ -247,7 +247,7 @@
   justify-content: center;
   font-size: 8px;
   font-weight: bold;
-  color: white;
+  color: #00ff41;
   border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
@@ -261,7 +261,7 @@
   justify-content: center;
   font-size: 10px;
   font-weight: bold;
-  color: white;
+  color: #00ff41;
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
   border: 2px solid rgba(255, 255, 255, 0.8);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -304,7 +304,7 @@
   border-radius: 10px;
   padding: 15px;
   text-align: center;
-  color: white;
+  color: #00ff41;
   border-left: 4px solid;
 }
 

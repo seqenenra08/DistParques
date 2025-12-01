@@ -35,6 +35,25 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
     }
   }, []);
   
+  // Lanzamiento automático para bots
+  useEffect(() => {
+    const currentPlayer = activePlayers[currentPlayerIndex];
+    
+    // Verificar si es turno de un bot y aún no ha lanzado
+    if (currentPlayer && !currentPlayer.isHuman && !diceResults[currentPlayer.id] && !isRolling) {
+      console.log(`[BOT] Es turno del bot ${currentPlayer.name}, lanzando automáticamente en 1.5s...`);
+      
+      // Esperar 1.5 segundos antes de lanzar (para que sea visible)
+      const botTimer = setTimeout(() => {
+        console.log(`[BOT] Ejecutando lanzamiento para ${currentPlayer.name}`);
+        // Simular click del botón de lanzar
+        document.querySelector('[data-bot-roll]')?.click();
+      }, 1500);
+      
+      return () => clearTimeout(botTimer);
+    }
+  }, [currentPlayerIndex, activePlayers, diceResults, isRolling]);
+
   // Escuchar eventos de socket en modo multijugador
   useEffect(() => {
     if (!isMultiplayer || !socket) return;
@@ -422,6 +441,7 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
                     <button 
                       className={styles.rollButton}
                       onClick={rollDice}
+                      data-bot-roll="true"
                       disabled={isMultiplayer && currentPlayer.id !== myPlayerId}
                       style={{
                         opacity: (isMultiplayer && currentPlayer.id !== myPlayerId) ? 0.5 : 1,
@@ -430,7 +450,7 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
                     >
                       {isMultiplayer && currentPlayer.id !== myPlayerId 
                         ? '⏳ Esperando...' 
-                        : 'Lanzar Dado'}
+                        : currentPlayer.isHuman ? 'Lanzar Dado' : '🤖 Lanzando...'}
                     </button>
                   )}
                 </div>

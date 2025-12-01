@@ -10,7 +10,7 @@ const Rules = ({ onClose }) => {
     <div className={styles.rulesOverlay} onClick={onClose}>
       <div className={styles.rulesCard} onClick={(e) => e.stopPropagation()}>
         <div className={styles.rulesHeader}>
-          <h2 className={styles.title}>Reglas del Parcheesi</h2>
+          <h2 className={styles.title}>Reglas del Parchese</h2>
           <button className={styles.closeButton} onClick={onClose}>
             ✕
           </button>

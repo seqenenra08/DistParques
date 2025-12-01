@@ -1,5 +1,5 @@
 /**
- * Servicio de Audio para el juego Parcheesi
+ * Servicio de Audio para el juego Parchese
  * Maneja todos los efectos de sonido del juego usando Web Audio API
  */
 

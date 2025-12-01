@@ -1,5 +1,5 @@
 /**
- * Componente Board - Tablero principal del Parcheesi con imagen estática
+ * Componente Board - Tablero principal del Parchese con imagen estática
  */
 
 import React, { useState, useEffect } from 'react';
@@ -168,8 +168,8 @@ const Board = ({ gameState, onPieceClick, onBoardClick, canMove = false, current
         console.log(`[BOARD] Player ${player.name} tiene ${player.pieces.length} fichas`);
         player.pieces.forEach(piece => {
           allPieces.push({
-            id: `${piece.color}_${piece.piece_id}`,
-            color: piece.color,
+            id: `${player.color}_${piece.piece_id}`,
+            color: player.color, // Usar el color del jugador, no de la ficha
             position: piece.position === -1 ? 'prison' : piece.position,
             pieceId: piece.piece_id,
             isInGoal: piece.is_in_goal
@@ -285,12 +285,9 @@ const Board = ({ gameState, onPieceClick, onBoardClick, canMove = false, current
         <div 
           className={styles.boardBackground}
           style={{ 
-            width: '100%', 
-            height: '100%',
             backgroundImage: 'url(/images/Parchís.svg.png)',
             backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            position: 'relative'
+            backgroundPosition: 'center'
           }}
         />
 

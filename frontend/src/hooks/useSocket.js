@@ -1,5 +1,5 @@
 /**
- * Hook personalizado para manejar Socket.IO en componentes React
+ * Hook personalizado para manejar WebSocket en componentes React
  */
 
 import { useEffect, useState } from 'react';
@@ -7,15 +7,14 @@ import socketService from '../services/socketService';
 
 export function useSocket() {
   const [connected, setConnected] = useState(false);
-  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
     // Conectar al montar el componente
-    const socketInstance = socketService.connect();
-    setSocket(socketInstance);
+    socketService.connect();
 
     // Escuchar eventos de conexión
-    socketInstance.on('connect', () => {
+    const handleConnect = (data) => {
+      console.log('[useSocket] Conectado:', data);
       setConnected(true);
       
       // ✨ Intentar reconexión automática al conectar
@@ -26,27 +25,33 @@ export function useSocket() {
         if (savedRoomCode) {
           console.log('[RECONNECT] Intentando reconectar a sala:', savedRoomCode);
           setTimeout(() => {
-            socketInstance.emit('reconnect_to_game', {
+            socketService.emit('reconnect_to_game', {
               roomCode: savedRoomCode,
-              playerId: savedPlayerId || socketInstance.id
+              playerId: savedPlayerId
             });
-          }, 500); // Pequeño delay para asegurar que el servidor esté listo
+          }, 500);
         }
       }
-    });
+    };
 
-    socketInstance.on('disconnect', () => {
+    const handleDisconnect = (data) => {
+      console.log('[useSocket] Desconectado:', data);
       setConnected(false);
-    });
+    };
+
+    socketService.on('connect', handleConnect);
+    socketService.on('disconnect', handleDisconnect);
 
     // Cleanup al desmontar
     return () => {
+      socketService.off('connect', handleConnect);
+      socketService.off('disconnect', handleDisconnect);
       socketService.disconnect();
     };
   }, []);
 
   return {
-    socket,
+    socket: socketService, // Devolver el socketService completo, no el WebSocket nativo
     connected,
     emit: (event, data) => socketService.emit(event, data),
     on: (event, callback) => socketService.on(event, callback),

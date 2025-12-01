@@ -1,36 +1,56 @@
 .piece {
   position: absolute;
-  width: 20px;
-  height: 20px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   cursor: pointer;
-  transform: translate(-50%, -50%); /* Centrar la ficha en la posición */
+  transform: translate(-50%, -50%);
   transition: all 0.3s ease-in-out;
-  z-index: 10;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  box-shadow: 
+    0 0 15px currentColor,
+    0 0 30px currentColor,
+    inset 0 0 8px rgba(0, 0, 0, 0.8);
+  border: 3px solid currentColor;
 }
 
 .piece:hover {
-  transform: translate(-50%, -50%) scale(1.1);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+  transform: translate(-50%, -50%) scale(1.15);
+  box-shadow: 
+    0 0 15px currentColor,
+    0 0 30px currentColor,
+    inset 0 0 8px rgba(0, 0, 0, 0.8);
+  filter: brightness(1.3);
 }
 
 .piece.selected {
-  transform: translate(-50%, -50%) scale(1.2);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-  animation: pulse 1s infinite;
+  transform: translate(-50%, -50%) scale(1.25);
+  box-shadow: 
+    0 0 20px currentColor,
+    0 0 40px currentColor,
+    inset 0 0 10px rgba(0, 0, 0, 0.8);
+  animation: piece-pulse 1s infinite, glitch 0.5s infinite;
 }
 
-@keyframes pulse {
-  0% {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+@keyframes piece-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px currentColor,
+      0 0 40px currentColor,
+      inset 0 0 10px rgba(0, 0, 0, 0.8);
   }
   50% {
-    box-shadow: 0 6px 12px rgba(255, 255, 255, 0.8);
+    box-shadow: 
+      0 0 30px currentColor,
+      0 0 60px currentColor,
+      inset 0 0 15px rgba(0, 0, 0, 0.9);
   }
-  100% {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-  }
+}
+
+@keyframes glitch {
+  0%, 100% { transform: translate(-50%, -50%) scale(1.25); }
+  25% { transform: translate(-51%, -50%) scale(1.25); }
+  75% { transform: translate(-49%, -50%) scale(1.25); }
 }
 
 .innerPiece {
@@ -41,21 +61,25 @@
   box-sizing: border-box;
 }
 
-/* Colores de las fichas */
+/* Colores de las fichas - NEÓN */
 .red {
-  background: linear-gradient(135deg, #ff4444, #cc0000);
+  background: radial-gradient(circle at 30% 30%, #ff0033, #990020);
+  color: #ff0033;
 }
 
 .blue {
-  background: linear-gradient(135deg, #4444ff, #0000cc);
+  background: radial-gradient(circle at 30% 30%, #0099ff, #0066cc);
+  color: #0099ff;
 }
 
 .green {
-  background: linear-gradient(135deg, #44ff44, #00cc00);
+  background: radial-gradient(circle at 30% 30%, #00ff64, #00cc50);
+  color: #00ff64;
 }
 
 .yellow {
-  background: linear-gradient(135deg, #ffff44, #cccc00);
+  background: radial-gradient(circle at 30% 30%, #ffff00, #cccc00);
+  color: #ffff00;
 }
 
 /* Animación de movimiento */
@@ -76,22 +100,39 @@
   box-shadow: 0 0 10px gold;
 }
 
-/* Efecto cuando la ficha se puede mover */
+/* Efecto cuando la ficha se puede mover - NEÓN INTENSO */
 .piece.canMove {
   cursor: pointer;
-  animation: glow 2s ease-in-out infinite alternate;
+  animation: neon-glow 2s ease-in-out infinite alternate, scan-move 1s linear infinite;
 }
 
-@keyframes glow {
+@keyframes neon-glow {
   from {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 8px rgba(255, 215, 0, 0.5);
+    box-shadow: 
+      0 0 15px currentColor,
+      0 0 30px currentColor,
+      inset 0 0 8px rgba(0, 0, 0, 0.8);
+    filter: brightness(1.2);
   }
   to {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 16px rgba(255, 215, 0, 0.8);
+    box-shadow: 
+      0 0 25px currentColor,
+      0 0 50px currentColor,
+      inset 0 0 12px rgba(0, 0, 0, 0.9);
+    filter: brightness(1.5);
   }
+}
+
+@keyframes scan-move {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.05); }
 }
 
 .piece.canMove:hover {
-  transform: translate(-50%, -50%) scale(1.15);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 215, 0, 0.9);
+  transform: translate(-50%, -50%) scale(1.2);
+  box-shadow: 
+    0 0 30px currentColor,
+    0 0 60px currentColor,
+    inset 0 0 15px rgba(0, 0, 0, 0.9);
+  filter: brightness(1.6);
 }

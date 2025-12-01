@@ -342,6 +342,7 @@
     0 0 20px rgba(var(--accent-rgb), 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   position: relative;
+  z-index: 10;
   scrollbar-width: thin;
   scrollbar-color: rgba(var(--accent-rgb), 0.8) rgba(255, 255, 255, 0.1);
 }
@@ -1162,6 +1163,8 @@
   padding: 20px;
   background-color: #16213e;
   border-radius: 10px;
+  position: relative;
+  z-index: 10;
 }
 
 .actions {

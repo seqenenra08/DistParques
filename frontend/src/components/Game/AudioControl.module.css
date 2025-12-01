@@ -11,7 +11,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #00ff41 0%, #00ffff 100%);
   border: none;
   font-size: 28px;
   cursor: pointer;
@@ -35,7 +35,7 @@
   position: absolute;
   bottom: 70px;
   right: 0;
-  background: white;
+  background: rgba(0, 20, 10, 0.8);
   border-radius: 15px;
   padding: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -63,9 +63,9 @@
 .muteButton {
   width: 100%;
   padding: 12px;
-  border: 2px solid #667eea;
-  background: white;
-  color: #667eea;
+  border: 2px solid #00ff41;
+  background: rgba(0, 20, 10, 0.8);
+  color: #00ff41;
   border-radius: 10px;
   font-size: 16px;
   font-weight: 600;
@@ -74,15 +74,15 @@
 }
 
 .muteButton:hover {
-  background: #667eea;
-  color: white;
+  background: #00ff41;
+  color: #00ff41;
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
 }
 
 .muteButton.muted {
   background: #e74c3c;
-  color: white;
+  color: #00ff41;
   border-color: #e74c3c;
 }
 
@@ -131,21 +131,21 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #667eea;
+  background: #00ff41;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .volumeSlider::-webkit-slider-thumb:hover {
   transform: scale(1.2);
-  background: #764ba2;
+  background: #00ffff;
 }
 
 .volumeSlider::-moz-range-thumb {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #667eea;
+  background: #00ff41;
   cursor: pointer;
   border: none;
   transition: all 0.3s ease;
@@ -153,7 +153,7 @@
 
 .volumeSlider::-moz-range-thumb:hover {
   transform: scale(1.2);
-  background: #764ba2;
+  background: #00ffff;
 }
 
 .volumeSlider:disabled {
@@ -164,7 +164,7 @@
 .volumeValue {
   text-align: center;
   font-weight: 700;
-  color: #667eea;
+  color: #00ff41;
   font-size: 18px;
 }
 
@@ -196,7 +196,7 @@
 
 .soundList li::before {
   content: '•';
-  color: #667eea;
+  color: #00ff41;
   font-weight: bold;
   display: inline-block;
   width: 15px;

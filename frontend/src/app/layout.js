@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Parcheesi Game',
-  description: 'Juego de Parcheesi multijugador distribuido',
+  title: 'Parchese Game',
+  description: 'Juego de Parchese multijugador distribuido',
 };
 
 export default function RootLayout({ children }) {

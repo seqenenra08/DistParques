@@ -93,8 +93,8 @@
   padding: 18px 50px;
   font-size: 22px;
   font-weight: 700;
-  color: white;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #00ff41;
+  background: linear-gradient(135deg, #00ff41 0%, #00ffff 100%);
   border: none;
   border-radius: 50px;
   cursor: pointer;

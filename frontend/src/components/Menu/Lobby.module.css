@@ -1,22 +1,60 @@
-/* Lobby.module.css */
+/* Lobby.module.css - HACKER THEME */
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
 .lobbyContainer {
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #000000;
   padding: 20px;
+  position: relative;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.lobbyContainer::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: 
+    repeating-linear-gradient(0deg, rgba(0, 255, 65, 0.03) 0px, transparent 1px, transparent 2px, rgba(0, 255, 65, 0.03) 3px),
+    radial-gradient(ellipse at center, rgba(0, 20, 40, 0.8) 0%, #000000 100%);
+  pointer-events: none;
+  animation: scanlines 8s linear infinite;
+}
+
+@keyframes scanlines {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(10px); }
 }
 
 .lobbyBox {
-  background: rgba(255, 255, 255, 0.98);
-  border-radius: 24px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  background: rgba(0, 10, 0, 0.95);
+  border-radius: 4px;
+  border: 2px solid #00ff41;
+  box-shadow: 
+    0 0 40px rgba(0, 255, 65, 0.6),
+    inset 0 0 20px rgba(0, 255, 65, 0.1);
   padding: 40px;
   max-width: 700px;
   width: 100%;
-  animation: slideIn 0.4s ease-out;
+  animation: slideIn 0.4s ease-out, box-pulse 3s ease-in-out infinite alternate;
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes box-pulse {
+  0% {
+    box-shadow: 
+      0 0 40px rgba(0, 255, 65, 0.6),
+      inset 0 0 20px rgba(0, 255, 65, 0.1);
+  }
+  100% {
+    box-shadow: 
+      0 0 60px rgba(0, 255, 255, 0.7),
+      inset 0 0 30px rgba(0, 255, 255, 0.15);
+  }
 }
 
 @keyframes slideIn {
@@ -45,17 +83,29 @@
 .title {
   font-size: 2.5rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #00ff41;
+  text-shadow: 
+    0 0 20px #00ff41,
+    0 0 40px #00ff41,
+    0 0 60px #00ff41;
   margin: 0 0 8px 0;
+  font-family: 'Share Tech Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  animation: title-flicker 3s ease-in-out infinite;
+}
+
+@keyframes title-flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.9; }
 }
 
 .subtitle {
   font-size: 1rem;
-  color: #666;
+  color: #00ffff;
   margin: 0;
+  font-family: 'Share Tech Mono', monospace;
+  text-shadow: 0 0 10px #00ffff;
 }
 
 /* Room Code Section */
@@ -66,7 +116,7 @@
 .roomCodeLabel {
   display: block;
   font-size: 0.9rem;
-  color: #666;
+  color: #00ffff;
   margin-bottom: 8px;
   font-weight: 600;
 }
@@ -75,23 +125,23 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #00ff41 0%, #00ffff 100%);
   padding: 12px 20px;
-  border-radius: 12px;
+  border-radius: 4px;
 }
 
 .roomCode {
   font-size: 2rem;
   font-weight: 800;
-  color: white;
+  color: #00ff41;
   letter-spacing: 4px;
-  font-family: 'Courier New', monospace;
+  font-family: 'Share Tech Mono', monospace;
 }
 
 .copyButton {
   background: rgba(255, 255, 255, 0.2);
   border: 2px solid rgba(255, 255, 255, 0.4);
-  color: white;
+  color: #00ff41;
   width: 40px;
   height: 40px;
   border-radius: 10px;
@@ -132,15 +182,15 @@
 .sectionTitle {
   font-size: 1.3rem;
   font-weight: 700;
-  color: #333;
+  color: #00ff41;
   margin: 0;
 }
 
 .readyBadge {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, #00ff41 0%, #00ffff 100%);
+  color: #00ff41;
   padding: 6px 14px;
-  border-radius: 20px;
+  border-radius: 4px;
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -152,9 +202,9 @@
 }
 
 .playerCard {
-  background: white;
+  background: rgba(0, 20, 10, 0.8);
   border: 2px solid #e0e0e0;
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 16px;
   display: flex;
   justify-content: space-between;
@@ -187,7 +237,7 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #00ff41 0%, #00ffff 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -203,7 +253,7 @@
 .playerName {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #333;
+  color: #00ff41;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -217,7 +267,7 @@
 
 .hostBadge {
   background: #ffd700;
-  color: #333;
+  color: #00ff41;
   padding: 2px 8px;
   border-radius: 6px;
   font-size: 0.7rem;
@@ -225,8 +275,8 @@
 }
 
 .botBadge {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, #00ff41 0%, #00ffff 100%);
+  color: #00ff41;
   padding: 2px 8px;
   border-radius: 6px;
   font-size: 0.7rem;
@@ -241,7 +291,7 @@
 
 .playerStatus {
   font-size: 0.85rem;
-  color: #666;
+  color: #00ffff;
 }
 
 .readyIcon {
@@ -249,7 +299,7 @@
   height: 40px;
   border-radius: 50%;
   background: #4caf50;
-  color: white;
+  color: #00ff41;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -260,7 +310,7 @@
 .emptySlot {
   background: #f5f5f5;
   border: 2px dashed #ccc;
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 16px;
   display: flex;
   align-items: center;
@@ -288,7 +338,7 @@
 /* Instructions */
 .instructions {
   background: linear-gradient(to right, #e3f2fd 0%, #f3e5f5 100%);
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 16px;
   margin: 20px 0;
   text-align: center;
@@ -314,7 +364,7 @@
   flex: 1;
   padding: 14px 24px;
   border: none;
-  border-radius: 12px;
+  border-radius: 4px;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
@@ -327,7 +377,7 @@
 
 .readyButton {
   background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
-  color: white;
+  color: #00ff41;
   box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
 }
 
@@ -342,8 +392,8 @@
 }
 
 .startButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, #00ff41 0%, #00ffff 100%);
+  color: #00ff41;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
@@ -360,7 +410,7 @@
 
 .leaveButton {
   background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
-  color: white;
+  color: #00ff41;
   box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
   flex: 0.5;
 }

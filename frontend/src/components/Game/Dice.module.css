@@ -1,4 +1,6 @@
-/* Estilos para el componente Dice */
+/* Estilos para el componente Dice - TEMA HACKER */
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
 .diceContainer {
   display: flex;
@@ -6,12 +8,30 @@
   align-items: center;
   gap: 10px;
   padding: 15px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 15px;
+  background: rgba(0, 10, 0, 0.9);
+  border-radius: 4px;
+  border: 2px solid #00ff41;
   backdrop-filter: blur(10px);
   position: relative;
-  margin-top: 50px; /* Reducido de 80px */
-  padding-top: 15px; /* Reducido de 30px */
+  margin-top: 50px;
+  padding-top: 15px;
+  box-shadow: 
+    0 0 20px rgba(0, 255, 65, 0.4),
+    inset 0 0 15px rgba(0, 255, 65, 0.1);
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.diceContainer::before {
+  content: '> DICE_SYS //';
+  position: absolute;
+  top: -12px;
+  left: 12px;
+  background: #000000;
+  padding: 0 8px;
+  color: #00ff41;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1px;
 }
 
 .diceLabel {
@@ -35,7 +55,7 @@
   height: 80px;
   background: linear-gradient(145deg, #ffffff, #e6e6e6);
   border: 3px solid #34495e;
-  border-radius: 12px;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
@@ -210,7 +230,7 @@
 
 .rollBtn {
   background: linear-gradient(145deg, #4ecdc4, #45b8af);
-  color: white;
+  color: #00ff41;
   border: none;
   padding: 10px 20px;
   border-radius: 8px;
@@ -321,9 +341,9 @@
 /* Indicador de dobles */
 .doublesIndicator {
   background: linear-gradient(145deg, #f39c12, #e67e22);
-  color: white;
+  color: #00ff41;
   padding: 3px 10px;
-  border-radius: 12px;
+  border-radius: 4px;
   font-size: 0.85rem;
   font-weight: bold;
   animation: pulse 1s ease-in-out infinite;
@@ -334,7 +354,7 @@
 .doublesIndicatorLarge {
   margin-top: 12px;
   background: linear-gradient(145deg, #e74c3c, #c0392b);
-  color: white;
+  color: #00ff41;
   padding: 12px 24px;
   border-radius: 15px;
   font-size: 1.3rem;
@@ -376,7 +396,7 @@
   left: 50%;
   transform: translateX(-50%);
   background: linear-gradient(145deg, #e74c3c, #c0392b);
-  color: white;
+  color: #00ff41;
   padding: 8px 20px; /* Reducido de 15px 30px */
   border-radius: 15px; /* Reducido de 20px */
   font-size: 1.1rem; /* Reducido de 1.8rem */
