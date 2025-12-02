@@ -59,6 +59,7 @@ class Tablero:
             # Nota: no comparamos con ficha_movida porque aún no está en el tablero
             if ficha.color != ficha_movida.color:
                 capturadas.append(ficha)
+                print(f"🎯 CAPTURA: Ficha {ficha_movida.color}-{ficha_movida.id} capturó a {ficha.color}-{ficha.id} en posición {posicion}")
         
         return capturadas
     

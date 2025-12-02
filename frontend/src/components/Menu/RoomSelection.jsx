@@ -18,15 +18,19 @@ const RoomSelection = ({ onCreateRoom, onJoinRoom, onBack, availableColors = [],
 
   // Efecto para cambiar al modo selectColor cuando se recibe la información de la sala
   React.useEffect(() => {
-    console.log('[RoomSelection] showColorSelector:', showColorSelector, 'mode:', mode);
-    if (showColorSelector && mode === 'join') {
-      console.log('[RoomSelection] Cambiando a modo selectColor');
+    console.log('[RoomSelection] showColorSelector:', showColorSelector, 'mode:', mode, 'availableColors:', availableColors);
+    if (showColorSelector && mode === 'join' && availableColors.length > 0) {
+      console.log('[RoomSelection] Cambiando a modo selectColor con colores:', availableColors);
       setMode('selectColor');
+      // Mantener el código de la sala si ya estaba guardado
+      if (!joinedRoomCode && roomCode) {
+        setJoinedRoomCode(roomCode.toUpperCase());
+      }
       if (onRoomInfoReceived) {
         onRoomInfoReceived();
       }
     }
-  }, [showColorSelector, mode, onRoomInfoReceived]);
+  }, [showColorSelector, mode, availableColors, onRoomInfoReceived, roomCode, joinedRoomCode]);
 
   // Colores disponibles para el juego
   const allColors = [
@@ -105,11 +109,12 @@ const RoomSelection = ({ onCreateRoom, onJoinRoom, onBack, availableColors = [],
     console.log('[RoomSelection] Validando sala y obteniendo colores disponibles');
     audioService.playClick();
     // Guardar el código de la sala y solicitar información al backend
-    setJoinedRoomCode(roomCode.toUpperCase());
+    const upperRoomCode = roomCode.toUpperCase();
+    setJoinedRoomCode(upperRoomCode);
     setError('');
     
     // Solicitar información de la sala sin color para obtener colores disponibles
-    onJoinRoom({ playerName: playerName.trim(), roomCode: roomCode.toUpperCase(), color: null });
+    onJoinRoom({ playerName: playerName.trim(), roomCode: upperRoomCode, color: null });
   };
 
   const handleConfirmColor = () => {

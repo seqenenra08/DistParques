@@ -22,6 +22,13 @@ export default function Home() {
   const [gameStarted, setGameStarted] = useState(false);
   const [myPlayerInfo, setMyPlayerInfo] = useState(null); // { id, nombre, color }
   
+  // Estados de sala
+  const [roomCode, setRoomCode] = useState(null);
+  const [showRoomCode, setShowRoomCode] = useState(false);
+  const [roomPlayers, setRoomPlayers] = useState([]);
+  const [availableColors, setAvailableColors] = useState([]);
+  const [pendingRoomCode, setPendingRoomCode] = useState(null);
+  
   // Estados de dados
   const [diceValue, setDiceValue] = useState(null);
   const [isRolling, setIsRolling] = useState(false);
@@ -67,20 +74,31 @@ export default function Home() {
 
     // Sala creada exitosamente
     socket.on('SALA_CREADA', (data) => {
-      console.log('[SALA_CREADA]', data);
+      console.log('[SALA_CREADA] 📥 Evento recibido:', data);
       if (data.exito) {
-        setMyPlayerInfo({
+        const playerInfo = {
           id: data.jugador.color,
           nombre: data.jugador.nombre,
           color: data.jugador.color,
           es_host: data.jugador.es_host
-        });
-        audioService.playSuccess();
+        };
+        console.log('[SALA_CREADA] 👤 Guardando info del jugador:', playerInfo);
+        console.log('[SALA_CREADA] 🔑 Código de sala:', data.codigo_sala);
         
-        // Iniciar partida automáticamente
-        setTimeout(() => {
-          emit('INICIAR_PARTIDA', {});
-        }, 500);
+        setMyPlayerInfo(playerInfo);
+        setRoomCode(data.codigo_sala);
+        setShowRoomCode(true);
+        
+        console.log('[SALA_CREADA] ✅ Estados actualizados - showRoomCode: true, roomCode:', data.codigo_sala);
+        
+        // Actualizar lista de jugadores si viene en el estado
+        if (data.estado_sala?.jugadores) {
+          console.log('[SALA_CREADA] 👥 Jugadores en sala:', data.estado_sala.jugadores);
+          setRoomPlayers(data.estado_sala.jugadores);
+        }
+        
+        audioService.playSuccess();
+        showNotification(`Sala creada: ${data.codigo_sala}`, 'success');
       }
     });
 
@@ -211,6 +229,60 @@ export default function Home() {
       // Mostrar info de fichas si es necesario
     });
 
+    // Jugador unido a la sala
+    socket.on('JUGADOR_UNIDO', (data) => {
+      console.log('[JUGADOR_UNIDO]', data);
+      if (data.estado_sala && data.estado_sala.jugadores) {
+        setRoomPlayers(data.estado_sala.jugadores);
+        showNotification(`${data.jugador} se ha unido a la sala`, 'info');
+        audioService.playClick();
+      }
+    });
+
+    // Colores disponibles (cuando te unes a una sala)
+    socket.on('COLORES_DISPONIBLES', (data) => {
+      console.log('[COLORES_DISPONIBLES]', data);
+      if (data.exito) {
+        setAvailableColors(data.colores);
+        setPendingRoomCode(data.codigo_sala);
+        showNotification('Selecciona tu color', 'info');
+      }
+    });
+
+    // Unido a sala exitosamente
+    socket.on('UNIDO_A_SALA', (data) => {
+      console.log('[UNIDO_A_SALA]', data);
+      if (data.exito) {
+        setMyPlayerInfo({
+          id: data.jugador.color,
+          nombre: data.jugador.nombre,
+          color: data.jugador.color,
+          es_host: data.jugador.es_host
+        });
+        setRoomCode(data.codigo_sala);
+        setShowRoomCode(true);
+        
+        // Actualizar lista de jugadores
+        if (data.estado_sala?.jugadores) {
+          setRoomPlayers(data.estado_sala.jugadores);
+        }
+        
+        // Limpiar colores disponibles y código pendiente
+        setAvailableColors([]);
+        setPendingRoomCode(null);
+        
+        audioService.playSuccess();
+        showNotification(`Te has unido a la sala ${data.codigo_sala}`, 'success');
+      }
+    });
+
+    // Error del servidor
+    socket.on('ERROR', (data) => {
+      console.log('[ERROR]', data);
+      showNotification(data.mensaje || 'Error desconocido', 'error');
+      audioService.playError();
+    });
+
     // Limpieza
     return () => {
       socket.off('SALA_CREADA');
@@ -219,6 +291,10 @@ export default function Home() {
       socket.off('MOVE_RESULT');
       socket.off('UPDATE');
       socket.off('FICHAS_INFO');
+      socket.off('JUGADOR_UNIDO');
+      socket.off('COLORES_DISPONIBLES');
+      socket.off('UNIDO_A_SALA');
+      socket.off('ERROR');
     };
   }, [socket]);
 
@@ -250,6 +326,39 @@ export default function Home() {
       numBots: players.filter(p => !p.isHuman).length,
       color: players[0].color,
       players: players // Enviar array completo con info de todos los jugadores
+    });
+  };
+
+  const handleCreateRoom = (roomConfig) => {
+    console.log('[CREATE ROOM]', roomConfig);
+    
+    if (!connected) {
+      showNotification('No estás conectado al servidor', 'error');
+      return;
+    }
+    
+    // Emitir evento para crear sala
+    emit('CREAR_SALA', {
+      playerName: roomConfig.playerName,
+      maxPlayers: roomConfig.maxPlayers,
+      numBots: roomConfig.numBots,
+      color: roomConfig.color
+    });
+  };
+
+  const handleJoinRoom = (joinConfig) => {
+    console.log('[JOIN ROOM]', joinConfig);
+    
+    if (!connected) {
+      showNotification('No estás conectado al servidor', 'error');
+      return;
+    }
+    
+    // Emitir evento para unirse a sala
+    emit('UNIRSE_SALA', {
+      roomCode: joinConfig.roomCode,
+      playerName: joinConfig.playerName,
+      color: joinConfig.color
     });
   };
 
@@ -403,13 +512,110 @@ export default function Home() {
     return currentPlayerData?.color || null;
   };
 
+  // Handler para iniciar partida desde sala de espera
+  const handleStartFromLobby = () => {
+    if (!connected) {
+      showNotification('No estás conectado al servidor', 'error');
+      return;
+    }
+    
+    console.log('[START FROM LOBBY] Iniciando partida...');
+    emit('INICIAR_PARTIDA', {});
+  };
+
   // Renderizado
   if (!gameStarted) {
+    console.log('[RENDER] 🎬 Renderizando - gameStarted:', gameStarted, 'showRoomCode:', showRoomCode, 'roomCode:', roomCode);
+    
+    // Mostrar sala de espera si hay código de sala
+    if (showRoomCode && roomCode) {
+      console.log('[RENDER] 🏠 Mostrando lobby con código:', roomCode);
+      return (
+        <div className={styles.container}>
+          <div className={styles.lobbyContainer}>
+            <div className={styles.lobbyBox}>
+              <h1 className={styles.lobbyTitle}>🎮 Sala de Espera</h1>
+              
+              <div className={styles.roomCodeSection}>
+                <p className={styles.roomCodeLabel}>Código de Sala:</p>
+                <div className={styles.roomCodeDisplay}>
+                  <span className={styles.roomCodeText}>{roomCode}</span>
+                  <button 
+                    className={styles.copyButton}
+                    onClick={() => {
+                      navigator.clipboard.writeText(roomCode);
+                      showNotification('Código copiado al portapapeles', 'success');
+                      audioService.playClick();
+                    }}
+                  >
+                    📋 Copiar
+                  </button>
+                </div>
+                <p className={styles.roomCodeHint}>
+                  Comparte este código con otros jugadores para que se unan
+                </p>
+              </div>
+
+              <div className={styles.playersSection}>
+                <h2 className={styles.sectionTitle}>Jugadores en la sala:</h2>
+                <div className={styles.playersList}>
+                  {roomPlayers.map((player, index) => (
+                    <div key={index} className={styles.playerItem}>
+                      <div 
+                        className={styles.playerColorBadge} 
+                        style={{ backgroundColor: player.color }}
+                      ></div>
+                      <span className={styles.playerName}>{player.nombre}</span>
+                      {player.nombre === myPlayerInfo?.nombre && (
+                        <span className={styles.youBadge}>Tú</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.lobbyActions}>
+                {myPlayerInfo?.es_host ? (
+                  <button 
+                    className={styles.startButton}
+                    onClick={handleStartFromLobby}
+                    disabled={!connected}
+                  >
+                    🚀 Iniciar Partida
+                  </button>
+                ) : (
+                  <p className={styles.waitingText}>
+                    Esperando a que el anfitrión inicie la partida...
+                  </p>
+                )}
+              </div>
+
+              <div className={styles.connectionStatus}>
+                {connected ? '🟢 Conectado' : '🔴 Desconectado'}
+              </div>
+            </div>
+          </div>
+
+          {notification && (
+            <Notification
+              message={notification.message}
+              type={notification.type}
+              onClose={() => setNotification(null)}
+            />
+          )}
+        </div>
+      );
+    }
+    
     return (
       <>
         <Menu 
           onStartGame={handleStartGame}
           onShowRules={handleShowRules}
+          onCreateRoom={handleCreateRoom}
+          onJoinRoom={handleJoinRoom}
+          availableColors={availableColors}
+          showColorSelector={availableColors.length > 0}
         />
         {showRules && <Rules onClose={handleCloseRules} />}
         

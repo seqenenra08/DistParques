@@ -93,10 +93,10 @@ class WebSocketService {
       
       // Salas
       'SALA_CREADA': 'SALA_CREADA',
-      'UNIDO_A_SALA': 'room_joined',
-      'JUGADOR_UNIDO': 'player_joined_room',
+      'UNIDO_A_SALA': 'UNIDO_A_SALA',
+      'JUGADOR_UNIDO': 'JUGADOR_UNIDO',
       'JUGADOR_DESCONECTADO': 'player_left_room',
-      'COLORES_DISPONIBLES': 'room_info',
+      'COLORES_DISPONIBLES': 'COLORES_DISPONIBLES',
       
       // Partida
       'PARTIDA_INICIADA': 'PARTIDA_INICIADA',
@@ -114,7 +114,7 @@ class WebSocketService {
       'UPDATE': 'UPDATE',
       
       // Errores
-      'ERROR': 'error'
+      'ERROR': 'ERROR'
     };
     
     return typeMap[backendType] || backendType.toLowerCase();

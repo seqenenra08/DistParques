@@ -149,35 +149,49 @@ class ServidorSalas:
             nombre_jugador = data.get('playerName', 'Anónimo')
             color = data.get('color')
             
+            print(f"🔍 [UNIRSE] Código: {codigo_sala}, Jugador: {nombre_jugador}, Color: {color}")
+            
             # Verificar si la sala existe
             if codigo_sala not in self.salas:
+                print(f"❌ [UNIRSE] Sala {codigo_sala} no encontrada. Salas disponibles: {list(self.salas.keys())}")
                 await websocket.send(json.dumps({
                     "tipo": "ERROR",
                     "mensaje": "Sala no encontrada"
                 }))
                 return
             
+            print(f"✅ [UNIRSE] Sala {codigo_sala} encontrada")
             sala = self.salas[codigo_sala]
             
             # Verificar si la sala está llena
             if sala.esta_llena():
+                print(f"❌ [UNIRSE] Sala {codigo_sala} está llena")
                 await websocket.send(json.dumps({
                     "tipo": "ERROR",
                     "mensaje": "La sala está llena"
                 }))
                 return
             
+            print(f"✅ [UNIRSE] Sala tiene espacio disponible")
+            
             # Si no se especificó color, obtener colores disponibles primero
             if not color:
+                print(f"🎨 [UNIRSE] Color no especificado, enviando colores disponibles...")
                 colores_usados = {j.color for j in sala.partida.jugadores}
                 colores_disponibles = [c for c in ['red', 'blue', 'green', 'yellow'] if c not in colores_usados]
                 
-                await websocket.send(json.dumps({
+                print(f"🎨 [UNIRSE] Colores usados: {colores_usados}")
+                print(f"🎨 [UNIRSE] Colores disponibles: {colores_disponibles}")
+                
+                mensaje_respuesta = {
                     "tipo": "COLORES_DISPONIBLES",
                     "exito": True,
                     "colores": colores_disponibles,
                     "codigo_sala": codigo_sala
-                }))
+                }
+                print(f"📤 [UNIRSE] Enviando respuesta: {mensaje_respuesta}")
+                await websocket.send(json.dumps(mensaje_respuesta))
+                print(f"✅ [UNIRSE] COLORES_DISPONIBLES enviado correctamente")
                 return
             
             # Agregar jugador a la sala con su color preferido
@@ -222,7 +236,9 @@ class ServidorSalas:
             print(f"✅ {nombre_jugador} se unió a sala {codigo_sala}")
             
         except Exception as e:
-            print(f"❌ Error al unirse a sala: {e}")
+            print(f"❌ [UNIRSE] Error al unirse a sala: {e}")
+            import traceback
+            traceback.print_exc()
             await websocket.send(json.dumps({
                 "tipo": "ERROR",
                 "mensaje": f"Error al unirse a la sala: {str(e)}"
@@ -295,11 +311,13 @@ class ServidorSalas:
     async def procesar_mensaje(self, websocket, mensaje: dict):
         """Procesa los mensajes recibidos."""
         tipo = mensaje.get("tipo")
+        print(f"📨 [MENSAJE] Tipo: {tipo}, Datos: {mensaje}")
         
         if tipo == "CREAR_SALA":
             await self.crear_sala(websocket, mensaje)
         
         elif tipo == "UNIRSE_SALA":
+            print(f"🚪 [UNIRSE_SALA] Procesando solicitud de {mensaje.get('playerName')} para sala {mensaje.get('roomCode')}")
             await self.unirse_sala(websocket, mensaje)
         
         elif tipo == "INICIAR_PARTIDA":
@@ -841,6 +859,14 @@ class ServidorSalas:
             await websocket.send(json.dumps({"error": "No es tu turno"}))
             return
         
+        # Verificar si tiene penalización de 3 pares pendiente
+        if sala.partida.jugador_puede_sacar_ficha == jugador:
+            await websocket.send(json.dumps({
+                "tipo": "ERROR",
+                "mensaje": "¡3 pares consecutivos! Debes elegir una ficha para sacar del juego antes de continuar."
+            }))
+            return
+        
         # Verificar si puede lanzar
         if not jugador.puede_lanzar():
             await websocket.send(json.dumps({"error": "Ya lanzaste los dados. Debes mover primero o esperar a sacar par."}))
@@ -850,6 +876,11 @@ class ServidorSalas:
         suma_dados = dados[0] + dados[1]
         es_par = dados[0] == dados[1]
         print(f"🎲 {jugador.nombre} lanzó {dados}")
+        print(f"   📊 Estado antes: ya_lanzo={jugador.ya_lanzo_dados}, puede_lanzar_nuevo={jugador.puede_lanzar_de_nuevo}")
+        
+        # Marcar que ya lanzó los dados
+        jugador.ya_lanzo_dados = True
+        jugador.puede_lanzar_de_nuevo = False  # Por defecto no puede lanzar de nuevo, se activará si es par
         
         # Verificar si todas las fichas están en cárcel
         todas_en_carcel = all(f.esta_en_carcel() for f in jugador.fichas)
@@ -896,13 +927,14 @@ class ServidorSalas:
         if es_par and todas_en_carcel:
             pieces_in_prison = [f.id for f in jugador.fichas if f.esta_en_carcel()]
         
-        # Enviar respuesta completa
-        await websocket.send(json.dumps({
+        # Preparar mensaje de dados
+        dice_message = {
             "tipo": "DICE_RESULT",
             "dados": list(dados),
             "suma": suma_dados,
             "es_par": es_par,
             "todas_en_carcel": todas_en_carcel,
+            "jugador": jugador.nombre,  # Agregar nombre del jugador
             "mensaje": f"{jugador.nombre} lanzó {dados[0]} + {dados[1]} = {suma_dados}",
             "start_phase": resultado_info["start_phase"],
             "is_doubles": resultado_info["is_doubles"],
@@ -912,7 +944,13 @@ class ServidorSalas:
             "attempts_used": resultado_info["attempts_used"],
             "attempts_remaining": resultado_info["attempts_remaining"],
             "pieces_in_prison": pieces_in_prison
-        }))
+        }
+        
+        # Enviar al jugador que lanzó
+        await websocket.send(json.dumps(dice_message))
+        
+        # Broadcast a todos los demás jugadores en la sala
+        await self.broadcast_sala(codigo_sala, dice_message, exclude=websocket)
         
         # Si se pasó el turno, ejecutar siguiente bot si es necesario
         if resultado_info["turn_passed"]:
@@ -1036,14 +1074,19 @@ class ServidorSalas:
             ficha_info = jugador.fichas[id_ficha]
             print(f"   ✅ Ficha {id_ficha} sacada - Nueva posición: {ficha_info.posicion}, Estado: {ficha_info.estado}")
         
+        # Si hubo capturas, mostrarlas
+        if resultado.get('fichas_capturadas'):
+            for ficha_cap in resultado['fichas_capturadas']:
+                print(f"   🎯 ¡CAPTURA! Ficha {ficha_cap.get('color')}-{ficha_cap.get('id')} devuelta a la cárcel")
+        
         if "error" not in resultado:
             accion = resultado.get('accion')
             if accion == "primer_turno_sin_par":
                 print(f"🎲 {jugador.nombre} - Primer turno: sin par ({resultado.get('intentos_restantes')} intentos restantes)")
             elif accion == "primer_turno_agotado":
                 print(f"⏭️  {jugador.nombre} - Primer turno agotado sin sacar par")
-            elif accion == "tres_pares_sacar_ficha":
-                print(f"🎯 {jugador.nombre} - ¡3 PARES! Puede sacar una ficha del juego")
+            elif accion == "tres_pares_premio":
+                print(f"🎉 {jugador.nombre} - ¡3 PARES! Ficha {resultado.get('ficha_premiada')} va directo a la meta")
             else:
                 print(f"🚶 {jugador.nombre} movió ficha {id_ficha}: {accion}")
         
@@ -1117,17 +1160,25 @@ class ServidorSalas:
             "estado": self._enviar_estado_actualizado(sala)
         }))
     
-    async def broadcast_sala(self, codigo_sala: str, mensaje: dict):
-        """Envía un mensaje a todos los jugadores de una sala."""
+    async def broadcast_sala(self, codigo_sala: str, mensaje: dict, exclude=None):
+        """Envía un mensaje a todos los jugadores de una sala.
+        
+        Args:
+            codigo_sala: Código de la sala
+            mensaje: Mensaje a enviar
+            exclude: WebSocket a excluir del broadcast (opcional)
+        """
         if codigo_sala not in self.salas:
             return
         
         sala = self.salas[codigo_sala]
         mensaje_json = json.dumps(mensaje)
         
-        # Enviar a todas las conexiones activas
+        # Enviar a todas las conexiones activas (excepto la excluida)
         conexiones_cerradas = []
         for conexion in sala.conexiones:
+            if exclude and conexion == exclude:
+                continue  # Saltar la conexión excluida
             try:
                 await conexion.send(mensaje_json)
             except:

@@ -369,11 +369,40 @@ class Partida:
                 jugador.incrementar_pares()
                 if jugador.tiene_tres_pares():
                     resultado["tres_pares"] = True
-                    resultado["accion"] = "tres_pares_sacar_ficha"
-                    resultado["mensaje"] = "¡3 pares consecutivos! Elige una ficha para sacar del juego."
-                    self.jugador_puede_sacar_ficha = jugador
+                    resultado["accion"] = "tres_pares_premio"
                     jugador.resetear_pares()
-                    # No cambiar turno, esperar que elija ficha
+                    
+                    # Buscar la ficha más avanzada en el tablero (no en cárcel ni meta) para meterla a la meta
+                    fichas_jugando = [f for f in jugador.fichas if f.estado == EstadoFicha.TABLERO or f.estado == EstadoFicha.PASILLO_FINAL]
+                    
+                    if fichas_jugando:
+                        # Meter la más avanzada directo a la meta (PREMIO)
+                        ficha_premiada = max(fichas_jugando, key=lambda f: f.casillas_recorridas)
+                        
+                        # Remover del tablero
+                        if ficha_premiada.posicion is not None:
+                            self.tablero.remover_ficha(ficha_premiada.posicion, ficha_premiada)
+                        
+                        # Meter a la meta
+                        ficha_premiada.estado = EstadoFicha.META
+                        ficha_premiada.posicion = None
+                        ficha_premiada.posicion_pasillo = 8  # Llegó al final
+                        
+                        resultado["mensaje"] = f"¡3 pares consecutivos! Ficha {ficha_premiada.id} va directo a la meta."
+                        resultado["ficha_premiada"] = ficha_premiada.id
+                        print(f"🎉 {jugador.nombre} - 3 PARES: Ficha {ficha_premiada.id} va directo a la meta!")
+                        
+                        # Verificar victoria
+                        if jugador.todas_fichas_en_meta():
+                            self.ganador = jugador
+                            resultado["ganador"] = jugador.nombre
+                            print(f"🏆 ¡{jugador.nombre} ha ganado!")
+                    else:
+                        resultado["mensaje"] = "¡3 pares consecutivos! Pero no tienes fichas en juego para meter a la meta."
+                    
+                    # Cambiar turno después del premio
+                    self._cambiar_turno()
+                    resultado["cambio_turno"] = True
                     return resultado
             else:
                 jugador.resetear_pares()
