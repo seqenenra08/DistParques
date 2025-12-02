@@ -68,14 +68,14 @@ export const SPECIAL_POSITIONS = {
   ],
   
   // Casillas de salida (también son seguras)
-  EXIT_POSITIONS: [5, 22, 39, 56],
+  EXIT_POSITIONS: [5, 22, 39, 56],  // Amarillo, Azul, Rojo, Verde
   
   // Entradas a las rectas finales (donde cada color entra a su pasillo final)
   GOAL_ENTRIES: {
-    [PLAYER_COLORS.RED]: 34,   // Entra por casilla 34 hacia recta roja
-    [PLAYER_COLORS.BLUE]: 17,  // Entra por casilla 17 hacia recta azul
-    [PLAYER_COLORS.GREEN]: 51, // Entra por casilla 51 hacia recta verde  
-    [PLAYER_COLORS.YELLOW]: 68 // Entra por casilla 68 hacia recta amarilla
+    [PLAYER_COLORS.RED]: 29,   // Entra por casilla 29 hacia recta roja
+    [PLAYER_COLORS.BLUE]: 12,  // Entra por casilla 12 hacia recta azul
+    [PLAYER_COLORS.GREEN]: 46, // Entra por casilla 46 hacia recta verde  
+    [PLAYER_COLORS.YELLOW]: 63 // Entra por casilla 63 hacia recta amarilla
   },
 
   // Posiciones de las bases (cárceles) - círculos en las esquinas

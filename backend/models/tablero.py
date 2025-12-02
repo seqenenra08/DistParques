@@ -9,8 +9,8 @@ class Tablero:
     """Representa el tablero del juego con 68 casillas."""
     
     SEGUROS: Set[int] = {5, 12, 17, 22, 29, 34, 39, 46, 51, 56, 63, 0}  # Casillas seguras
-    SALIDAS = {"red": 5, "blue": 22, "yellow": 39, "green": 56}
-    ENTRADAS_PASILLO = {"red": 63, "blue": 12, "yellow": 29, "green": 46}
+    SALIDAS = {"red": 39, "blue": 22, "yellow": 5, "green": 56}
+    ENTRADAS_PASILLO = {"red": 29, "blue": 12, "yellow": 63, "green": 46}
     
     def __init__(self):
         # casillas[i] = lista de fichas en esa posición

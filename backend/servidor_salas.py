@@ -626,6 +626,21 @@ class ServidorSalas:
         if id_ficha_a_mover is not None:
             resultado = sala.partida.procesar_turno(jugador_actual, dados, id_ficha_a_mover)
             
+            # Verificar si hubo error
+            if "error" in resultado:
+                print(f"   ❌ [BOT] Error al mover: {resultado['error']}")
+                # Si sacó par pero no pudo mover, forzar cambio de turno para evitar loop infinito
+                if es_par:
+                    print(f"   🔄 [BOT] Forzando cambio de turno por error en movimiento")
+                    sala.partida._cambiar_turno()
+                    await self.broadcast_sala(codigo_sala, {
+                        "tipo": "UPDATE",
+                        "estado": self._enviar_estado_actualizado(sala)
+                    })
+                    await asyncio.sleep(0.8)
+                    await self.ejecutar_turno_bot_si_necesario(codigo_sala)
+                return
+            
             # Obtener estado actualizado
             estado_actualizado = self._enviar_estado_actualizado(sala)
             cambio_turno = resultado.get('cambio_turno', False)
@@ -668,29 +683,56 @@ class ServidorSalas:
         else:
             # No hay movimientos posibles
             print(f"   ⚠️  [BOT] No hay ficha válida para mover")
+            
+            # Diagnosticar por qué no hay fichas disponibles
+            fichas_en_carcel = sum(1 for f in jugador_actual.fichas if f.esta_en_carcel())
+            fichas_en_meta = sum(1 for f in jugador_actual.fichas if f.esta_en_meta())
+            fichas_en_tablero = sum(1 for f in jugador_actual.fichas if not f.esta_en_carcel() and not f.esta_en_meta())
+            
+            print(f"   📊 [BOT] Estado de fichas: {fichas_en_carcel} cárcel, {fichas_en_tablero} tablero, {fichas_en_meta} meta")
+            
             # Si todas están en cárcel y no sacó par, procesar turno sin ficha
-            resultado = sala.partida.procesar_turno(jugador_actual, dados, None)
-            print(f"   📊 [BOT] Resultado: {resultado}")
-            
-            await self.broadcast_sala(codigo_sala, {
-                "tipo": "ESTADO_ACTUALIZADO",
-                "estado": self._enviar_estado_actualizado(sala)
-            })
-            
-            cambio_turno = resultado.get('cambio_turno', False)
-            intentos_restantes = resultado.get('intentos_restantes', 0)
-            
-            # Si cambió el turno O aún tiene intentos, continuar ejecutando bots
-            if cambio_turno:
-                print(f"   ➡️  [BOT] Cambió turno, verificando siguiente jugador...")
+            if todas_en_carcel:
+                resultado = sala.partida.procesar_turno(jugador_actual, dados, None)
+                print(f"   📊 [BOT] Resultado (todas en cárcel): {resultado.get('accion', 'desconocido')}")
+                
+                await self.broadcast_sala(codigo_sala, {
+                    "tipo": "ESTADO_ACTUALIZADO",
+                    "estado": self._enviar_estado_actualizado(sala)
+                })
+                
+                cambio_turno = resultado.get('cambio_turno', False)
+                intentos_restantes = resultado.get('intentos_restantes', 0)
+                
+                if cambio_turno:
+                    print(f"   ➡️  [BOT] Cambió turno, verificando siguiente jugador...")
+                    await asyncio.sleep(0.8)
+                    await self.ejecutar_turno_bot_si_necesario(codigo_sala)
+                elif intentos_restantes > 0:
+                    print(f"   🔄 [BOT] Quedan {intentos_restantes} intentos, reintentando...")
+                    await asyncio.sleep(1.0)
+                    await self.ejecutar_turno_bot_si_necesario(codigo_sala)
+                else:
+                    print(f"   ⛔ [BOT] Sin intentos, esperando turno del siguiente jugador")
+            else:
+                # No está en cárcel pero no puede mover ninguna ficha
+                # Esto puede pasar si todas las fichas están bloqueadas o en situaciones especiales
+                print(f"   🚫 [BOT] No puede mover ninguna ficha. Forzando cambio de turno.")
+                
+                # Si sacó par, resetear contador de pares para evitar problemas
+                if es_par:
+                    jugador_actual.resetear_pares()
+                
+                # Forzar cambio de turno
+                sala.partida._cambiar_turno()
+                
+                await self.broadcast_sala(codigo_sala, {
+                    "tipo": "UPDATE",
+                    "estado": self._enviar_estado_actualizado(sala)
+                })
+                
                 await asyncio.sleep(0.8)
                 await self.ejecutar_turno_bot_si_necesario(codigo_sala)
-            elif intentos_restantes > 0:
-                print(f"   🔄 [BOT] Quedan {intentos_restantes} intentos, reintentando...")
-                await asyncio.sleep(1.0)
-                await self.ejecutar_turno_bot_si_necesario(codigo_sala)
-            else:
-                print(f"   ⛔ [BOT] Sin intentos, esperando turno del siguiente jugador")
     
     # ========================================================================
     # NUEVOS MÉTODOS - Protocolo completo del servidor.py
@@ -805,43 +847,82 @@ class ServidorSalas:
             return
         
         dados = sala.partida.lanzar_dados()
+        suma_dados = dados[0] + dados[1]
+        es_par = dados[0] == dados[1]
         print(f"🎲 {jugador.nombre} lanzó {dados}")
         
         # Verificar si todas las fichas están en cárcel
         todas_en_carcel = all(f.esta_en_carcel() for f in jugador.fichas)
-        es_par = dados[0] == dados[1]
         
-        # TODAS EN CÁRCEL: Si no saca par, procesar automáticamente para consumir intento
-        if todas_en_carcel and not es_par:
-            resultado = sala.partida.procesar_turno(jugador, dados, None)
-            resultado["tipo"] = "DICE_RESULT"
-            
-            await websocket.send(json.dumps(resultado))
-            
-            if resultado.get('cambio_turno'):
-                print(f"⏭️  {jugador.nombre} perdió el turno (intentos agotados)")
-                await self.broadcast_sala(codigo_sala, {
-                    "tipo": "UPDATE",
-                    "estado": self._enviar_estado_actualizado(sala)
-                })
-                # Ejecutar turno del siguiente bot si es necesario
-                await asyncio.sleep(1.0)
-                await self.ejecutar_turno_bot_si_necesario(codigo_sala)
-            
-            return
+        # Preparar info de resultado (igual que lanzar_dados)
+        resultado_info = {
+            "start_phase": todas_en_carcel,
+            "is_doubles": es_par,
+            "can_retry": False,
+            "turn_passed": False,
+            "needs_piece_selection": False,
+            "attempts_used": jugador.intentos_carcel,
+            "attempts_remaining": jugador.max_intentos_carcel - jugador.intentos_carcel
+        }
         
-        # Verificar si puede sacar de cárcel con par
-        puede_sacar = es_par and jugador.tiene_fichas_en_carcel()
+        if todas_en_carcel:
+            # Incrementar intentos
+            jugador.incrementar_intento_carcel()
+            resultado_info["attempts_used"] = jugador.intentos_carcel
+            resultado_info["attempts_remaining"] = jugador.max_intentos_carcel - jugador.intentos_carcel
+            
+            if not es_par:
+                # No sacó par
+                if jugador.agotar_intentos_carcel():
+                    # Se agotaron los 3 intentos - pasar turno
+                    resultado_info["turn_passed"] = True
+                    resultado_info["can_retry"] = False
+                    jugador.resetear_intentos_carcel()
+                    sala.partida._cambiar_turno()
+                    print(f"❌ {jugador.nombre} agotó los 3 intentos sin sacar par. Turno pasado.")
+                else:
+                    # Puede intentar de nuevo
+                    resultado_info["can_retry"] = True
+                    print(f"⚠️ {jugador.nombre} no sacó par. Intentos: {resultado_info['attempts_used']}/3")
+            else:
+                # Sacó par - puede sacar ficha
+                resultado_info["needs_piece_selection"] = True
+                jugador.resetear_intentos_carcel()
+                jugador.incrementar_pares()
+                print(f"✅ {jugador.nombre} sacó par! Puede sacar ficha de la cárcel.")
         
+        # Obtener fichas en cárcel si sacó par
+        pieces_in_prison = []
+        if es_par and todas_en_carcel:
+            pieces_in_prison = [f.id for f in jugador.fichas if f.esta_en_carcel()]
+        
+        # Enviar respuesta completa
         await websocket.send(json.dumps({
             "tipo": "DICE_RESULT",
-            "dados": dados,
-            "suma": dados[0] + dados[1],
+            "dados": list(dados),
+            "suma": suma_dados,
             "es_par": es_par,
-            "puede_sacar_carcel": puede_sacar,
             "todas_en_carcel": todas_en_carcel,
-            "mensaje": "Saca una ficha con 'mover N'" if puede_sacar else "Mueve una ficha con 'mover N'"
+            "mensaje": f"{jugador.nombre} lanzó {dados[0]} + {dados[1]} = {suma_dados}",
+            "start_phase": resultado_info["start_phase"],
+            "is_doubles": resultado_info["is_doubles"],
+            "can_retry": resultado_info["can_retry"],
+            "turn_passed": resultado_info["turn_passed"],
+            "needs_piece_selection": resultado_info["needs_piece_selection"],
+            "attempts_used": resultado_info["attempts_used"],
+            "attempts_remaining": resultado_info["attempts_remaining"],
+            "pieces_in_prison": pieces_in_prison
         }))
+        
+        # Si se pasó el turno, ejecutar siguiente bot si es necesario
+        if resultado_info["turn_passed"]:
+            print(f"⏭️  {jugador.nombre} perdió el turno (intentos agotados)")
+            await self.broadcast_sala(codigo_sala, {
+                "tipo": "UPDATE",
+                "estado": self._enviar_estado_actualizado(sala)
+            })
+            await asyncio.sleep(1.0)
+            await self.ejecutar_turno_bot_si_necesario(codigo_sala)
     
     async def procesar_get_fichas(self, websocket, mensaje: dict):
         """Retorna información detallada de las fichas del jugador."""

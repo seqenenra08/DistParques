@@ -27,7 +27,7 @@ class Jugador:
     
     def _calcular_casilla_salida(self) -> int:
         """Calcula la casilla de salida según el color."""
-        salidas = {"red": 5, "blue": 22, "yellow": 39, "green": 56}
+        salidas = {"red": 39, "blue": 22, "yellow": 5, "green": 56}
         return salidas.get(self.color, 0)
     
     def tiene_fichas_en_carcel(self) -> bool:
@@ -51,6 +51,24 @@ class Jugador:
         # Si está en meta, no puede moverse
         if ficha.esta_en_meta():
             return False
+        
+        # Si está en pasillo final, verificar que no se pase de la meta
+        from .ficha import EstadoFicha
+        if ficha.estado == EstadoFicha.PASILLO_FINAL:
+            nueva_pos_pasillo = ficha.posicion_pasillo + dados
+            # Solo puede mover si cae exacto o antes de la meta (posición 8)
+            if nueva_pos_pasillo > 8:
+                return False
+            return True
+        
+        # Si está en tablero normal, verificar que no se pase del límite total (68 tablero + 8 pasillo)
+        casillas_totales = ficha.casillas_recorridas + dados
+        
+        # Si entra al pasillo, verificar que no se pase
+        if casillas_totales >= 68:
+            casillas_en_pasillo = casillas_totales - 68
+            if casillas_en_pasillo > 8:
+                return False
         
         return True
     
