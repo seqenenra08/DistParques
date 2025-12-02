@@ -65,6 +65,15 @@ class ServidorSalas:
             max_jugadores = data.get('maxPlayers', 4)
             num_bots = data.get('numBots', 0)
             color = data.get('color', 'red')
+            players_info = data.get('players', [])  # ✅ NUEVO: Obtener info de todos los jugadores
+            
+            print(f"🔍 DEBUG - Datos recibidos en crear_sala:")
+            print(f"  - playerName: {nombre_jugador}")
+            print(f"  - maxPlayers: {max_jugadores}")
+            print(f"  - numBots: {num_bots}")
+            print(f"  - color: {color}")
+            print(f"  - players (array): {players_info}")
+            print(f"  - players length: {len(players_info)}")
             
             # Generar código de sala
             codigo_sala = self.generar_codigo_sala()
@@ -74,16 +83,41 @@ class ServidorSalas:
             self.salas[codigo_sala] = sala
             self.conexiones_salas[websocket] = codigo_sala
             
-            # Agregar jugador host a la partida
-            jugador = sala.partida.agregar_jugador(nombre_jugador, str(websocket.id))
-            if jugador:
-                sala.jugadores[websocket] = jugador.id
-                
-                # Agregar bots si se solicitó
-                for i in range(num_bots):
-                    bot_name = f"Bot {i+1}"
-                    bot_id = f"bot_{uuid.uuid4().hex[:8]}"
-                    sala.partida.agregar_jugador(bot_name, bot_id)
+            # ✅ NUEVO: Si viene información de jugadores con colores, usarla
+            if players_info and len(players_info) > 0:
+                print(f"🎨 Creando sala con jugadores pre-configurados:")
+                for player_data in players_info:
+                    player_name = player_data.get('name', 'Jugador')
+                    player_color = player_data.get('color', 'red')
+                    player_is_human = player_data.get('isHuman', True)
+                    player_id = player_data.get('id', '')
+                    
+                    if player_is_human:
+                        # Es el jugador humano (host)
+                        print(f"  👤 {player_name} - Color: {player_color} (Humano)")
+                        jugador = sala.partida.agregar_jugador(player_name, str(websocket.id), player_color)
+                        if jugador:
+                            sala.jugadores[websocket] = jugador.id
+                    else:
+                        # Es un bot
+                        bot_id = player_id if player_id.startswith('bot_') else f"bot_{uuid.uuid4().hex[:8]}"
+                        print(f"  🤖 {player_name} - Color: {player_color} (Bot)")
+                        bot_jugador = sala.partida.agregar_jugador(player_name, bot_id, player_color)
+            else:
+                # Modo antiguo: agregar jugador y bots sin colores pre-configurados
+                print(f"🎨 Creando sala - Jugador: {nombre_jugador}, Color solicitado: {color}")
+                jugador = sala.partida.agregar_jugador(nombre_jugador, str(websocket.id), color)
+                if jugador:
+                    sala.jugadores[websocket] = jugador.id
+                    print(f"✅ Jugador {nombre_jugador} agregado con color: {jugador.color}")
+                    
+                    # Agregar bots si se solicitó - asignar colores disponibles automáticamente
+                    for i in range(num_bots):
+                        bot_name = f"Bot {i+1}"
+                        bot_id = f"bot_{uuid.uuid4().hex[:8]}"
+                        bot_jugador = sala.partida.agregar_jugador(bot_name, bot_id)
+                        if bot_jugador:
+                            print(f"🤖 Bot {i+1} agregado con color: {bot_jugador.color}")
             
             # Enviar respuesta exitosa
             await websocket.send(json.dumps({
@@ -146,15 +180,18 @@ class ServidorSalas:
                 }))
                 return
             
-            # Agregar jugador a la sala
-            jugador = sala.partida.agregar_jugador(nombre_jugador, str(websocket.id))
+            # Agregar jugador a la sala con su color preferido
+            print(f"🎨 Unirse a sala - Jugador: {nombre_jugador}, Color solicitado: {color}")
+            jugador = sala.partida.agregar_jugador(nombre_jugador, str(websocket.id), color)
             
             if not jugador:
                 await websocket.send(json.dumps({
                     "tipo": "ERROR",
-                    "mensaje": "No se pudo unir a la sala"
+                    "mensaje": "No se pudo unir a la sala (color no disponible o sala llena)"
                 }))
                 return
+            
+            print(f"✅ Jugador {nombre_jugador} unido con color: {jugador.color}")
             
             # Registrar conexión
             sala.agregar_conexion(websocket)
@@ -226,11 +263,15 @@ class ServidorSalas:
                 
                 sala.iniciada = True
                 
+                # Obtener estado y transformarlo para el frontend
+                estado_backend = sala.partida.obtener_estado()
+                estado_frontend = self._transformar_estado_para_frontend(estado_backend)
+                
                 # Notificar a todos
                 await self.broadcast_sala(codigo_sala, {
                     "tipo": "PARTIDA_INICIADA",
                     "mensaje": "¡La partida ha comenzado!",
-                    "estado": sala.partida.obtener_estado()
+                    "estado": estado_frontend
                 })
                 
                 print(f"🎮 Partida iniciada en sala {codigo_sala}")
@@ -270,6 +311,28 @@ class ServidorSalas:
         elif tipo == "MOVER_FICHA":
             await self.mover_ficha(websocket, mensaje)
         
+        # ✅ NUEVOS HANDLERS - Protocolo del servidor.py
+        elif tipo == "ROLL_INICIO":
+            await self.procesar_roll_inicio(websocket, mensaje)
+        
+        elif tipo == "ROLL":
+            await self.procesar_roll(websocket, mensaje)
+        
+        elif tipo == "MOVE":
+            await self.procesar_move(websocket, mensaje)
+        
+        elif tipo == "MOVE_DIVIDIDO":
+            await self.procesar_move_dividido(websocket, mensaje)
+        
+        elif tipo == "SACAR_FICHA_JUEGO":
+            await self.procesar_sacar_ficha_juego(websocket, mensaje)
+        
+        elif tipo == "GET_FICHAS":
+            await self.procesar_get_fichas(websocket, mensaje)
+        
+        elif tipo == "GET_STATE":
+            await self.procesar_get_state(websocket, mensaje)
+        
         else:
             await websocket.send(json.dumps({
                 "tipo": "ERROR",
@@ -304,15 +367,75 @@ class ServidorSalas:
         
         print(f"🎲 {jugador.nombre} lanzó dados: {dados} (suma: {suma_dados}, par: {es_par})")
         
-        # Broadcast a todos en la sala
+        # Verificar si todas las fichas están en la cárcel
+        todas_en_carcel = all(f.esta_en_carcel() for f in jugador.fichas)
+        
+        # Procesar el resultado solo para obtener info de intentos (no mover fichas)
+        resultado_info = {
+            "start_phase": todas_en_carcel,
+            "is_doubles": es_par,
+            "can_retry": False,
+            "turn_passed": False,
+            "needs_piece_selection": False,
+            "attempts_used": jugador.intentos_carcel,
+            "attempts_remaining": jugador.max_intentos_carcel - jugador.intentos_carcel
+        }
+        
+        if todas_en_carcel:
+            # Incrementar intentos
+            jugador.incrementar_intento_carcel()
+            resultado_info["attempts_used"] = jugador.intentos_carcel
+            resultado_info["attempts_remaining"] = jugador.max_intentos_carcel - jugador.intentos_carcel
+            
+            if not es_par:
+                # No sacó par
+                if jugador.agotar_intentos_carcel():
+                    # Se agotaron los 3 intentos - pasar turno
+                    resultado_info["turn_passed"] = True
+                    resultado_info["can_retry"] = False
+                    jugador.resetear_intentos_carcel()
+                    sala.partida._cambiar_turno()
+                    print(f"❌ {jugador.nombre} agotó los 3 intentos sin sacar par. Turno pasado.")
+                else:
+                    # Puede intentar de nuevo
+                    resultado_info["can_retry"] = True
+                    print(f"⚠️ {jugador.nombre} no sacó par. Intentos: {resultado_info['attempts_used']}/3")
+            else:
+                # Sacó par - puede sacar ficha
+                resultado_info["needs_piece_selection"] = True
+                jugador.resetear_intentos_carcel()
+                jugador.incrementar_pares()
+                print(f"✅ {jugador.nombre} sacó par! Puede sacar ficha de la cárcel.")
+        
+        # Obtener fichas en cárcel si sacó par
+        pieces_in_prison = []
+        if es_par and todas_en_carcel:
+            pieces_in_prison = [f.id for f in jugador.fichas if f.esta_en_carcel()]
+        
+        # Broadcast a todos en la sala con nombre consistente DICE_RESULT
         await self.broadcast_sala(codigo_sala, {
-            "tipo": "DADOS_LANZADOS",
+            "tipo": "DICE_RESULT",
             "jugador": jugador.nombre,
             "dados": list(dados),
             "suma": suma_dados,
             "es_par": es_par,
-            "estado": sala.partida.obtener_estado()
+            "todas_en_carcel": todas_en_carcel,
+            "mensaje": f"{jugador.nombre} lanzó {dados[0]} + {dados[1]} = {suma_dados}",
+            "estado": self._enviar_estado_actualizado(sala),
+            "start_phase": resultado_info["start_phase"],
+            "is_doubles": resultado_info["is_doubles"],
+            "can_retry": resultado_info["can_retry"],
+            "turn_passed": resultado_info["turn_passed"],
+            "needs_piece_selection": resultado_info["needs_piece_selection"],
+            "attempts_used": resultado_info["attempts_used"],
+            "attempts_remaining": resultado_info["attempts_remaining"],
+            "pieces_in_prison": pieces_in_prison
         })
+        
+        # Si se pasó el turno, ejecutar turno del bot si es necesario
+        if resultado_info["turn_passed"]:
+            await asyncio.sleep(1.5)  # Dar tiempo para que el frontend muestre el mensaje
+            await self.ejecutar_turno_bot_si_necesario(codigo_sala)
     
     async def mover_ficha(self, websocket, mensaje: dict):
         """Procesa el movimiento de una ficha."""
@@ -345,7 +468,7 @@ class ServidorSalas:
         # Broadcast estado actualizado
         await self.broadcast_sala(codigo_sala, {
             "tipo": "ESTADO_ACTUALIZADO",
-            "estado": sala.partida.obtener_estado()
+            "estado": self._enviar_estado_actualizado(sala)
         })
         
         # Si el siguiente jugador es un bot, ejecutar su turno
@@ -408,6 +531,12 @@ class ServidorSalas:
         # Verificar si es un bot
         if not jugador_actual.id.startswith('bot_'):
             print(f"   [BOT] {jugador_actual.nombre} no es un bot, esperando acción humana")
+            # 🔥 CRÍTICO: Enviar estado actualizado al frontend para que sepa que es turno del humano
+            print(f"   📡 [BOT] Enviando UPDATE al frontend - Turno de humano")
+            await self.broadcast_sala(codigo_sala, {
+                "tipo": "UPDATE",
+                "estado": self._enviar_estado_actualizado(sala)
+            })
             return
         
         print(f"   🤖 [BOT] Es turno del bot {jugador_actual.nombre}, ejecutando turno automático...")
@@ -416,58 +545,496 @@ class ServidorSalas:
         await asyncio.sleep(1.5)
         
         # Lanzar dados
+        print(f"   🎲 [BOT] Lanzando dados...")
         dados = sala.partida.lanzar_dados()
         suma_dados = dados[0] + dados[1]
         es_par = sala.partida.es_par(dados)
+        print(f"   🎲 [BOT] Dados: {dados[0]} + {dados[1]} = {suma_dados}, Es par: {es_par}")
         
-        # Broadcast del lanzamiento de dados
+        # Verificar si todas las fichas están en la cárcel
+        todas_en_carcel = all(f.esta_en_carcel() for f in jugador_actual.fichas)
+        
+        # Preparar info de resultado (igual que lanzar_dados)
+        resultado_info = {
+            "start_phase": todas_en_carcel,
+            "is_doubles": es_par,
+            "can_retry": False,
+            "turn_passed": False,
+            "needs_piece_selection": False,
+            "attempts_used": jugador_actual.intentos_carcel,
+            "attempts_remaining": jugador_actual.max_intentos_carcel - jugador_actual.intentos_carcel
+        }
+        
+        if todas_en_carcel:
+            jugador_actual.incrementar_intento_carcel()
+            resultado_info["attempts_used"] = jugador_actual.intentos_carcel
+            resultado_info["attempts_remaining"] = jugador_actual.max_intentos_carcel - jugador_actual.intentos_carcel
+            
+            if not es_par:
+                if jugador_actual.agotar_intentos_carcel():
+                    resultado_info["turn_passed"] = True
+                    jugador_actual.resetear_intentos_carcel()
+                    sala.partida._cambiar_turno()
+                else:
+                    resultado_info["can_retry"] = True
+            else:
+                resultado_info["needs_piece_selection"] = True
+                jugador_actual.resetear_intentos_carcel()
+                jugador_actual.incrementar_pares()
+        
+        pieces_in_prison = []
+        if es_par and todas_en_carcel:
+            pieces_in_prison = [f.id for f in jugador_actual.fichas if f.esta_en_carcel()]
+        
+        # Broadcast del lanzamiento de dados con estructura completa
+        print(f"   📡 [BOT] Broadcasting DICE_RESULT...")
         await self.broadcast_sala(codigo_sala, {
-            "tipo": "DADOS_LANZADOS",
+            "tipo": "DICE_RESULT",
             "jugador": jugador_actual.nombre,
-            "dados": dados,
+            "dados": list(dados),
             "suma": suma_dados,
-            "es_par": es_par
+            "es_par": es_par,
+            "todas_en_carcel": todas_en_carcel,
+            "mensaje": f"{jugador_actual.nombre} lanzó {dados[0]} + {dados[1]} = {suma_dados}",
+            "estado": self._enviar_estado_actualizado(sala),
+            "start_phase": resultado_info["start_phase"],
+            "is_doubles": resultado_info["is_doubles"],
+            "can_retry": resultado_info["can_retry"],
+            "turn_passed": resultado_info["turn_passed"],
+            "needs_piece_selection": resultado_info["needs_piece_selection"],
+            "attempts_used": resultado_info["attempts_used"],
+            "attempts_remaining": resultado_info["attempts_remaining"],
+            "pieces_in_prison": pieces_in_prison
         })
         
+        # Si se pasó el turno, ejecutar siguiente bot si es necesario
+        if resultado_info["turn_passed"]:
+            print(f"   ⏭️  [BOT] Turno pasado, ejecutando siguiente bot...")
+            await asyncio.sleep(1.5)
+            await self.ejecutar_turno_bot_si_necesario(codigo_sala)
+            return
+        
         # Esperar un poco antes de decidir movimiento (como bot_jugador.py)
+        print(f"   🤔 [BOT] Decidiendo qué ficha mover...")
         await asyncio.sleep(1.0)
         
         # Usar la estrategia inteligente para elegir la mejor ficha
         id_ficha_a_mover = self.elegir_mejor_ficha_bot(jugador_actual, suma_dados, es_par)
+        print(f"   ✅ [BOT] Ficha elegida: {id_ficha_a_mover}")
         
         # Procesar el turno
         if id_ficha_a_mover is not None:
             resultado = sala.partida.procesar_turno(jugador_actual, dados, id_ficha_a_mover)
             
+            # Obtener estado actualizado
+            estado_actualizado = self._enviar_estado_actualizado(sala)
+            cambio_turno = resultado.get('cambio_turno', False)
+            
+            print(f"   🤖 [BOT] {jugador_actual.nombre} movió ficha {id_ficha_a_mover}")
+            print(f"   🔄 [BOT] Cambio de turno: {cambio_turno}")
+            print(f"   👤 [BOT] Siguiente turno: {estado_actualizado.get('jugador_actual', 'desconocido')}")
+            
+            # Broadcast MOVE_RESULT para que el frontend lo procese con sonidos y animaciones
+            accion = resultado.get('accion', 'movimiento')
+            await self.broadcast_sala(codigo_sala, {
+                "tipo": "MOVE_RESULT",
+                "exito": True,
+                "accion": accion,
+                "jugador": jugador_actual.nombre,
+                "id_ficha": id_ficha_a_mover,
+                "dados": list(dados),
+                "fichas_capturadas": resultado.get('fichas_capturadas', []),
+                "ganador": resultado.get('ganador'),
+                "mensaje": f"{jugador_actual.nombre} movió la ficha {id_ficha_a_mover}"
+            })
+            
             # Broadcast del estado actualizado
             await self.broadcast_sala(codigo_sala, {
-                "tipo": "ESTADO_ACTUALIZADO",
-                "estado": sala.partida.obtener_estado()
+                "tipo": "UPDATE",
+                "estado": estado_actualizado
             })
             
             # Esperar un poco entre acciones (como bot_jugador.py)
             await asyncio.sleep(0.8)
             
             # Si el bot puede seguir jugando (sacó pares y no cambió turno), ejecutar otro turno
-            if es_par and not resultado.get('cambio_turno', False):
+            if es_par and not cambio_turno:
+                print(f"   🎲 [BOT] Sacó par y no cambió turno, jugando de nuevo...")
                 await self.ejecutar_turno_bot_si_necesario(codigo_sala)
             else:
+                print(f"   ➡️  [BOT] Verificando si siguiente jugador es bot...")
                 # Verificar si el siguiente jugador también es bot
                 await self.ejecutar_turno_bot_si_necesario(codigo_sala)
         else:
             # No hay movimientos posibles
+            print(f"   ⚠️  [BOT] No hay ficha válida para mover")
             # Si todas están en cárcel y no sacó par, procesar turno sin ficha
             resultado = sala.partida.procesar_turno(jugador_actual, dados, None)
+            print(f"   📊 [BOT] Resultado: {resultado}")
             
             await self.broadcast_sala(codigo_sala, {
                 "tipo": "ESTADO_ACTUALIZADO",
-                "estado": sala.partida.obtener_estado()
+                "estado": self._enviar_estado_actualizado(sala)
             })
             
-            # Si cambió el turno, verificar si el siguiente también es bot
-            if resultado.get('cambio_turno', False):
+            cambio_turno = resultado.get('cambio_turno', False)
+            intentos_restantes = resultado.get('intentos_restantes', 0)
+            
+            # Si cambió el turno O aún tiene intentos, continuar ejecutando bots
+            if cambio_turno:
+                print(f"   ➡️  [BOT] Cambió turno, verificando siguiente jugador...")
                 await asyncio.sleep(0.8)
                 await self.ejecutar_turno_bot_si_necesario(codigo_sala)
+            elif intentos_restantes > 0:
+                print(f"   🔄 [BOT] Quedan {intentos_restantes} intentos, reintentando...")
+                await asyncio.sleep(1.0)
+                await self.ejecutar_turno_bot_si_necesario(codigo_sala)
+            else:
+                print(f"   ⛔ [BOT] Sin intentos, esperando turno del siguiente jugador")
+    
+    # ========================================================================
+    # NUEVOS MÉTODOS - Protocolo completo del servidor.py
+    # ========================================================================
+    
+    async def procesar_roll_inicio(self, websocket, mensaje: dict):
+        """Procesa lanzamiento de dado para determinar el primer turno."""
+        codigo_sala = self.conexiones_salas.get(websocket)
+        if not codigo_sala or codigo_sala not in self.salas:
+            await websocket.send(json.dumps({"error": "No estás en ninguna sala"}))
+            return
+        
+        sala = self.salas[codigo_sala]
+        jugador_id = sala.jugadores.get(websocket)
+        
+        if not jugador_id:
+            await websocket.send(json.dumps({"error": "No estás registrado"}))
+            return
+        
+        jugador = next((j for j in sala.partida.jugadores if j.id == jugador_id), None)
+        if not jugador:
+            await websocket.send(json.dumps({"error": "No estás registrado"}))
+            return
+        
+        if not sala.partida.esperando_dados_inicio:
+            await websocket.send(json.dumps({"error": "No estás en fase de selección de turno"}))
+            return
+        
+        valor = sala.partida.lanzar_dado_inicio(jugador)
+        
+        if valor is None:
+            await websocket.send(json.dumps({"error": "Ya lanzaste el dado o no es válido"}))
+            return
+        
+        print(f"🎲 {jugador.nombre} sacó {valor} para el orden inicial")
+        
+        # Broadcast del resultado a todos
+        await self.broadcast_sala(codigo_sala, {
+            "tipo": "DADO_INICIO",
+            "jugador": jugador.nombre,
+            "color": jugador.color,
+            "valor": valor
+        })
+        
+        # Verificar si todos lanzaron
+        if sala.partida.todos_lanzaron_inicio():
+            # Obtener el jugador actual (ya determinado)
+            jugador_actual = sala.partida.obtener_jugador_actual()
+            dados_inicio = sala.partida.obtener_dados_inicio()
+            
+            # Crear lista de resultados para mostrar
+            resultados = []
+            for j in sala.partida.jugadores:
+                resultados.append({
+                    "nombre": j.nombre,
+                    "color": j.color,
+                    "valor": dados_inicio.get(j.id, 0)
+                })
+            
+            print(f"🏆 {jugador_actual.nombre} comienza la partida!")
+            
+            # Broadcast del ganador y inicio de juego
+            await self.broadcast_sala(codigo_sala, {
+                "tipo": "TURNO_DETERMINADO",
+                "jugador_inicial": jugador_actual.nombre,
+                "color_inicial": jugador_actual.color,
+                "resultados": resultados,
+                "mensaje": f"¡{jugador_actual.nombre} tiene el mayor número y comienza!"
+            })
+            
+            # Enviar estado actualizado
+            await self.broadcast_sala(codigo_sala, {
+                "tipo": "UPDATE",
+                "estado": self._enviar_estado_actualizado(sala)
+            })
+        
+        await websocket.send(json.dumps({
+            "tipo": "DADO_INICIO_RESULT",
+            "valor": valor,
+            "mensaje": f"Sacaste {valor}. Esperando a los demás jugadores..."
+        }))
+    
+    async def procesar_roll(self, websocket, mensaje: dict):
+        """Procesa lanzamiento de dados."""
+        codigo_sala = self.conexiones_salas.get(websocket)
+        if not codigo_sala or codigo_sala not in self.salas:
+            return
+        
+        sala = self.salas[codigo_sala]
+        jugador_id = sala.jugadores.get(websocket)
+        
+        if not jugador_id:
+            await websocket.send(json.dumps({"error": "No estás registrado"}))
+            return
+        
+        jugador = next((j for j in sala.partida.jugadores if j.id == jugador_id), None)
+        if not jugador:
+            await websocket.send(json.dumps({"error": "No estás registrado"}))
+            return
+        
+        if sala.partida.esperando_dados_inicio:
+            await websocket.send(json.dumps({"error": "Primero deben lanzar el dado para determinar el orden inicial"}))
+            return
+        
+        if not jugador.es_su_turno:
+            await websocket.send(json.dumps({"error": "No es tu turno"}))
+            return
+        
+        # Verificar si puede lanzar
+        if not jugador.puede_lanzar():
+            await websocket.send(json.dumps({"error": "Ya lanzaste los dados. Debes mover primero o esperar a sacar par."}))
+            return
+        
+        dados = sala.partida.lanzar_dados()
+        print(f"🎲 {jugador.nombre} lanzó {dados}")
+        
+        # Verificar si todas las fichas están en cárcel
+        todas_en_carcel = all(f.esta_en_carcel() for f in jugador.fichas)
+        es_par = dados[0] == dados[1]
+        
+        # TODAS EN CÁRCEL: Si no saca par, procesar automáticamente para consumir intento
+        if todas_en_carcel and not es_par:
+            resultado = sala.partida.procesar_turno(jugador, dados, None)
+            resultado["tipo"] = "DICE_RESULT"
+            
+            await websocket.send(json.dumps(resultado))
+            
+            if resultado.get('cambio_turno'):
+                print(f"⏭️  {jugador.nombre} perdió el turno (intentos agotados)")
+                await self.broadcast_sala(codigo_sala, {
+                    "tipo": "UPDATE",
+                    "estado": self._enviar_estado_actualizado(sala)
+                })
+                # Ejecutar turno del siguiente bot si es necesario
+                await asyncio.sleep(1.0)
+                await self.ejecutar_turno_bot_si_necesario(codigo_sala)
+            
+            return
+        
+        # Verificar si puede sacar de cárcel con par
+        puede_sacar = es_par and jugador.tiene_fichas_en_carcel()
+        
+        await websocket.send(json.dumps({
+            "tipo": "DICE_RESULT",
+            "dados": dados,
+            "suma": dados[0] + dados[1],
+            "es_par": es_par,
+            "puede_sacar_carcel": puede_sacar,
+            "todas_en_carcel": todas_en_carcel,
+            "mensaje": "Saca una ficha con 'mover N'" if puede_sacar else "Mueve una ficha con 'mover N'"
+        }))
+    
+    async def procesar_get_fichas(self, websocket, mensaje: dict):
+        """Retorna información detallada de las fichas del jugador."""
+        codigo_sala = self.conexiones_salas.get(websocket)
+        if not codigo_sala or codigo_sala not in self.salas:
+            return
+        
+        sala = self.salas[codigo_sala]
+        jugador_id = sala.jugadores.get(websocket)
+        
+        if not jugador_id:
+            await websocket.send(json.dumps({"error": "No estás registrado"}))
+            return
+        
+        jugador = next((j for j in sala.partida.jugadores if j.id == jugador_id), None)
+        if not jugador:
+            await websocket.send(json.dumps({"error": "No estás registrado"}))
+            return
+        
+        fichas_info = sala.partida.obtener_fichas_disponibles(jugador)
+        
+        await websocket.send(json.dumps({
+            "tipo": "FICHAS_INFO",
+            "fichas": fichas_info
+        }))
+    
+    async def procesar_move_dividido(self, websocket, mensaje: dict):
+        """Procesa movimiento con dados divididos."""
+        codigo_sala = self.conexiones_salas.get(websocket)
+        if not codigo_sala or codigo_sala not in self.salas:
+            return
+        
+        sala = self.salas[codigo_sala]
+        jugador_id = sala.jugadores.get(websocket)
+        
+        if not jugador_id:
+            await websocket.send(json.dumps({"error": "No estás registrado"}))
+            return
+        
+        jugador = next((j for j in sala.partida.jugadores if j.id == jugador_id), None)
+        if not jugador:
+            await websocket.send(json.dumps({"error": "No estás registrado"}))
+            return
+        
+        dados = tuple(mensaje.get("dados", []))
+        movimientos = mensaje.get("movimientos", [])
+        
+        if not dados:
+            await websocket.send(json.dumps({"error": "Debes lanzar los dados primero"}))
+            return
+        
+        if not movimientos:
+            await websocket.send(json.dumps({"error": "Debes especificar los movimientos"}))
+            return
+        
+        resultado = sala.partida.procesar_turno_dividido(jugador, dados, movimientos)
+        
+        if "error" not in resultado:
+            print(f"🚶 {jugador.nombre} hizo {len(movimientos)} movimiento(s)")
+            # Log de capturas si hay
+            total_capturas = sum(m.get("capturadas", 0) for m in resultado.get("movimientos_realizados", []))
+            if total_capturas > 0:
+                print(f"   💥 {jugador.nombre} capturó {total_capturas} ficha(s)")
+        
+        resultado["tipo"] = "MOVE_RESULT"
+        await websocket.send(json.dumps(resultado))
+        
+        # Broadcast estado actualizado
+        await self.broadcast_sala(codigo_sala, {
+            "tipo": "UPDATE",
+            "estado": self._enviar_estado_actualizado(sala)
+        })
+        
+        # Si cambió el turno, ejecutar bot si es necesario
+        if resultado.get('cambio_turno', False):
+            await asyncio.sleep(1.0)
+            await self.ejecutar_turno_bot_si_necesario(codigo_sala)
+    
+    async def procesar_move(self, websocket, mensaje: dict):
+        """Procesa movimiento de ficha (modo clásico)."""
+        codigo_sala = self.conexiones_salas.get(websocket)
+        if not codigo_sala or codigo_sala not in self.salas:
+            return
+        
+        sala = self.salas[codigo_sala]
+        jugador_id = sala.jugadores.get(websocket)
+        
+        if not jugador_id:
+            await websocket.send(json.dumps({"error": "No estás registrado"}))
+            return
+        
+        jugador = next((j for j in sala.partida.jugadores if j.id == jugador_id), None)
+        if not jugador:
+            await websocket.send(json.dumps({"error": "No estás registrado"}))
+            return
+        
+        id_ficha = mensaje.get("id_ficha")
+        dados = tuple(mensaje.get("dados", []))
+        
+        print(f"📥 [MOVE] {jugador.nombre} intenta mover ficha {id_ficha} con dados {dados}")
+        
+        if not dados:
+            await websocket.send(json.dumps({"error": "Debes lanzar los dados primero"}))
+            return
+        
+        resultado = sala.partida.procesar_turno(jugador, dados, id_ficha)
+        print(f"📤 [MOVE] Resultado: {resultado.get('accion', 'desconocido')}, error: {resultado.get('error', 'ninguno')}")
+        
+        # Si sacó de la cárcel, mostrar info de la ficha
+        if resultado.get('accion') == 'sacar_carcel':
+            ficha_info = jugador.fichas[id_ficha]
+            print(f"   ✅ Ficha {id_ficha} sacada - Nueva posición: {ficha_info.posicion}, Estado: {ficha_info.estado}")
+        
+        if "error" not in resultado:
+            accion = resultado.get('accion')
+            if accion == "primer_turno_sin_par":
+                print(f"🎲 {jugador.nombre} - Primer turno: sin par ({resultado.get('intentos_restantes')} intentos restantes)")
+            elif accion == "primer_turno_agotado":
+                print(f"⏭️  {jugador.nombre} - Primer turno agotado sin sacar par")
+            elif accion == "tres_pares_sacar_ficha":
+                print(f"🎯 {jugador.nombre} - ¡3 PARES! Puede sacar una ficha del juego")
+            else:
+                print(f"🚶 {jugador.nombre} movió ficha {id_ficha}: {accion}")
+        
+        resultado["tipo"] = "MOVE_RESULT"
+        await websocket.send(json.dumps(resultado))
+        
+        # Broadcast estado actualizado
+        await self.broadcast_sala(codigo_sala, {
+            "tipo": "UPDATE",
+            "estado": self._enviar_estado_actualizado(sala)
+        })
+        
+        # Si cambió el turno, ejecutar bot si es necesario
+        if resultado.get('cambio_turno', False):
+            await asyncio.sleep(1.0)
+            await self.ejecutar_turno_bot_si_necesario(codigo_sala)
+    
+    async def procesar_sacar_ficha_juego(self, websocket, mensaje: dict):
+        """Procesa sacar una ficha del juego (por 3 pares consecutivos)."""
+        codigo_sala = self.conexiones_salas.get(websocket)
+        if not codigo_sala or codigo_sala not in self.salas:
+            return
+        
+        sala = self.salas[codigo_sala]
+        jugador_id = sala.jugadores.get(websocket)
+        
+        if not jugador_id:
+            await websocket.send(json.dumps({"error": "No estás registrado"}))
+            return
+        
+        jugador = next((j for j in sala.partida.jugadores if j.id == jugador_id), None)
+        if not jugador:
+            await websocket.send(json.dumps({"error": "No estás registrado"}))
+            return
+        
+        id_ficha = mensaje.get("id_ficha")
+        
+        if id_ficha is None:
+            await websocket.send(json.dumps({"error": "Debes especificar la ficha a sacar"}))
+            return
+        
+        resultado = sala.partida.sacar_ficha_del_juego(jugador, id_ficha)
+        
+        if "error" not in resultado:
+            print(f"🎯 {jugador.nombre} sacó la ficha {id_ficha} del juego (3 pares)")
+        
+        resultado["tipo"] = "MOVE_RESULT"
+        await websocket.send(json.dumps(resultado))
+        
+        # Broadcast estado actualizado
+        await self.broadcast_sala(codigo_sala, {
+            "tipo": "UPDATE",
+            "estado": self._enviar_estado_actualizado(sala)
+        })
+        
+        # Si cambió el turno, ejecutar bot si es necesario
+        if resultado.get('cambio_turno', False):
+            await asyncio.sleep(1.0)
+            await self.ejecutar_turno_bot_si_necesario(codigo_sala)
+    
+    async def procesar_get_state(self, websocket, mensaje: dict):
+        """Retorna el estado actual del juego."""
+        codigo_sala = self.conexiones_salas.get(websocket)
+        if not codigo_sala or codigo_sala not in self.salas:
+            return
+        
+        sala = self.salas[codigo_sala]
+        
+        await websocket.send(json.dumps({
+            "tipo": "UPDATE",
+            "estado": self._enviar_estado_actualizado(sala)
+        }))
     
     async def broadcast_sala(self, codigo_sala: str, mensaje: dict):
         """Envía un mensaje a todos los jugadores de una sala."""
@@ -488,6 +1055,69 @@ class ServidorSalas:
         # Limpiar conexiones cerradas
         for conexion in conexiones_cerradas:
             sala.remover_conexion(conexion)
+    
+    def _transformar_estado_para_frontend(self, estado: dict) -> dict:
+        """Transforma el estado del backend al formato esperado por el frontend."""
+        estado_frontend = estado.copy()
+        
+        # Transformar jugadores: 'fichas' -> 'pieces', 'nombre' -> 'name'
+        if 'jugadores' in estado_frontend:
+            jugadores_transformados = []
+            for jugador in estado_frontend['jugadores']:
+                jugador_frontend = {
+                    'player_id': jugador.get('id'),
+                    'name': jugador.get('nombre'),
+                    'color': jugador.get('color'),
+                    'es_su_turno': jugador.get('es_su_turno', False),
+                    'pieces_in_home': sum(1 for f in jugador.get('fichas', []) if f.get('estado') == 'meta'),
+                    'pieces': []
+                }
+                
+                # Transformar fichas
+                for ficha in jugador.get('fichas', []):
+                    # Mapear posición según el estado de la ficha
+                    posicion = -1  # Por defecto cárcel
+                    
+                    if ficha.get('estado') == 'carcel':
+                        posicion = -1
+                    elif ficha.get('estado') == 'meta':
+                        posicion = 'center'
+                    elif ficha.get('estado') == 'pasillo_final':
+                        # Formato: color_posicion (ej: red_3)
+                        posicion = f"{jugador.get('color')}_{ficha.get('posicion_pasillo', 0)}"
+                    else:
+                        # Posición en tablero normal
+                        posicion = ficha.get('posicion', -1)
+                    
+                    jugador_frontend['pieces'].append({
+                        'piece_id': ficha.get('id'),
+                        'color': ficha.get('color'),
+                        'position': posicion,
+                        'estado': ficha.get('estado'),
+                        'is_in_goal': ficha.get('estado') == 'meta'
+                    })
+                
+                jugadores_transformados.append(jugador_frontend)
+            
+            estado_frontend['players'] = jugadores_transformados
+            estado_frontend['jugadores'] = jugadores_transformados  # Mantener ambos por compatibilidad
+        
+        # Cambiar 'jugador_actual' -> 'currentPlayer'
+        if 'jugador_actual' in estado_frontend:
+            estado_frontend['currentPlayer'] = estado_frontend['jugador_actual']
+        
+        # Agregar currentPlayer también basado en turno
+        if 'jugadores' in estado and estado.get('turno_actual') is not None:
+            turno = estado.get('turno_actual', 0)
+            if turno < len(estado['jugadores']):
+                estado_frontend['currentPlayer'] = estado['jugadores'][turno].get('nombre')
+        
+        return estado_frontend
+    
+    def _enviar_estado_actualizado(self, sala: SalaJuego) -> dict:
+        """Obtiene el estado transformado listo para enviar al frontend."""
+        estado_backend = sala.partida.obtener_estado()
+        return self._transformar_estado_para_frontend(estado_backend)
     
     def _obtener_estado_sala(self, sala: SalaJuego) -> dict:
         """Obtiene el estado actual de una sala."""

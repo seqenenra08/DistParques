@@ -45,13 +45,14 @@ class Partida:
         return (len(self.jugadores) < self.max_jugadores and
                 not self.iniciada)
 
-    def agregar_jugador(self, nombre: str, id_jugador: str = None) -> Optional[Jugador]:
+    def agregar_jugador(self, nombre: str, id_jugador: str = None, color_preferido: str = None) -> Optional[Jugador]:
         """
         Agrega un nuevo jugador a la partida y le asigna un color.
 
         Args:
             nombre (str): Nombre del jugador
             id_jugador (str): ID único del jugador (puede ser conexión o string)
+            color_preferido (str): Color deseado por el jugador (opcional)
 
         Returns:
             Optional[Jugador]: Jugador creado o None si no pudo unirse
@@ -63,14 +64,24 @@ class Partida:
             if len(self.jugadores) >= self.max_jugadores:
                 return None
 
-            # Asignar color disponible
+            # Determinar colores disponibles
             colores_usados = {j.color for j in self.jugadores}
             colores_disponibles = [c for c in Jugador.COLORES_DISPONIBLES if c not in colores_usados]
 
             if not colores_disponibles:
                 return None
 
-            color = colores_disponibles[0]
+            # Usar color preferido si está disponible, de lo contrario asignar el primero disponible
+            if color_preferido and color_preferido in colores_disponibles:
+                color = color_preferido
+                print(f"✅ Asignando color preferido '{color}' a jugador '{nombre}'")
+            else:
+                color = colores_disponibles[0]
+                if color_preferido:
+                    print(f"⚠️ Color preferido '{color_preferido}' no disponible para '{nombre}', asignando '{color}'")
+                else:
+                    print(f"📌 Asignando color automático '{color}' a jugador '{nombre}'")
+            
             jugador = Jugador(nombre, color, id_jugador)
             # Si se pasó un id_jugador personalizado, sobrescribirlo
             if id_jugador and not isinstance(id_jugador, int):

@@ -6,7 +6,7 @@ from .ficha import Ficha
 class Jugador:
     """Representa un jugador en la partida."""
     
-    COLORES_DISPONIBLES = ["rojo", "azul", "amarillo", "verde"]
+    COLORES_DISPONIBLES = ["red", "blue", "yellow", "green"]
     
     def __init__(self, nombre: str, color: str, conexion=None):
         self.nombre = nombre
@@ -27,7 +27,7 @@ class Jugador:
     
     def _calcular_casilla_salida(self) -> int:
         """Calcula la casilla de salida según el color."""
-        salidas = {"rojo": 5, "azul": 22, "amarillo": 39, "verde": 56}
+        salidas = {"red": 5, "blue": 22, "yellow": 39, "green": 56}
         return salidas.get(self.color, 0)
     
     def tiene_fichas_en_carcel(self) -> bool:

@@ -11,7 +11,7 @@ import {
 } from '../../utils/constants';
 import audioService from '../../services/audioService';
 
-const Board = ({ gameState, onPieceClick, onBoardClick, canMove = false, currentPlayer = null, selectedPieceFromParent = null }) => {
+const Board = ({ gameState, onPieceClick, onBoardClick, canMove = false, currentPlayer = null, currentPlayerColor = null, selectedPieceFromParent = null }) => {
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [boardSize, setBoardSize] = useState({ width: 700, height: 700 });
   const [pieceOffset, setPieceOffset] = useState({ x: 2, y: 0 }); // Offset ajustable para fichas
@@ -34,7 +34,7 @@ const Board = ({ gameState, onPieceClick, onBoardClick, canMove = false, current
 
   const handlePieceClick = (pieceId) => {
     console.log('[BOARD] Pieza clickeada:', pieceId);
-    console.log('[BOARD] canMove:', canMove, ', currentPlayer:', currentPlayer);
+    console.log('[BOARD] canMove:', canMove, ', currentPlayer:', currentPlayer, ', currentPlayerColor:', currentPlayerColor);
     console.log('[BOARD] pendingPieceRelease:', gameState?.pendingPieceRelease);
     console.log('[BOARD] startPhase:', gameState?.startPhase);
     
@@ -47,7 +47,7 @@ const Board = ({ gameState, onPieceClick, onBoardClick, canMove = false, current
     // Si está en modo de liberación de ficha, permitir click en fichas del jugador actual en la cárcel
     if (gameState?.pendingPieceRelease && gameState?.startPhase) {
       console.log('[BOARD] Modo de liberación de ficha activo');
-      if (color === currentPlayer) {
+      if (color === currentPlayerColor) {
         console.log('[BOARD] ✅ Ficha del jugador actual en modo liberación, permitiendo click');
         setSelectedPiece(pieceId);
         if (onPieceClick) {
@@ -63,8 +63,8 @@ const Board = ({ gameState, onPieceClick, onBoardClick, canMove = false, current
     }
     
     // Solo permitir seleccionar fichas del jugador actual si se puede mover
-    if (canMove && currentPlayer && color !== currentPlayer) {
-      console.log(`[BOARD] ❌ No puedes mover fichas ${color}. Es turno de ${currentPlayer}`);
+    if (canMove && currentPlayerColor && color !== currentPlayerColor) {
+      console.log(`[BOARD] ❌ No puedes mover fichas ${color}. Es turno de ${currentPlayer} (${currentPlayerColor})`);
       // 🔊 Reproducir sonido de error
       audioService.playError();
       return;
@@ -318,7 +318,7 @@ const Board = ({ gameState, onPieceClick, onBoardClick, canMove = false, current
                 color={piece.color}
                 position={coordinates}
                 isSelected={selectedPiece === piece.id || selectedPieceFromParent === piece.id}
-                canMove={canMove && currentPlayer === piece.color}
+                canMove={canMove && currentPlayerColor === piece.color}
                 onClick={() => handlePieceClick(piece.id)}
               />
             );

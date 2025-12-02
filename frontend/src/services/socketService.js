@@ -92,17 +92,26 @@ class WebSocketService {
       'CONECTADO': 'connection_success',
       
       // Salas
-      'SALA_CREADA': 'room_created',
+      'SALA_CREADA': 'SALA_CREADA',
       'UNIDO_A_SALA': 'room_joined',
       'JUGADOR_UNIDO': 'player_joined_room',
       'JUGADOR_DESCONECTADO': 'player_left_room',
       'COLORES_DISPONIBLES': 'room_info',
       
       // Partida
-      'PARTIDA_INICIADA': 'game_started',
+      'PARTIDA_INICIADA': 'PARTIDA_INICIADA',
       'DADOS_LANZADOS': 'dice_rolled',
       'RESULTADO_MOVIMIENTO': 'piece_moved',
       'ESTADO_ACTUALIZADO': 'game_state_updated',
+      
+      // Protocolo completo servidor.py
+      'DADO_INICIO': 'DADO_INICIO',
+      'DADO_INICIO_RESULT': 'DADO_INICIO_RESULT',
+      'TURNO_DETERMINADO': 'TURNO_DETERMINADO',
+      'DICE_RESULT': 'DICE_RESULT',
+      'MOVE_RESULT': 'MOVE_RESULT',
+      'FICHAS_INFO': 'FICHAS_INFO',
+      'UPDATE': 'UPDATE',
       
       // Errores
       'ERROR': 'error'
@@ -355,15 +364,24 @@ class WebSocketService {
       // Si viene de create_game (tiene players array)
       if (data.players && Array.isArray(data.players)) {
         const humanPlayer = data.players.find(p => p.isHuman);
-        const botCount = data.players.filter(p => !p.isHuman).length;
+        const botPlayers = data.players.filter(p => !p.isHuman);
         
         mensaje = {
           tipo,
           playerName: humanPlayer ? humanPlayer.name : 'Jugador',
           maxPlayers: data.numberOfPlayers || data.players.length,
-          numBots: botCount,
-          color: humanPlayer ? humanPlayer.color : 'red'
+          numBots: botPlayers.length,
+          color: humanPlayer ? humanPlayer.color : 'red',
+          // ✅ NUEVO: Enviar información completa de todos los jugadores con sus colores
+          players: data.players.map((p, index) => ({
+            name: p.name,
+            color: p.color,
+            isHuman: p.isHuman,
+            id: p.id,
+            turnOrder: index
+          }))
         };
+        console.log('🎨 [WS] Enviando jugadores con colores:', mensaje.players);
       } else {
         // Formato normal de create_room
         mensaje = {

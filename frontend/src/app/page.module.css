@@ -638,12 +638,14 @@
 
 .playerName {
   margin: 0 0 1rem 0;
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.75rem;
+  font-weight: 800;
   color: var(--text-light);
   text-align: left;
   position: relative;
   z-index: 1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.5px;
 }
 
 .turnStatus {
