@@ -9,6 +9,7 @@ import Rules from '../components/Menu/Rules';
 import Celebration from '../components/Game/Celebration';
 import AudioControl from '../components/Game/AudioControl';
 import MoveSelector from '../components/Game/MoveSelector';
+import TurnOrderDetermination from '../components/Menu/TurnOrderDetermination';
 import Notification from '../components/Notification/Notification';
 import { initialGameState } from '../utils/mockData';
 import styles from './page.module.css';
@@ -21,6 +22,7 @@ export default function Home() {
   const [gameState, setGameState] = useState(initialGameState);
   const [gameStarted, setGameStarted] = useState(false);
   const [myPlayerInfo, setMyPlayerInfo] = useState(null); // { id, nombre, color }
+  const [showTurnOrderDetermination, setShowTurnOrderDetermination] = useState(false);
   
   // Estados de sala
   const [roomCode, setRoomCode] = useState(null);
@@ -105,9 +107,19 @@ export default function Home() {
     // Partida iniciada
     socket.on('PARTIDA_INICIADA', (data) => {
       console.log('[PARTIDA_INICIADA]', data);
-      setGameStarted(true);
-      setGameState(data.estado);
-      audioService.playGameStart();
+      
+      // Si está esperando dados iniciales, mostrar determinación de orden
+      if (data.esperando_dados_inicio) {
+        console.log('[PARTIDA_INICIADA] 🎲 Esperando dados iniciales para determinar orden');
+        setShowTurnOrderDetermination(true);
+        setGameState(data.estado);
+        audioService.playGameStart();
+      } else {
+        // Iniciar juego directamente (modo antiguo)
+        setGameStarted(true);
+        setGameState(data.estado);
+        audioService.playGameStart();
+      }
     });
 
     // Resultado de lanzamiento de dados
@@ -276,6 +288,22 @@ export default function Home() {
       }
     });
 
+    // Dado inicial lanzado (para determinar orden)
+    socket.on('DADO_INICIO', (data) => {
+      console.log('[DADO_INICIO]', data);
+      audioService.playDiceRoll();
+      showNotification(`${data.jugador} sacó ${data.valor}`, 'info');
+    });
+
+    // Turno determinado (orden establecido)
+    socket.on('TURNO_DETERMINADO', (data) => {
+      console.log('[TURNO_DETERMINADO]', data);
+      setShowTurnOrderDetermination(false);
+      setGameStarted(true);
+      audioService.playSuccess();
+      showNotification(data.mensaje || `¡${data.jugador_inicial} comienza!`, 'success');
+    });
+
     // Error del servidor
     socket.on('ERROR', (data) => {
       console.log('[ERROR]', data);
@@ -294,6 +322,8 @@ export default function Home() {
       socket.off('JUGADOR_UNIDO');
       socket.off('COLORES_DISPONIBLES');
       socket.off('UNIDO_A_SALA');
+      socket.off('DADO_INICIO');
+      socket.off('TURNO_DETERMINADO');
       socket.off('ERROR');
     };
   }, [socket]);
@@ -493,6 +523,34 @@ export default function Home() {
     setSelectedPiece(null);
   };
 
+  const handleBackToMenu = () => {
+    if (window.confirm('¿Estás seguro de que quieres volver al menú? Se perderá el progreso del juego.')) {
+      // Resetear todos los estados
+      setGameStarted(false);
+      setGameState(initialGameState);
+      setDiceValue(null);
+      setCanMove(false);
+      setSelectedPiece(null);
+      setIsRolling(false);
+      setMessage('');
+      setShowCelebration(false);
+      setWinner(null);
+      setShowRoomCode(false);
+      setRoomCode(null);
+      setRoomPlayers([]);
+      setMyPlayerInfo(null);
+      
+      // Reproducir sonido
+      audioService.playClick();
+      
+      // Opcional: desconectar del servidor si está en modo multijugador
+      if (roomCode && socket) {
+        // El servidor manejará la desconexión automáticamente
+        console.log('[BACK TO MENU] Saliendo de la partida');
+      }
+    }
+  };
+
   // Obtener colores activos para el tablero
   const getActivePlayerColors = () => {
     if (gameState?.players && Array.isArray(gameState.players)) {
@@ -526,6 +584,37 @@ export default function Home() {
   // Renderizado
   if (!gameStarted) {
     console.log('[RENDER] 🎬 Renderizando - gameStarted:', gameStarted, 'showRoomCode:', showRoomCode, 'roomCode:', roomCode);
+    
+    // Mostrar determinación de orden si está activa
+    if (showTurnOrderDetermination) {
+      console.log('[RENDER] 🎲 Mostrando determinación de orden');
+      
+      // Transformar gameState.players al formato esperado por TurnOrderDetermination
+      const playersForTurnOrder = gameState.players ? gameState.players.map(p => ({
+        id: p.player_id,
+        name: p.name,
+        color: p.color,
+        isHuman: !p.player_id.startsWith('bot_')
+      })) : [];
+      
+      return (
+        <TurnOrderDetermination
+          players={playersForTurnOrder}
+          onOrderDetermined={(order) => {
+            console.log('[TURN ORDER] Orden determinado:', order);
+            // El servidor ya manejó el orden, solo esperamos TURNO_DETERMINADO
+          }}
+          onBack={() => {
+            setShowTurnOrderDetermination(false);
+            setShowRoomCode(false);
+          }}
+          socket={socket}
+          roomCode={roomCode}
+          myPlayerId={myPlayerInfo?.id}
+          isHost={myPlayerInfo?.es_host}
+        />
+      );
+    }
     
     // Mostrar sala de espera si hay código de sala
     if (showRoomCode && roomCode) {
@@ -649,6 +738,12 @@ export default function Home() {
       
       <main className={styles.main}>
         <div className={styles.header}>
+          <button 
+            className={styles.backButton}
+            onClick={handleBackToMenu}
+          >
+            ← Menú
+          </button>
           <h1 className={styles.title}>Parchís Game</h1>
           <div className={styles.connectionStatus}>
             {connected ? '🟢 Conectado' : '🔴 Desconectado'}

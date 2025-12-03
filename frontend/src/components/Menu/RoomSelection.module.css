@@ -73,25 +73,36 @@
   text-align: center;
   margin-bottom: 30px;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 15px;
 }
 
 .backButton {
-  position: absolute;
-  left: 0;
-  top: 0;
-  background: rgba(102, 126, 234, 0.1);
-  border: 2px solid rgba(102, 126, 234, 0.3);
+  display: block;
+  width: fit-content;
+  margin: 0;
+  align-self: flex-start;
+  background: rgba(0, 255, 65, 0.1);
+  border: 2px solid rgba(0, 255, 65, 0.5);
   color: #00ff41;
-  padding: 8px 16px;
-  border-radius: 10px;
+  padding: 10px 20px;
+  border-radius: 4px;
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+  z-index: 100;
+  position: relative;
 }
 
 .backButton:hover {
-  background: rgba(102, 126, 234, 0.2);
+  background: rgba(0, 255, 65, 0.2);
+  border-color: #00ffff;
+  color: #00ffff;
   transform: translateX(-4px);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
 }
 
 .title {
@@ -101,7 +112,10 @@
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin: 0 0 12px 0;
+  margin: 0;
+  text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .icon {
@@ -118,7 +132,7 @@
 
 .modeCard {
   background: rgba(0, 20, 10, 0.8);
-  border: 3px solid #e0e0e0;
+  border: 3px solid #00ff41;
   border-radius: 4px;
   padding: 30px;
   cursor: pointer;
@@ -127,9 +141,9 @@
 }
 
 .modeCard:hover {
-  border-color: #00ff41;
+  border-color: #00ffff;
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
 }
 
 .modeIcon {
@@ -172,16 +186,19 @@
   width: 100%;
   padding: 14px 18px;
   font-size: 1rem;
-  border: 2px solid #e0e0e0;
+  border: 2px solid #00ff41;
   border-radius: 4px;
   transition: all 0.3s ease;
   box-sizing: border-box;
+  background: rgba(0, 20, 10, 0.8);
+  color: #00ff41;
 }
 
 .input:focus {
   outline: none;
-  border-color: #00ff41;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #00ffff;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+  background: rgba(0, 30, 15, 0.9);
 }
 
 .codeInput {
@@ -190,6 +207,8 @@
   text-align: center;
   letter-spacing: 4px;
   font-family: 'Share Tech Mono', monospace;
+  color: #00ffff;
+  background: rgba(0, 30, 15, 0.9);
 }
 
 /* Player Selector */
@@ -203,22 +222,25 @@
   padding: 16px;
   font-size: 1.5rem;
   font-weight: 700;
-  border: 2px solid #e0e0e0;
+  border: 2px solid #00ff41;
   border-radius: 4px;
   background: rgba(0, 20, 10, 0.8);
+  color: #00ff41;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .playerOption:hover {
-  border-color: #00ff41;
+  border-color: #00ffff;
   transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
 }
 
 .playerOption.selected {
-  background: linear-gradient(135deg, #00ff41 0%, #00ffff 100%);
-  color: #00ff41;
-  border-color: #00ff41;
+  background: rgba(0, 255, 65, 0.3);
+  color: #00ffff;
+  border-color: #00ffff;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
 }
 
 .playerOption.disabled {
@@ -227,8 +249,9 @@
 }
 
 .playerOption.disabled:hover {
-  border-color: #e0e0e0;
+  border-color: #00ff41;
   transform: none;
+  box-shadow: none;
 }
 
 .helperText {
@@ -247,7 +270,7 @@
 
 .colorOption {
   padding: 14px;
-  border: 3px solid #e0e0e0;
+  border: 3px solid #00ff41;
   border-radius: 4px;
   background: rgba(0, 20, 10, 0.8);
   cursor: pointer;
@@ -260,12 +283,14 @@
 
 .colorOption:hover:not(.disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+  border-color: #00ffff;
 }
 
 .colorOption.selected {
   border-width: 4px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+  background: rgba(0, 40, 20, 0.9);
 }
 
 .colorOption.disabled {
@@ -298,9 +323,9 @@
 }
 
 .colorOption.disabled .colorName {
-  color: #999;
+  color: #00ff41;
   text-decoration: line-through;
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .takenBadge {
@@ -308,7 +333,7 @@
   top: 8px;
   right: 8px;
   background: rgba(255, 68, 68, 0.9);
-  color: #00ff41;
+  color: #ffffff;
   font-size: 0.9rem;
   font-weight: 700;
   padding: 4px 8px;
@@ -349,9 +374,9 @@
 .submitButton {
   width: 100%;
   padding: 16px 24px;
-  background: linear-gradient(135deg, #00ff41 0%, #00ffff 100%);
-  color: #00ff41;
-  border: none;
+  background: linear-gradient(135deg, rgba(0, 255, 65, 0.3) 0%, rgba(0, 255, 255, 0.3) 100%);
+  color: #00ffff;
+  border: 2px solid #00ffff;
   border-radius: 4px;
   font-size: 1.1rem;
   font-weight: 700;
@@ -361,12 +386,14 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
 }
 
 .submitButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+  background: linear-gradient(135deg, rgba(0, 255, 65, 0.4) 0%, rgba(0, 255, 255, 0.4) 100%);
+  border-color: #00ff41;
 }
 
 .buttonIcon {
@@ -375,14 +402,15 @@
 
 /* Error */
 .error {
-  background: #ffebee;
-  color: #c62828;
+  background: rgba(255, 68, 68, 0.2);
+  color: #ff4444;
   padding: 12px 16px;
-  border-radius: 10px;
+  border-radius: 4px;
   font-size: 0.9rem;
   font-weight: 600;
   margin-bottom: 20px;
-  border-left: 4px solid #c62828;
+  border: 2px solid #ff4444;
+  box-shadow: 0 0 15px rgba(255, 68, 68, 0.3);
 }
 
 /* Info */
@@ -390,7 +418,7 @@
   text-align: center;
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid rgba(0, 255, 65, 0.3);
 }
 
 .info p {

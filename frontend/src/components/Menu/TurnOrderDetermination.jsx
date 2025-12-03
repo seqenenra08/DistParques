@@ -59,8 +59,19 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
     if (!isMultiplayer || !socket) return;
     
     const handleDiceRolled = (data) => {
-      const { playerId, diceValue } = data;
-      console.log('[TURN ORDER] Dado recibido desde servidor:', playerId, diceValue);
+      console.log('[TURN ORDER] DADO_INICIO recibido:', data);
+      const playerColor = data.color;
+      const diceValue = data.valor;
+      
+      // Buscar el jugador por color
+      const player = activePlayers.find(p => p.color === playerColor);
+      if (!player) {
+        console.error('[TURN ORDER] Jugador no encontrado para color:', playerColor);
+        return;
+      }
+      
+      const playerId = player.id;
+      console.log('[TURN ORDER] Dado recibido desde servidor - Jugador:', player.name, 'Valor:', diceValue);
       
       // Actualizar los resultados
       setDiceResults(prev => ({
@@ -136,12 +147,12 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
       audioService.playClick();
     };
     
-    socket.on('turn_order_dice_rolled', handleDiceRolled);
+    socket.on('DADO_INICIO', handleDiceRolled);
     socket.on('tiebreaker_started', handleTiebreakerStarted);
     socket.on('reroll_started', handleRerollStarted);
     
     return () => {
-      socket.off('turn_order_dice_rolled', handleDiceRolled);
+      socket.off('DADO_INICIO', handleDiceRolled);
       socket.off('tiebreaker_started', handleTiebreakerStarted);
       socket.off('reroll_started', handleRerollStarted);
     };
@@ -185,14 +196,13 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
       // 🔊 Reproducir sonido de click al mostrar resultado
       audioService.playClick();
       
-      // En modo multijugador, emitir al servidor
+      // En modo multijugador, emitir al servidor usando protocolo correcto
       if (isMultiplayer && socket && roomCode) {
-        socket.emit('turn_order_dice_roll', {
-          roomCode: roomCode,
-          playerId: currentPlayer.id,
-          diceValue: result
-        });
-        console.log('[TURN ORDER] Enviando resultado al servidor:', result);
+        socket.emit('message', JSON.stringify({
+          tipo: 'ROLL_INICIO'
+        }));
+        console.log('[TURN ORDER] Enviando ROLL_INICIO al servidor');
+        setIsRolling(false);
       } else {
         // Modo local - actualizar directamente
         const updatedResults = {
@@ -397,7 +407,12 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <h1 className={styles.title}>Determinación del Orden</h1>
+        <div className={styles.header}>
+          <button onClick={onBack} className={styles.backButton}>
+            ← Atrás
+          </button>
+          <h1 className={styles.title}>Determinación del Orden</h1>
+        </div>
         
         {!showResults ? (
           <>
@@ -573,17 +588,6 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
         )}
 
         <div className={styles.actions}>
-          <button
-            className={`${styles.button} ${styles.backButton}`}
-            onClick={onBack}
-            disabled={isRolling || (isMultiplayer && !isHost && showResults)}
-            style={{
-              opacity: (isMultiplayer && !isHost && showResults) ? 0.5 : 1,
-              cursor: (isMultiplayer && !isHost && showResults) ? 'not-allowed' : 'pointer'
-            }}
-          >
-            ← Atrás
-          </button>
           
           {showResults && (
             <>

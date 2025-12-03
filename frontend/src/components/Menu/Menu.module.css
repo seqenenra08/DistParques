@@ -146,10 +146,11 @@
 
 .header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
   width: 100%;
   margin-bottom: 2rem;
+  gap: 15px;
 }
 
 .titleContainer {
@@ -532,9 +533,10 @@
   font-family: 'Share Tech Mono', monospace;
   text-transform: uppercase;
   letter-spacing: 1px;
-  position: absolute;
-  top: 1.5rem;
-  left: 1.5rem;
+  position: relative;
+  width: fit-content;
+  align-self: flex-start;
+  z-index: 100;
 }
 
 .backButton:hover {

@@ -25,14 +25,15 @@
 
 /* Contenedor de la notificación */
 .notification {
-  background: linear-gradient(135deg, #00ff41 0%, #00ffff 100%);
+  background: rgba(0, 20, 10, 0.95);
+  border: 2px solid #00ff41;
   border-radius: 4px;
   padding: 24px 28px;
   min-width: 320px;
   max-width: 500px;
   box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.1);
+    0 0 40px rgba(0, 255, 65, 0.6),
+    inset 0 0 20px rgba(0, 255, 65, 0.1);
   display: flex;
   align-items: center;
   gap: 16px;
@@ -54,19 +55,35 @@
 
 /* Tipos de notificación */
 .notification.error {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: rgba(20, 0, 0, 0.95);
+  border-color: #ff4444;
+  box-shadow: 
+    0 0 40px rgba(255, 68, 68, 0.6),
+    inset 0 0 20px rgba(255, 68, 68, 0.1);
 }
 
 .notification.success {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: rgba(0, 20, 10, 0.95);
+  border-color: #00ffff;
+  box-shadow: 
+    0 0 40px rgba(0, 255, 255, 0.6),
+    inset 0 0 20px rgba(0, 255, 255, 0.1);
 }
 
 .notification.warning {
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  background: rgba(20, 15, 0, 0.95);
+  border-color: #ffaa00;
+  box-shadow: 
+    0 0 40px rgba(255, 170, 0, 0.6),
+    inset 0 0 20px rgba(255, 170, 0, 0.1);
 }
 
 .notification.info {
-  background: linear-gradient(135deg, #00ff41 0%, #00ffff 100%);
+  background: rgba(0, 20, 10, 0.95);
+  border-color: #00ff41;
+  box-shadow: 
+    0 0 40px rgba(0, 255, 65, 0.6),
+    inset 0 0 20px rgba(0, 255, 65, 0.1);
 }
 
 /* Icono */
@@ -88,16 +105,31 @@
 /* Contenido */
 .content {
   flex: 1;
-  color: #00ff41;
 }
 
 .message {
   margin: 0;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.5;
   color: #00ff41;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.notification.error .message {
+  color: #ff4444;
+  text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+}
+
+.notification.success .message {
+  color: #00ffff;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.notification.warning .message {
+  color: #ffaa00;
+  text-shadow: 0 0 10px rgba(255, 170, 0, 0.5);
 }
 
 /* Botón de cerrar */
@@ -105,8 +137,8 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
+  background: rgba(0, 255, 65, 0.1);
+  border: 1px solid rgba(0, 255, 65, 0.3);
   color: #00ff41;
   width: 28px;
   height: 28px;
@@ -117,12 +149,14 @@
   justify-content: center;
   font-size: 1rem;
   transition: all 0.2s ease;
-  backdrop-filter: blur(4px);
 }
 
 .closeButton:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(0, 255, 65, 0.2);
+  border-color: #00ffff;
+  color: #00ffff;
   transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
 }
 
 .closeButton:active {

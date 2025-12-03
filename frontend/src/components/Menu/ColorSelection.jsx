@@ -78,7 +78,12 @@ const ColorSelection = ({ numberOfPlayers, onColorsSelected, onBack }) => {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <h1 className={styles.title}>Selección de Colores</h1>
+        <div className={styles.header}>
+          <button onClick={handleBack} className={styles.backButton}>
+            ← Atrás
+          </button>
+          <h1 className={styles.title}>Selección de Colores</h1>
+        </div>
         
         {!isComplete ? (
           <>
@@ -168,13 +173,6 @@ const ColorSelection = ({ numberOfPlayers, onColorsSelected, onBack }) => {
         </div>
 
         <div className={styles.actions}>
-          <button
-            className={`${styles.button} ${styles.backButton}`}
-            onClick={handleBack}
-          >
-            ← Atrás
-          </button>
-          
           {isComplete && (
             <button
               className={`${styles.button} ${styles.continueButton}`}

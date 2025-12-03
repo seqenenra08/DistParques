@@ -268,14 +268,9 @@ class ServidorSalas:
             
             # Iniciar partida
             if sala.partida.iniciar_partida():
-                # ✅ IMPORTANTE: Saltar el modo "esperando_dados_inicio" 
-                # El frontend ya determinó el orden
-                sala.partida.esperando_dados_inicio = False
-                
-                # Asegurar que el primer jugador tenga su turno activado
-                if sala.partida.jugadores:
-                    for i, jugador in enumerate(sala.partida.jugadores):
-                        jugador.es_su_turno = (i == sala.partida.turno_actual)
+                # ✅ IMPORTANTE: NO saltar la fase de dados iniciales
+                # Cada jugador deberá lanzar el dado para determinar el orden
+                # sala.partida.esperando_dados_inicio ya está en True por defecto
                 
                 sala.iniciada = True
                 
@@ -283,18 +278,19 @@ class ServidorSalas:
                 estado_backend = sala.partida.obtener_estado()
                 estado_frontend = self._transformar_estado_para_frontend(estado_backend)
                 
-                # Notificar a todos
+                # Notificar a todos - indicar que deben lanzar dados para determinar orden
                 await self.broadcast_sala(codigo_sala, {
                     "tipo": "PARTIDA_INICIADA",
-                    "mensaje": "¡La partida ha comenzado!",
+                    "mensaje": "¡Lanzad el dado para determinar quién empieza!",
+                    "esperando_dados_inicio": True,
                     "estado": estado_frontend
                 })
                 
                 print(f"🎮 Partida iniciada en sala {codigo_sala}")
-                print(f"   Jugador actual: {sala.partida.jugadores[sala.partida.turno_actual].nombre if sala.partida.jugadores else 'Ninguno'}")
+                print(f"   ⚡ Esperando dados iniciales para determinar orden")
                 
-                # Si el jugador actual es un bot, ejecutar su turno automáticamente
-                await self.ejecutar_turno_bot_si_necesario(codigo_sala)
+                # Hacer que los bots lancen sus dados iniciales automáticamente
+                await self.ejecutar_dados_iniciales_bots(codigo_sala)
             else:
                 await websocket.send(json.dumps({
                     "tipo": "ERROR",
@@ -756,6 +752,74 @@ class ServidorSalas:
     # NUEVOS MÉTODOS - Protocolo completo del servidor.py
     # ========================================================================
     
+    async def ejecutar_dados_iniciales_bots(self, codigo_sala: str):
+        """Hace que todos los bots lancen sus dados iniciales automáticamente."""
+        if codigo_sala not in self.salas:
+            return
+        
+        sala = self.salas[codigo_sala]
+        
+        # Buscar todos los bots que aún no han lanzado
+        for jugador in sala.partida.jugadores:
+            if jugador.id.startswith('bot_') and jugador.id not in sala.partida.dados_inicio:
+                # Esperar un poco para que parezca más natural
+                await asyncio.sleep(1.0)
+                
+                # Lanzar dado
+                valor = sala.partida.lanzar_dado_inicio(jugador)
+                
+                if valor is not None:
+                    print(f"🤖 {jugador.nombre} sacó {valor} para el orden inicial")
+                    
+                    # Broadcast del resultado a todos
+                    await self.broadcast_sala(codigo_sala, {
+                        "tipo": "DADO_INICIO",
+                        "jugador": jugador.nombre,
+                        "color": jugador.color,
+                        "valor": valor
+                    })
+                    
+                    # Verificar si todos lanzaron después de este bot
+                    if sala.partida.todos_lanzaron_inicio():
+                        # Esperar un poco antes de determinar el ganador
+                        await asyncio.sleep(1.5)
+                        
+                        # Obtener el jugador actual (ya determinado)
+                        jugador_actual = sala.partida.obtener_jugador_actual()
+                        dados_inicio = sala.partida.obtener_dados_inicio()
+                        
+                        # Crear lista de resultados para mostrar
+                        resultados = []
+                        for j in sala.partida.jugadores:
+                            resultados.append({
+                                "nombre": j.nombre,
+                                "color": j.color,
+                                "valor": dados_inicio.get(j.id, 0)
+                            })
+                        
+                        print(f"🏆 {jugador_actual.nombre} comienza la partida!")
+                        
+                        # Broadcast del ganador y inicio de juego
+                        await self.broadcast_sala(codigo_sala, {
+                            "tipo": "TURNO_DETERMINADO",
+                            "jugador_inicial": jugador_actual.nombre,
+                            "color_inicial": jugador_actual.color,
+                            "resultados": resultados,
+                            "mensaje": f"¡{jugador_actual.nombre} tiene el mayor número y comienza!"
+                        })
+                        
+                        # Enviar estado actualizado
+                        await self.broadcast_sala(codigo_sala, {
+                            "tipo": "UPDATE",
+                            "estado": self._enviar_estado_actualizado(sala)
+                        })
+                        
+                        # Si el primer jugador es un bot, ejecutar su turno
+                        await asyncio.sleep(1.0)
+                        await self.ejecutar_turno_bot_si_necesario(codigo_sala)
+                        
+                        return  # Salir después de determinar el orden
+    
     async def procesar_roll_inicio(self, websocket, mensaje: dict):
         """Procesa lanzamiento de dado para determinar el primer turno."""
         codigo_sala = self.conexiones_salas.get(websocket)
@@ -832,6 +896,10 @@ class ServidorSalas:
             "valor": valor,
             "mensaje": f"Sacaste {valor}. Esperando a los demás jugadores..."
         }))
+        
+        # Hacer que los bots restantes lancen sus dados automáticamente
+        if not sala.partida.todos_lanzaron_inicio():
+            await self.ejecutar_dados_iniciales_bots(codigo_sala)
     
     async def procesar_roll(self, websocket, mensaje: dict):
         """Procesa lanzamiento de dados."""
