@@ -1,0 +1,21 @@
+/*
+ * ATTENTION: An "eval-source-map" devtool has been used.
+ * This devtool is neither made for production nor for readable output files.
+ * It uses "eval()" calls to create a separate source file with attached SourceMaps in the browser devtools.
+ * If you are trying to read the output file, select a different devtool (https://webpack.js.org/configuration/devtool/)
+ * or disable the default devtool with "devtool: false".
+ * If you are looking for production-ready output files, see mode: "production" (https://webpack.js.org/configuration/mode/).
+ */
+self["webpackHotUpdate_N_E"]("app/page",{
+
+/***/ "(app-pages-browser)/./src/components/Board/Piece.module.css":
+/*!***********************************************!*\
+  !*** ./src/components/Board/Piece.module.css ***!
+  \***********************************************/
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+eval(__webpack_require__.ts("// extracted by mini-css-extract-plugin\nmodule.exports = {\"piece\":\"Piece_piece__AWWIv\",\"selected\":\"Piece_selected__uC_Av\",\"piece-pulse\":\"Piece_piece-pulse__r4fYr\",\"glitch\":\"Piece_glitch__CQpCx\",\"innerPiece\":\"Piece_innerPiece__xy5uJ\",\"red\":\"Piece_red__HABtx\",\"blue\":\"Piece_blue__PJOu_\",\"green\":\"Piece_green__tFobb\",\"yellow\":\"Piece_yellow__RI_Cx\",\"moving\":\"Piece_moving__F5peJ\",\"inPrison\":\"Piece_inPrison__5Rmd_\",\"finished\":\"Piece_finished__ddRbT\",\"canMove\":\"Piece_canMove__9lVyx\",\"neon-glow\":\"Piece_neon-glow__RM_S_\",\"scan-move\":\"Piece_scan-move__YMfSz\"};\n    if(true) {\n      // 1764728773462\n      var cssReload = __webpack_require__(/*! ./node_modules/next/dist/compiled/mini-css-extract-plugin/hmr/hotModuleReplacement.js */ \"(app-pages-browser)/./node_modules/next/dist/compiled/mini-css-extract-plugin/hmr/hotModuleReplacement.js\")(module.id, {\"publicPath\":\"/_next/\",\"esModule\":false,\"locals\":true});\n      module.hot.dispose(cssReload);\n      \n    }\n  \nmodule.exports.__checksum = \"d23f41c041ac\"\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiKGFwcC1wYWdlcy1icm93c2VyKS8uL3NyYy9jb21wb25lbnRzL0JvYXJkL1BpZWNlLm1vZHVsZS5jc3MiLCJtYXBwaW5ncyI6IkFBQUE7QUFDQSxrQkFBa0I7QUFDbEIsT0FBTyxJQUFVO0FBQ2pCO0FBQ0Esc0JBQXNCLG1CQUFPLENBQUMsd01BQWdJLGNBQWMsc0RBQXNEO0FBQ2xPLE1BQU0sVUFBVTtBQUNoQjtBQUNBO0FBQ0E7QUFDQSx5QkFBeUIiLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly9fTl9FLy4vc3JjL2NvbXBvbmVudHMvQm9hcmQvUGllY2UubW9kdWxlLmNzcz9hZWM1Il0sInNvdXJjZXNDb250ZW50IjpbIi8vIGV4dHJhY3RlZCBieSBtaW5pLWNzcy1leHRyYWN0LXBsdWdpblxubW9kdWxlLmV4cG9ydHMgPSB7XCJwaWVjZVwiOlwiUGllY2VfcGllY2VfX0FXV0l2XCIsXCJzZWxlY3RlZFwiOlwiUGllY2Vfc2VsZWN0ZWRfX3VDX0F2XCIsXCJwaWVjZS1wdWxzZVwiOlwiUGllY2VfcGllY2UtcHVsc2VfX3I0ZllyXCIsXCJnbGl0Y2hcIjpcIlBpZWNlX2dsaXRjaF9fQ1FwQ3hcIixcImlubmVyUGllY2VcIjpcIlBpZWNlX2lubmVyUGllY2VfX3h5NXVKXCIsXCJyZWRcIjpcIlBpZWNlX3JlZF9fSEFCdHhcIixcImJsdWVcIjpcIlBpZWNlX2JsdWVfX1BKT3VfXCIsXCJncmVlblwiOlwiUGllY2VfZ3JlZW5fX3RGb2JiXCIsXCJ5ZWxsb3dcIjpcIlBpZWNlX3llbGxvd19fUklfQ3hcIixcIm1vdmluZ1wiOlwiUGllY2VfbW92aW5nX19GNXBlSlwiLFwiaW5Qcmlzb25cIjpcIlBpZWNlX2luUHJpc29uX181Um1kX1wiLFwiZmluaXNoZWRcIjpcIlBpZWNlX2ZpbmlzaGVkX19kZFJiVFwiLFwiY2FuTW92ZVwiOlwiUGllY2VfY2FuTW92ZV9fOWxWeXhcIixcIm5lb24tZ2xvd1wiOlwiUGllY2VfbmVvbi1nbG93X19STV9TX1wiLFwic2Nhbi1tb3ZlXCI6XCJQaWVjZV9zY2FuLW1vdmVfX1lNZlN6XCJ9O1xuICAgIGlmKG1vZHVsZS5ob3QpIHtcbiAgICAgIC8vIDE3NjQ3Mjg3NzM0NjJcbiAgICAgIHZhciBjc3NSZWxvYWQgPSByZXF1aXJlKFwiL2hvbWUvc2VxZW5lbnJhL0NvZGVzL0Rpc3RQYXJxdWVzL2Zyb250ZW5kL25vZGVfbW9kdWxlcy9uZXh0L2Rpc3QvY29tcGlsZWQvbWluaS1jc3MtZXh0cmFjdC1wbHVnaW4vaG1yL2hvdE1vZHVsZVJlcGxhY2VtZW50LmpzXCIpKG1vZHVsZS5pZCwge1wicHVibGljUGF0aFwiOlwiL19uZXh0L1wiLFwiZXNNb2R1bGVcIjpmYWxzZSxcImxvY2Fsc1wiOnRydWV9KTtcbiAgICAgIG1vZHVsZS5ob3QuZGlzcG9zZShjc3NSZWxvYWQpO1xuICAgICAgXG4gICAgfVxuICBcbm1vZHVsZS5leHBvcnRzLl9fY2hlY2tzdW0gPSBcImQyM2Y0MWMwNDFhY1wiXG4iXSwibmFtZXMiOltdLCJzb3VyY2VSb290IjoiIn0=\n//# sourceURL=webpack-internal:///(app-pages-browser)/./src/components/Board/Piece.module.css\n"));
+
+/***/ })
+
+});

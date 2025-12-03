@@ -6,7 +6,7 @@
   cursor: pointer;
   transform: translate(-50%, -50%);
   transition: all 0.3s ease-in-out;
-  z-index: 100;
+  z-index: 150;
   box-shadow: 
     0 0 15px currentColor,
     0 0 30px currentColor,
