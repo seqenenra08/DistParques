@@ -242,8 +242,9 @@ class ServidorParques:
         todas_en_carcel = all(f.esta_en_carcel() for f in jugador.fichas)
         es_par = dados[0] == dados[1]
         
-        # TODAS EN CÁRCEL: Si no saca par, procesar automáticamente para consumir intento
-        if todas_en_carcel and not es_par:
+        # TODAS EN CÁRCEL: Procesar SIEMPRE para manejar intentos correctamente
+        if todas_en_carcel:
+            # Procesar el turno para que se actualice el contador de intentos
             resultado = self.partida.procesar_turno(jugador, dados, None)
             resultado["tipo"] = "DICE_RESULT"
             
@@ -256,6 +257,41 @@ class ServidorParques:
         # Verificar si puede sacar de cárcel con par
         puede_sacar = es_par and jugador.tiene_fichas_en_carcel()
         
+        # Verificar si tiene movimientos válidos
+        info_movimientos = partida.tiene_movimientos_validos(jugador, dados)
+        
+        # Si NO tiene movimientos válidos, saltar turno automáticamente
+        if not info_movimientos["tiene_movimientos"]:
+            print(f"⏭️  {jugador.nombre} no tiene movimientos válidos - Saltando turno")
+            print(f"   Razón: {info_movimientos.get('razon', 'Sin movimientos posibles')}")
+            
+            # Si no es par, cambiar turno
+            if not es_par:
+                partida._cambiar_turno()
+                self.broadcast_estado()
+                
+                return {
+                    "tipo": "DICE_RESULT",
+                    "dados": dados,
+                    "suma": dados[0] + dados[1],
+                    "es_par": es_par,
+                    "sin_movimientos": True,
+                    "cambio_turno": True,
+                    "mensaje": f"Sin movimientos válidos. {info_movimientos.get('razon', '')} - Turno saltado"
+                }
+            else:
+                # Con par puede lanzar de nuevo
+                jugador.permitir_lanzar_de_nuevo()
+                return {
+                    "tipo": "DICE_RESULT",
+                    "dados": dados,
+                    "suma": dados[0] + dados[1],
+                    "es_par": es_par,
+                    "sin_movimientos": True,
+                    "cambio_turno": False,
+                    "mensaje": f"Sin movimientos válidos pero sacaste par. Lanza de nuevo"
+                }
+        
         return {
             "tipo": "DICE_RESULT",
             "dados": dados,
@@ -263,7 +299,10 @@ class ServidorParques:
             "es_par": es_par,
             "puede_sacar_carcel": puede_sacar,
             "todas_en_carcel": todas_en_carcel,
-            "mensaje": "Saca una ficha con 'mover N'" if puede_sacar else "Mueve una ficha con 'mover N'"
+            "puede_dividir_dados": info_movimientos["puede_dividir"],
+            "opciones_division": info_movimientos.get("opciones_division", []),
+            "fichas_movibles": info_movimientos["fichas_movibles"],
+            "mensaje": "Saca una ficha con 'mover N'" if puede_sacar else ("Puedes dividir los dados entre diferentes fichas" if info_movimientos["puede_dividir"] else "Mueve una ficha con 'mover N'")
         }
     
     def procesar_get_fichas(self, jugador) -> dict:

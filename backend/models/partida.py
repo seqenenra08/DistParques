@@ -206,12 +206,89 @@ class Partida:
         
         return fichas_info
 
+    def tiene_movimientos_validos(self, jugador: Jugador, dados: tuple) -> Dict:
+        """Verifica si el jugador tiene algún movimiento válido con los dados.
+        
+        Returns:
+            Dict con información sobre movimientos posibles:
+            - tiene_movimientos: bool
+            - fichas_movibles: List[int] IDs de fichas que pueden moverse
+            - puede_dividir: bool - Si puede dividir los dados
+            - opciones_division: List - Opciones para dividir dados
+        """
+        es_par = self.es_par(dados)
+        suma = dados[0] + dados[1]
+        
+        # Verificar si puede sacar de cárcel
+        if es_par and jugador.tiene_fichas_en_carcel():
+            fichas_en_carcel = [i for i, f in enumerate(jugador.fichas) if f.esta_en_carcel()]
+            return {
+                "tiene_movimientos": True,
+                "fichas_movibles": fichas_en_carcel,
+                "puede_dividir": False,
+                "razon": "Debes sacar una ficha de la cárcel con el par"
+            }
+        
+        # Fichas fuera de la cárcel
+        fichas_fuera = [(i, f) for i, f in enumerate(jugador.fichas) 
+                       if not f.esta_en_carcel() and not f.esta_en_meta()]
+        
+        if not fichas_fuera:
+            return {
+                "tiene_movimientos": False,
+                "fichas_movibles": [],
+                "puede_dividir": False,
+                "razon": "No hay fichas disponibles para mover"
+            }
+        
+        # Verificar movimientos con suma completa
+        fichas_movibles_suma = [i for i, f in fichas_fuera if jugador.puede_mover(i, suma)]
+        
+        # Verificar movimientos con dados individuales (para división)
+        fichas_movibles_dado1 = [i for i, f in fichas_fuera if jugador.puede_mover(i, dados[0])]
+        fichas_movibles_dado2 = [i for i, f in fichas_fuera if jugador.puede_mover(i, dados[1])]
+        
+        # Determinar si puede dividir dados
+        puede_dividir = False
+        opciones_division = []
+        
+        # Puede dividir si:
+        # 1. Los dados son diferentes Y
+        # 2. Tiene al menos 2 fichas fuera de cárcel Y
+        # 3. Al menos una ficha puede moverse con dado1 Y otra con dado2
+        if dados[0] != dados[1] and len(fichas_fuera) >= 2:
+            if fichas_movibles_dado1 and fichas_movibles_dado2:
+                puede_dividir = True
+                opciones_division = [
+                    {"tipo": "suma", "valor": suma, "fichas": fichas_movibles_suma},
+                    {"tipo": "dado1", "valor": dados[0], "fichas": fichas_movibles_dado1},
+                    {"tipo": "dado2", "valor": dados[1], "fichas": fichas_movibles_dado2}
+                ]
+        
+        # Combinar todas las fichas movibles
+        fichas_movibles = list(set(fichas_movibles_suma + fichas_movibles_dado1 + fichas_movibles_dado2))
+        
+        return {
+            "tiene_movimientos": len(fichas_movibles) > 0,
+            "fichas_movibles": fichas_movibles,
+            "puede_dividir": puede_dividir,
+            "opciones_division": opciones_division,
+            "fichas_movibles_suma": fichas_movibles_suma,
+            "fichas_movibles_dado1": fichas_movibles_dado1,
+            "fichas_movibles_dado2": fichas_movibles_dado2
+        }
+
     def procesar_turno_dividido(self, jugador: Jugador, dados: tuple,
                                 movimientos: List[Dict]) -> Dict:
         """
         Procesa turno con dados divididos.
         movimientos = [{"id_ficha": 0, "valor_dado": 5}, {"id_ficha": 1, "valor_dado": 6}]
         o [{"id_ficha": 0, "valor_dado": 11}]
+        
+        Reglas:
+        - Si se divide, cada dado debe usarse con una ficha diferente
+        - No se puede mover la misma ficha dos veces
+        - Los valores deben corresponder a los dados lanzados
         """
         with self.lock:
             if not jugador.es_su_turno:
@@ -241,17 +318,34 @@ class Partida:
 
             # Validar que los valores de dados sumen correctamente
             valores_usados = [m["valor_dado"] for m in movimientos]
+            fichas_usadas = [m["id_ficha"] for m in movimientos]
             suma_total = sum(valores_usados)
 
             if suma_total != dados[0] + dados[1]:
                 return {"error": f"Los valores no suman {dados[0] + dados[1]}"}
 
-            # Validar que no se use un valor mayor que cualquier dado individual
-            # a menos que sea la suma completa
+            # VALIDACIÓN CRÍTICA: No se puede usar la misma ficha dos veces
+            if len(fichas_usadas) != len(set(fichas_usadas)):
+                return {"error": "No puedes mover la misma ficha dos veces en un turno"}
+
+            # Validar que los valores correspondan a los dados
             if len(movimientos) > 1:
+                # Si hay más de un movimiento, cada valor debe ser un dado individual
                 for valor in valores_usados:
                     if valor not in dados:
                         return {"error": f"Valor {valor} no coincide con ningún dado"}
+                
+                # Verificar que cada dado se use exactamente una vez
+                dados_list = list(dados)
+                for valor in valores_usados:
+                    if valor in dados_list:
+                        dados_list.remove(valor)
+                    else:
+                        return {"error": f"El dado {valor} ya fue usado o no existe"}
+            else:
+                # Si es un solo movimiento, debe ser la suma completa
+                if valores_usados[0] != suma_total:
+                    return {"error": f"Para mover una sola ficha usa la suma completa ({suma_total})"}
 
             # Ejecutar movimientos
             for mov in movimientos:

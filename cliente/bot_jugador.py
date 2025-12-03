@@ -158,18 +158,34 @@ class BotJugador:
                 self.lanzamiento_pendiente = False  # Resetear flag
                 self.dados_actuales = tuple(msg.get("dados", []))
                 es_par = msg.get("es_par", False) or (self.dados_actuales[0] == self.dados_actuales[1])
+                accion = msg.get("accion")
                 
                 print(f"🎲 Dados: {self.dados_actuales} (Suma: {sum(self.dados_actuales)})")
                 if es_par:
                     print(f"   ✨ ¡PAR!")
                 
-                # Si el mensaje indica que perdió turno, no hacer nada
-                if msg.get("accion") == "sin_movimiento":
-                    print(f"   ⏭️  Turno perdido automáticamente")
+                # Manejo de acciones especiales cuando todas las fichas están en cárcel
+                if accion == "sin_par_carcel":
+                    print(f"   🔒 Sin par - {msg.get('mensaje', 'Intenta de nuevo')}")
+                    # El turno continúa, puede lanzar de nuevo
+                    return
+                elif accion == "intentos_agotados":
+                    print(f"   ❌ {msg.get('mensaje', 'Se agotaron los intentos')}")
+                    self.es_mi_turno = False
+                    return
+                elif accion == "par_sacar_carcel":
+                    print(f"   🎉 {msg.get('mensaje', '¡Sacaste par! Sacando ficha de la cárcel...')}")
+                    # Decidir qué ficha sacar y enviar MOVE
+                    threading.Timer(self.retraso_decision, self.decidir_movimiento).start()
+                    return
+                
+                # Si el mensaje indica que perdió turno automáticamente, no hacer nada
+                if msg.get("sin_movimientos") or accion == "sin_movimiento":
+                    print(f"   ⏭️  Sin movimientos válidos - Turno perdido automáticamente")
                     self.es_mi_turno = False
                     return
                 
-                # Tomar decisión de movimiento
+                # Tomar decisión de movimiento normal
                 threading.Timer(self.retraso_decision, self.decidir_movimiento).start()
         
         elif tipo == "RESULTADO" or tipo == "MOVE_RESULT":
@@ -177,6 +193,9 @@ class BotJugador:
             
             if accion == "sacar_carcel":
                 print(f"   🔓 Ficha sacada de la cárcel")
+                # Mostrar mensaje específico si venía de par_sacar_carcel
+                if msg.get("mensaje"):
+                    print(f"   💬 {msg.get('mensaje')}")
             elif accion == "mover":
                 print(f"   ✅ Ficha movida")
                 if msg.get("fichas_capturadas"):
@@ -186,6 +205,11 @@ class BotJugador:
                 print(f"   ✅ Movimiento dividido ejecutado")
             elif msg.get("error"):
                 print(f"   ⚠️  Error: {msg.get('error')}")
+                # Si hay error, resetear estado para que pueda intentar de nuevo
+                if self.es_mi_turno:
+                    print(f"   🔄 Intentando acción alternativa...")
+                    threading.Timer(self.retraso_decision, self.decidir_movimiento).start()
+                return
             
             # Verificar si ganamos
             if msg.get("ganador") == self.nombre:
@@ -195,10 +219,15 @@ class BotJugador:
             elif msg.get("ganador"):
                 print(f"   🏁 {msg['ganador']} ganó la partida")
             
-            # Si sacamos par, lanzar de nuevo
-            if msg.get("es_par") and not msg.get("cambio_turno"):
+            # Si sacamos par, lanzar de nuevo (verificar con mensaje o bandera)
+            es_par = msg.get("es_par", False)
+            cambio_turno = msg.get("cambio_turno", False)
+            puede_lanzar_de_nuevo = msg.get("mensaje", "").lower().find("lanzar de nuevo") >= 0 or msg.get("mensaje", "").lower().find("puedes lanzar") >= 0
+            
+            if (es_par and not cambio_turno) or puede_lanzar_de_nuevo:
                 print(f"   🔄 Sacamos PAR, lanzando de nuevo...")
                 self.lanzamiento_pendiente = True
+                self.dados_actuales = None  # Limpiar dados para el nuevo lanzamiento
                 threading.Timer(self.retraso_entre_acciones, self.lanzar_dados).start()
             else:
                 self.es_mi_turno = False
