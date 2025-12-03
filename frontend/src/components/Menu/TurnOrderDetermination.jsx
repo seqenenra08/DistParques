@@ -21,17 +21,37 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
   const [activePlayers, setActivePlayers] = useState(players); // Jugadores activos en esta ronda
   const [isMultiplayer, setIsMultiplayer] = useState(false); // ¿Es partida multijugador?
 
+  // Función auxiliar para ordenar jugadores (humanos primero, luego bots, ambos por color)
+  const sortPlayersByTypeAndColor = (playersList) => {
+    return [...playersList].sort((a, b) => {
+      // Si uno es humano y el otro bot, el humano va primero
+      if (a.isHuman && !b.isHuman) return -1;
+      if (!a.isHuman && b.isHuman) return 1;
+      
+      // Si ambos son del mismo tipo, ordenar por color según BOARD_ORDER
+      const indexA = BOARD_ORDER.indexOf(a.color);
+      const indexB = BOARD_ORDER.indexOf(b.color);
+      return indexA - indexB;
+    });
+  };
+
   // Log inicial para verificar datos
   useEffect(() => {
     console.log('[TURN ORDER] Component mounted with players:', 
-      players.map(p => `${p.name} (id:${p.id}, color:${p.color})`));
+      players.map(p => `${p.name} (${p.color})`));
+    
+    // Ordenar jugadores: primero humanos por color, luego bots por color
+    const sortedPlayers = sortPlayersByTypeAndColor(players);
+    
+    console.log('[TURN ORDER] Jugadores ordenados:', 
+      sortedPlayers.map(p => `${p.name} (${p.color}) ${p.isHuman ? 'HUMANO' : 'BOT'}`));
+    
+    setActivePlayers(sortedPlayers);
     
     // Detectar si es multijugador (tiene socket y roomCode)
     if (socket && roomCode) {
       setIsMultiplayer(true);
-      console.log('[TURN ORDER] Modo multijugador detectado');
-      console.log('[TURN ORDER] Mi ID:', myPlayerId);
-      console.log('[TURN ORDER] Soy host:', isHost);
+      console.log('[TURN ORDER] Modo multijugador detectado - Mi color:', myPlayerId);
     }
   }, []);
   
@@ -122,19 +142,24 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
         return;
       }
       
+      // Ordenar jugadores empatados (humanos primero, luego bots)
+      const sortedTiedPlayers = sortPlayersByTypeAndColor(playersForTiebreak);
+      
       setIsTiebreaker(true);
-      setActivePlayers(playersForTiebreak); // Actualizar PRIMERO
-      setCurrentPlayerIndex(0); // Luego resetear índice
+      setActivePlayers(sortedTiedPlayers);
+      setCurrentPlayerIndex(0);
       setDiceResults({});
       setTiedPlayers([]);
       
-      console.log('[TURN ORDER] Estado actualizado - activePlayers:', playersForTiebreak);
+      console.log('[TURN ORDER] Estado actualizado - activePlayers:', sortedTiedPlayers);
       audioService.playClick();
     };
     
     const handleRerollStarted = () => {
       console.log('[TURN ORDER] Reinicio solicitado por el host');
-      // Reiniciar todo
+      // Reiniciar todo y ordenar jugadores de nuevo
+      const sortedPlayers = sortPlayersByTypeAndColor(players);
+      
       setCurrentPlayerIndex(0);
       setDiceResults({});
       setFinalDiceResults({});
@@ -143,7 +168,7 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
       setAnimatedValue(1);
       setTiedPlayers([]);
       setIsTiebreaker(false);
-      setActivePlayers(players);
+      setActivePlayers(sortedPlayers);
       audioService.playClick();
     };
     
@@ -198,9 +223,9 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
       
       // En modo multijugador, emitir al servidor usando protocolo correcto
       if (isMultiplayer && socket && roomCode) {
-        socket.emit('message', JSON.stringify({
+        socket.send({
           tipo: 'ROLL_INICIO'
-        }));
+        });
         console.log('[TURN ORDER] Enviando ROLL_INICIO al servidor');
         setIsRolling(false);
       } else {
@@ -281,7 +306,8 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
     
     // En modo multijugador, emitir al servidor y ESPERAR el evento de vuelta
     if (isMultiplayer && socket && roomCode) {
-      socket.emit('start_tiebreaker', {
+      socket.send({
+        tipo: 'start_tiebreaker',
         roomCode: roomCode,
         tiedPlayers: tiedPlayers.map(p => ({ id: p.id, name: p.name, color: p.color }))
       });
@@ -291,8 +317,10 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
     }
     
     // Solo en modo local (sin multijugador)
+    const sortedTiedPlayers = sortPlayersByTypeAndColor(tiedPlayers);
+    
     setIsTiebreaker(true);
-    setActivePlayers(tiedPlayers);
+    setActivePlayers(sortedTiedPlayers);
     setCurrentPlayerIndex(0);
     setDiceResults({});
     setTiedPlayers([]);
@@ -370,7 +398,8 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
     
     // En modo multijugador, emitir al servidor y ESPERAR el evento de vuelta
     if (isMultiplayer && socket && roomCode) {
-      socket.emit('start_reroll', {
+      socket.send({
+        tipo: 'start_reroll',
         roomCode: roomCode
       });
       console.log('[REROLL] Enviando evento al servidor - esperando confirmación');
@@ -379,6 +408,8 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
     }
     
     // Solo en modo local (sin multijugador)
+    const sortedPlayers = sortPlayersByTypeAndColor(players);
+    
     setCurrentPlayerIndex(0);
     setDiceResults({});
     setFinalDiceResults({});
@@ -387,7 +418,7 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
     setAnimatedValue(1);
     setTiedPlayers([]);
     setIsTiebreaker(false);
-    setActivePlayers(players);
+    setActivePlayers(sortedPlayers);
   };
 
   const currentPlayer = activePlayers[currentPlayerIndex];
@@ -510,21 +541,24 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
             <div className={styles.results}>
               <h3 className={styles.resultsTitle}>Resultados:</h3>
               <div className={styles.resultsList}>
-                {players.map((player) => {
+                {activePlayers.map((player) => {
                   const colorInfo = getColorInfo(player.color);
                   const result = diceResults[player.id] || finalDiceResults[player.id];
-                  const isActive = activePlayers.some(p => p.id === player.id);
                   
                   return (
                     <div 
                       key={player.id} 
-                      className={`${styles.playerResult} ${!isActive && isTiebreaker ? styles.inactive : ''}`}
+                      className={styles.playerResult}
                     >
                       <div 
                         className={styles.resultColor}
                         style={{ backgroundColor: colorInfo.color }}
                       ></div>
-                      <span className={styles.resultName}>{player.name}</span>
+                      <span className={styles.resultName}>
+                        {player.name}
+                        {player.isHuman && ' 👤'}
+                        {!player.isHuman && ' 🤖'}
+                      </span>
                       <span className={styles.resultDice}>
                         {result ? `🎲 ${result}` : '⏳'}
                       </span>
@@ -567,8 +601,12 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
             </div>
 
             <p className={styles.orderExplanation}>
-              {finalOrder[0].name} ({getColorInfo(finalOrder[0].color).name}) obtuvo el valor más alto ({finalDiceResults[finalOrder[0].id]})
-              y comenzará el juego. Los demás seguirán el orden del tablero en sentido antihorario.
+              {finalOrder.length > 0 && (
+                <>
+                  {finalOrder[0].name} ({getColorInfo(finalOrder[0].color).name}) obtuvo el valor más alto ({finalDiceResults[finalOrder[0].id]}) 
+                  y comenzará el juego. Los demás seguirán el orden del tablero en sentido antihorario.
+                </>
+              )}
             </p>
             
             {isMultiplayer && !isHost && (

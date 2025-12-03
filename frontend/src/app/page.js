@@ -591,7 +591,7 @@ export default function Home() {
       
       // Transformar gameState.players al formato esperado por TurnOrderDetermination
       const playersForTurnOrder = gameState.players ? gameState.players.map(p => ({
-        id: p.player_id,
+        id: p.color, // Usar color como ID para comparación
         name: p.name,
         color: p.color,
         isHuman: !p.player_id.startsWith('bot_')

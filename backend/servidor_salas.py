@@ -347,6 +347,12 @@ class ServidorSalas:
         elif tipo == "GET_STATE":
             await self.procesar_get_state(websocket, mensaje)
         
+        elif tipo == "start_tiebreaker":
+            await self.procesar_inicio_desempate(websocket, mensaje)
+        
+        elif tipo == "start_reroll":
+            await self.procesar_reinicio_dados(websocket, mensaje)
+        
         else:
             await websocket.send(json.dumps({
                 "tipo": "ERROR",
@@ -1227,6 +1233,90 @@ class ServidorSalas:
             "tipo": "UPDATE",
             "estado": self._enviar_estado_actualizado(sala)
         }))
+    
+    async def procesar_inicio_desempate(self, websocket, mensaje: dict):
+        """Procesa la solicitud de iniciar un desempate."""
+        codigo_sala = self.conexiones_salas.get(websocket)
+        if not codigo_sala or codigo_sala not in self.salas:
+            await websocket.send(json.dumps({"error": "No estás en ninguna sala"}))
+            return
+        
+        sala = self.salas[codigo_sala]
+        
+        # Verificar que sea el host
+        if websocket != sala.host_socket:
+            await websocket.send(json.dumps({
+                "tipo": "ERROR",
+                "mensaje": "Solo el host puede iniciar el desempate"
+            }))
+            return
+        
+        # Obtener los jugadores empatados
+        tied_players = mensaje.get("tiedPlayers", [])
+        
+        if not tied_players:
+            await websocket.send(json.dumps({
+                "tipo": "ERROR",
+                "mensaje": "No se especificaron jugadores para desempate"
+            }))
+            return
+        
+        print(f"🎲 [DESEMPATE] Iniciando desempate para sala {codigo_sala}")
+        print(f"   👥 Jugadores empatados: {[p['name'] for p in tied_players]}")
+        
+        # Reiniciar la fase de dados iniciales solo para los jugadores empatados
+        # Limpiar los dados de los jugadores empatados
+        for tied_player in tied_players:
+            player_id = tied_player.get('id')
+            jugador = next((j for j in sala.partida.jugadores if j.id == player_id), None)
+            if jugador and hasattr(sala.partida, 'dados_inicio'):
+                if jugador.id in sala.partida.dados_inicio:
+                    del sala.partida.dados_inicio[jugador.id]
+        
+        # Broadcast a todos los jugadores
+        await self.broadcast_sala(codigo_sala, {
+            "tipo": "tiebreaker_started",
+            "tiedPlayers": tied_players,
+            "mensaje": "Iniciando desempate..."
+        })
+        
+        # Hacer que los bots lancen automáticamente si están en el desempate
+        await self.ejecutar_dados_iniciales_bots(codigo_sala)
+    
+    async def procesar_reinicio_dados(self, websocket, mensaje: dict):
+        """Procesa la solicitud de reiniciar el lanzamiento de dados."""
+        codigo_sala = self.conexiones_salas.get(websocket)
+        if not codigo_sala or codigo_sala not in self.salas:
+            await websocket.send(json.dumps({"error": "No estás en ninguna sala"}))
+            return
+        
+        sala = self.salas[codigo_sala]
+        
+        # Verificar que sea el host
+        if websocket != sala.host_socket:
+            await websocket.send(json.dumps({
+                "tipo": "ERROR",
+                "mensaje": "Solo el host puede reiniciar"
+            }))
+            return
+        
+        print(f"🔄 [REINICIO] Reiniciando lanzamiento de dados en sala {codigo_sala}")
+        
+        # Limpiar todos los dados lanzados
+        if hasattr(sala.partida, 'dados_inicio'):
+            sala.partida.dados_inicio.clear()
+        
+        # Resetear la fase de espera
+        sala.partida.esperando_dados_inicio = True
+        
+        # Broadcast a todos los jugadores
+        await self.broadcast_sala(codigo_sala, {
+            "tipo": "reroll_started",
+            "mensaje": "Reiniciando lanzamiento de dados..."
+        })
+        
+        # Hacer que los bots lancen automáticamente
+        await self.ejecutar_dados_iniciales_bots(codigo_sala)
     
     async def broadcast_sala(self, codigo_sala: str, mensaje: dict, exclude=None):
         """Envía un mensaje a todos los jugadores de una sala.

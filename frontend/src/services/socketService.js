@@ -113,6 +113,10 @@ class WebSocketService {
       'FICHAS_INFO': 'FICHAS_INFO',
       'UPDATE': 'UPDATE',
       
+      // Eventos de desempate y reinicio
+      'tiebreaker_started': 'tiebreaker_started',
+      'reroll_started': 'reroll_started',
+      
       // Errores
       'ERROR': 'ERROR'
     };
