@@ -116,6 +116,7 @@ class WebSocketService {
       // Eventos de desempate y reinicio
       'tiebreaker_started': 'tiebreaker_started',
       'reroll_started': 'reroll_started',
+      'COMENZAR_JUEGO_CONFIRMADO': 'COMENZAR_JUEGO_CONFIRMADO',
       
       // Errores
       'ERROR': 'ERROR'

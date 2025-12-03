@@ -172,14 +172,55 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
       audioService.playClick();
     };
     
+    const handleTurnoDeterminado = (data) => {
+      console.log('[TURN ORDER] ===== TURNO DETERMINADO =====');
+      console.log('[TURN ORDER] Data recibida:', data);
+      
+      // Construir el orden final basado en los resultados
+      if (data.resultados && Array.isArray(data.resultados)) {
+        // Crear un mapa de resultados por color
+        const resultsMap = {};
+        data.resultados.forEach(r => {
+          resultsMap[r.color] = r.valor;
+        });
+        
+        // Actualizar finalDiceResults con los resultados del servidor
+        const finalResults = {};
+        players.forEach(p => {
+          if (resultsMap[p.color] !== undefined) {
+            finalResults[p.id] = resultsMap[p.color];
+          }
+        });
+        
+        setFinalDiceResults(finalResults);
+        
+        // Calcular el orden final
+        calculateFinalOrder(finalResults);
+      }
+      
+      audioService.playSuccess();
+    };
+    
+    const handleComenzarJuego = (data) => {
+      console.log('[TURN ORDER] ===== COMENZAR JUEGO CONFIRMADO =====');
+      console.log('[TURN ORDER] Iniciando juego para todos los jugadores');
+      
+      // Llamar al callback para iniciar el juego
+      onOrderDetermined(finalOrder);
+    };
+    
     socket.on('DADO_INICIO', handleDiceRolled);
     socket.on('tiebreaker_started', handleTiebreakerStarted);
     socket.on('reroll_started', handleRerollStarted);
+    socket.on('TURNO_DETERMINADO', handleTurnoDeterminado);
+    socket.on('COMENZAR_JUEGO_CONFIRMADO', handleComenzarJuego);
     
     return () => {
       socket.off('DADO_INICIO', handleDiceRolled);
       socket.off('tiebreaker_started', handleTiebreakerStarted);
       socket.off('reroll_started', handleRerollStarted);
+      socket.off('TURNO_DETERMINADO', handleTurnoDeterminado);
+      socket.off('COMENZAR_JUEGO_CONFIRMADO', handleComenzarJuego);
     };
   }, [isMultiplayer, socket, diceResults, activePlayers, myPlayerId, tiedPlayers, players]);
 
@@ -380,7 +421,17 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
     // 🔊 Reproducir sonido de confirmación
     audioService.playClick();
     
-    onOrderDetermined(finalOrder);
+    // En modo multijugador, enviar mensaje al servidor para que todos comiencen
+    if (isMultiplayer && socket && roomCode) {
+      socket.send({
+        tipo: 'COMENZAR_JUEGO',
+        roomCode: roomCode
+      });
+      console.log('[ORDER DETERMINATION] Enviando COMENZAR_JUEGO al servidor');
+    } else {
+      // En modo local, solo llamar al callback
+      onOrderDetermined(finalOrder);
+    }
   };
 
   const handleReroll = () => {

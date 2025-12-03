@@ -353,6 +353,9 @@ class ServidorSalas:
         elif tipo == "start_reroll":
             await self.procesar_reinicio_dados(websocket, mensaje)
         
+        elif tipo == "COMENZAR_JUEGO":
+            await self.procesar_comenzar_juego(websocket, mensaje)
+        
         else:
             await websocket.send(json.dumps({
                 "tipo": "ERROR",
@@ -1317,6 +1320,31 @@ class ServidorSalas:
         
         # Hacer que los bots lancen automáticamente
         await self.ejecutar_dados_iniciales_bots(codigo_sala)
+    
+    async def procesar_comenzar_juego(self, websocket, mensaje: dict):
+        """Procesa la solicitud de comenzar el juego después de determinar el orden."""
+        codigo_sala = self.conexiones_salas.get(websocket)
+        if not codigo_sala or codigo_sala not in self.salas:
+            await websocket.send(json.dumps({"error": "No estás en ninguna sala"}))
+            return
+        
+        sala = self.salas[codigo_sala]
+        
+        # Verificar que sea el host
+        if websocket != sala.host_socket:
+            await websocket.send(json.dumps({
+                "tipo": "ERROR",
+                "mensaje": "Solo el host puede comenzar el juego"
+            }))
+            return
+        
+        print(f"🎮 [COMENZAR JUEGO] Iniciando juego en sala {codigo_sala}")
+        
+        # Broadcast a todos los jugadores para que comiencen el juego
+        await self.broadcast_sala(codigo_sala, {
+            "tipo": "COMENZAR_JUEGO_CONFIRMADO",
+            "mensaje": "¡Comenzando el juego!"
+        })
     
     async def broadcast_sala(self, codigo_sala: str, mensaje: dict, exclude=None):
         """Envía un mensaje a todos los jugadores de una sala.

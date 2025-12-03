@@ -298,8 +298,8 @@ export default function Home() {
     // Turno determinado (orden establecido)
     socket.on('TURNO_DETERMINADO', (data) => {
       console.log('[TURNO_DETERMINADO]', data);
-      setShowTurnOrderDetermination(false);
-      setGameStarted(true);
+      // NO cerrar el componente aquí, dejar que el usuario vea los resultados
+      // El componente TurnOrderDetermination manejará este evento
       audioService.playSuccess();
       showNotification(data.mensaje || `¡${data.jugador_inicial} comienza!`, 'success');
     });
@@ -601,8 +601,10 @@ export default function Home() {
         <TurnOrderDetermination
           players={playersForTurnOrder}
           onOrderDetermined={(order) => {
-            console.log('[TURN ORDER] Orden determinado:', order);
-            // El servidor ya manejó el orden, solo esperamos TURNO_DETERMINADO
+            console.log('[TURN ORDER] Orden determinado, iniciando juego:', order);
+            // Cerrar el componente de determinación de orden e iniciar el juego
+            setShowTurnOrderDetermination(false);
+            setGameStarted(true);
           }}
           onBack={() => {
             setShowTurnOrderDetermination(false);
