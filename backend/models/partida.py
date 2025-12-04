@@ -623,17 +623,24 @@ class Partida:
         entrada_pasillo = self.tablero.ENTRADAS_PASILLO.get(jugador.color)
         
         # Verificar si la ficha pasa por la entrada del pasillo
-        # Necesitamos verificar todas las casillas del movimiento
+        # SOLO puede entrar si ya completó la vuelta (68 casillas recorridas)
         debe_entrar_pasillo = False
         casillas_en_pasillo = 0
         
-        for i in range(1, casillas + 1):
-            pos_intermedia = (posicion_anterior + i) % 68
-            if pos_intermedia == entrada_pasillo:
-                # La ficha pasa por su entrada al pasillo
-                debe_entrar_pasillo = True
-                casillas_en_pasillo = casillas - i
-                break
+        # La ficha necesita haber recorrido al menos 68 casillas para poder entrar
+        casillas_tras_movimiento = ficha.casillas_recorridas + casillas
+        
+        if casillas_tras_movimiento >= 68:
+            # Ya completó o completará la vuelta, verificar si pasa por la entrada
+            for i in range(1, casillas + 1):
+                pos_intermedia = (posicion_anterior + i) % 68
+                casillas_en_ese_punto = ficha.casillas_recorridas + i
+                
+                if pos_intermedia == entrada_pasillo and casillas_en_ese_punto >= 68:
+                    # La ficha pasa por su entrada Y ya completó la vuelta
+                    debe_entrar_pasillo = True
+                    casillas_en_pasillo = casillas - i
+                    break
         
         if debe_entrar_pasillo:
             # Entra al pasillo final
