@@ -540,9 +540,6 @@ class Partida:
                     nueva_pos = ficha.posicion_pasillo + suma_dados
                     if nueva_pos > 8:
                         return {"error": f"No puedes mover {suma_dados} casillas. Necesitas caer EXACTO en la meta (te faltan {8 - ficha.posicion_pasillo})."}
-                elif ficha.casillas_recorridas + suma_dados > 76:  # 68 tablero + 8 pasillo
-                    casillas_faltantes = 76 - ficha.casillas_recorridas
-                    return {"error": f"No puedes mover {suma_dados} casillas. Solo te faltan {casillas_faltantes} para llegar EXACTO a la meta."}
                 
                 capturadas = self._mover_ficha(jugador, id_ficha, suma_dados)
                 
@@ -621,13 +618,25 @@ class Partida:
         if posicion_anterior is not None:
             self.tablero.remover_ficha(posicion_anterior, ficha)
         
-        # Verificar si debe entrar al pasillo final
-        casillas_totales = ficha.casillas_recorridas + casillas
+        # Calcular nueva posición
+        nueva_posicion = (posicion_anterior + casillas) % 68
+        entrada_pasillo = self.tablero.ENTRADAS_PASILLO.get(jugador.color)
         
-        if casillas_totales >= 68:
+        # Verificar si la ficha pasa por la entrada del pasillo
+        # Necesitamos verificar todas las casillas del movimiento
+        debe_entrar_pasillo = False
+        casillas_en_pasillo = 0
+        
+        for i in range(1, casillas + 1):
+            pos_intermedia = (posicion_anterior + i) % 68
+            if pos_intermedia == entrada_pasillo:
+                # La ficha pasa por su entrada al pasillo
+                debe_entrar_pasillo = True
+                casillas_en_pasillo = casillas - i
+                break
+        
+        if debe_entrar_pasillo:
             # Entra al pasillo final
-            casillas_en_pasillo = casillas_totales - 68
-            
             if casillas_en_pasillo == 8:
                 # Llega exacto a la meta
                 ficha.entrar_pasillo()
@@ -644,11 +653,10 @@ class Partida:
                 # Entra al pasillo sin llegar a meta
                 ficha.entrar_pasillo()
                 ficha.posicion_pasillo = casillas_en_pasillo
-                ficha.casillas_recorridas = casillas_totales
+                ficha.casillas_recorridas += casillas
                 return []
         
         # Movimiento normal en el tablero
-        nueva_posicion = (posicion_anterior + casillas) % 68
         es_seguro = self.tablero.es_seguro(nueva_posicion)
         
         ficha.mover(casillas, es_seguro)

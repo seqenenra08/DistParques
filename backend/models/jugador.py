@@ -61,15 +61,8 @@ class Jugador:
                 return False
             return True
         
-        # Si está en tablero normal, verificar que no se pase del límite total (68 tablero + 8 pasillo)
-        casillas_totales = ficha.casillas_recorridas + dados
-        
-        # Si entra al pasillo, verificar que no se pase
-        if casillas_totales >= 68:
-            casillas_en_pasillo = casillas_totales - 68
-            if casillas_en_pasillo > 8:
-                return False
-        
+        # Si está en tablero normal, permitir el movimiento
+        # La validación detallada de entrada al pasillo se hace en _mover_ficha
         return True
     
     def puede_sacar_de_carcel(self, dados: tuple) -> bool:
