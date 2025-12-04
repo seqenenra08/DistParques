@@ -623,52 +623,57 @@ class Partida:
         if posicion_anterior is not None:
             self.tablero.remover_ficha(posicion_anterior, ficha)
         
-        # Calcular nueva posición
-        nueva_posicion = (posicion_anterior + casillas) % 68
+        # Obtener la entrada al pasillo para este color
         entrada_pasillo = self.tablero.ENTRADAS_PASILLO.get(jugador.color)
         
-        # Verificar si la ficha pasa por la entrada del pasillo
-        # SOLO puede entrar si ya completó la vuelta (68 casillas recorridas)
+        # Verificar si la ficha debe entrar al pasillo
+        # REGLA: Solo puede entrar si ya completó al menos 68 casillas recorridas
         debe_entrar_pasillo = False
         casillas_en_pasillo = 0
         
-        # La ficha necesita haber recorrido al menos 68 casillas para poder entrar
         casillas_tras_movimiento = ficha.casillas_recorridas + casillas
         
+        # Solo verificar entrada al pasillo si ya completó o completará la vuelta (>=68 casillas)
         if casillas_tras_movimiento >= 68:
-            # Ya completó o completará la vuelta, verificar si pasa por la entrada
+            # Simular el movimiento casilla por casilla para detectar la entrada
             for i in range(1, casillas + 1):
                 pos_intermedia = (posicion_anterior + i) % 68
-                casillas_en_ese_punto = ficha.casillas_recorridas + i
+                casillas_acumuladas = ficha.casillas_recorridas + i
                 
-                if pos_intermedia == entrada_pasillo and casillas_en_ese_punto >= 68:
-                    # La ficha pasa por su entrada Y ya completó la vuelta
+                # Detectar si pasa por la entrada del pasillo Y ya completó la vuelta
+                if pos_intermedia == entrada_pasillo and casillas_acumuladas >= 68:
                     debe_entrar_pasillo = True
-                    casillas_en_pasillo = casillas - i
+                    casillas_en_pasillo = casillas - i  # Casillas restantes para el pasillo
+                    print(f"🚪 Ficha {jugador.color}-{ficha.id} ENTRA AL PASILLO en pos {entrada_pasillo} con {casillas_en_pasillo} casillas en pasillo")
                     break
         
         if debe_entrar_pasillo:
-            # Entra al pasillo final
-            if casillas_en_pasillo == 8:
+            # La ficha entra al pasillo final
+            if casillas_en_pasillo > 8:
+                # Se pasaría de la meta (más de 8 casillas en el pasillo), NO puede mover
+                print(f"❌ Ficha {jugador.color}-{ficha.id} NO puede entrar: se pasaría de meta ({casillas_en_pasillo} > 8)")
+                # Restaurar posición en el tablero
+                if posicion_anterior is not None:
+                    self.tablero.agregar_ficha(posicion_anterior, ficha)
+                return []
+            elif casillas_en_pasillo == 8:
                 # Llega exacto a la meta
                 ficha.entrar_pasillo()
                 ficha.posicion_pasillo = 8
                 ficha.estado = EstadoFicha.META
-                return []
-            elif casillas_en_pasillo > 8:
-                # Se pasaría de la meta, NO puede mover
-                # Restaurar posición
-                if posicion_anterior is not None:
-                    self.tablero.agregar_ficha(posicion_anterior, ficha)
+                ficha.casillas_recorridas += casillas
+                print(f"🏁 Ficha {jugador.color}-{ficha.id} LLEGA A LA META desde entrada pasillo")
                 return []
             else:
-                # Entra al pasillo sin llegar a meta
+                # Entra al pasillo sin llegar a meta (0 <= casillas_en_pasillo < 8)
                 ficha.entrar_pasillo()
                 ficha.posicion_pasillo = casillas_en_pasillo
                 ficha.casillas_recorridas += casillas
+                print(f"🏃 Ficha {jugador.color}-{ficha.id} en pasillo pos {casillas_en_pasillo}/8")
                 return []
         
-        # Movimiento normal en el tablero
+        # Movimiento normal en el tablero (no entra al pasillo)
+        nueva_posicion = (posicion_anterior + casillas) % 68
         es_seguro = self.tablero.es_seguro(nueva_posicion)
         
         ficha.mover(casillas, es_seguro)

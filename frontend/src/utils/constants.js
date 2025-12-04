@@ -72,10 +72,10 @@ export const SPECIAL_POSITIONS = {
   
   // Entradas a las rectas finales (donde cada color entra a su pasillo final)
   GOAL_ENTRIES: {
-    [PLAYER_COLORS.RED]: 29,   // Entra por casilla 29 hacia recta roja
-    [PLAYER_COLORS.BLUE]: 12,  // Entra por casilla 12 hacia recta azul
-    [PLAYER_COLORS.GREEN]: 46, // Entra por casilla 46 hacia recta verde  
-    [PLAYER_COLORS.YELLOW]: 63 // Entra por casilla 63 hacia recta amarilla
+    [PLAYER_COLORS.RED]: 34,   // Entra por casilla 34 hacia recta roja
+    [PLAYER_COLORS.BLUE]: 17,  // Entra por casilla 17 hacia recta azul
+    [PLAYER_COLORS.GREEN]: 51, // Entra por casilla 51 hacia recta verde  
+    [PLAYER_COLORS.YELLOW]: 0  // Entra por casilla 0 (68) hacia recta amarilla
   },
 
   // Posiciones de las bases (cárceles) - círculos en las esquinas
@@ -185,7 +185,7 @@ export const BOARD_COORDINATES = {
   68: { x: 47.5, y: 95.3 },
 
   // Rectas finales (coordenadas hacia el centro)
-  // Recta roja (desde casilla 39 hacia el centro)
+  // Recta roja (desde casilla 34 hacia el centro)
   'red_1': { x: 47.5, y: 8.1 },
   'red_2': { x: 47.5, y: 12.8},
   'red_3': { x: 47.5, y: 17.5 },
@@ -195,7 +195,7 @@ export const BOARD_COORDINATES = {
   'red_7': { x: 47.5, y: 38.8 },
   'red_8': { x: 47.5, y: 42 },
 
-  // Recta azul (desde casilla 22 hacia el centro)
+  // Recta azul (desde casilla 17 hacia el centro)
   'blue_1': { x: 88.7, y: 49.5 },
   'blue_2': { x: 84, y: 49.5 },
   'blue_3': { x: 79.4, y: 49.5 },
@@ -205,7 +205,7 @@ export const BOARD_COORDINATES = {
   'blue_7': { x: 61.0, y: 49.5 },
   'blue_8': { x: 55, y: 49.5 },
 
-  // Recta verde (desde casilla 5 hacia el centro)
+  // Recta verde (desde casilla 51 hacia el centro)
   'green_1': { x: 6.35, y: 49.5 },
   'green_2': { x: 10.9, y: 49.5 },
   'green_3': { x: 15.6, y: 49.5 },
@@ -215,7 +215,7 @@ export const BOARD_COORDINATES = {
   'green_7': { x: 34.2, y: 49.5 },
   'green_8': { x: 39.4, y: 49.5 },
 
-  // Recta amarilla (desde casilla 56 hacia el centro)
+  // Recta amarilla (desde casilla 0/68 hacia el centro)
   'yellow_1': { x: 47.5, y: 90.7 },
   'yellow_2': { x: 47.5, y: 86.1 },
   'yellow_3': { x: 47.5, y: 81.4 },

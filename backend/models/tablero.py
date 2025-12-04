@@ -10,7 +10,7 @@ class Tablero:
     
     SEGUROS: Set[int] = {5, 12, 17, 22, 29, 34, 39, 46, 51, 56, 63, 68, 0}  # Casillas seguras
     SALIDAS = {"red": 39, "blue": 22, "yellow": 5, "green": 56}
-    ENTRADAS_PASILLO = {"red": 29, "blue": 12, "yellow": 63, "green": 46}
+    ENTRADAS_PASILLO = {"red": 34, "blue": 17, "yellow": 0, "green": 51}
     
     def __init__(self):
         # casillas[i] = lista de fichas en esa posición
