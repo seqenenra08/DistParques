@@ -134,6 +134,14 @@ export default function Home() {
       console.log('[DICE_RESULT]', data);
       
       setIsRolling(false);
+      
+      // Solo actualizar dados si es mi turno
+      // Verificar si este resultado de dados es para mí comparando nombres
+      if (myPlayerInfo && data.jugador && data.jugador !== myPlayerInfo.nombre) {
+        console.log('[DICE_RESULT] ⏭️ Ignorando - no es mi turno (jugador:', data.jugador, ', yo:', myPlayerInfo.nombre, ')');
+        return;
+      }
+      
       setDiceValue(data.dados);
       setLastDiceRolled(data.dados);
       
@@ -149,7 +157,7 @@ export default function Home() {
         
         // Si se pasó el turno (agotó los 3 intentos)
         if (data.turn_passed) {
-          setMessage(`❌ Agotaste los 3 intentos sin sacar par. Turno perdido.`);
+          showNotification('❌ Agotaste los 3 intentos sin sacar par. Turno perdido.', 'error');
           setTimeout(() => {
             setDiceValue(null);
             setLastDiceRolled(null);
@@ -160,7 +168,7 @@ export default function Home() {
           return;
         }
         
-        setMessage(`❌ Sin par (${data.attempts_used}/${data.attempts_used + data.attempts_remaining}) - ${data.attempts_remaining > 0 ? 'Intenta de nuevo' : 'Turno perdido'}`);
+        showNotification(`❌ Sin par (${data.attempts_used}/${data.attempts_used + data.attempts_remaining}) - ${data.attempts_remaining > 0 ? 'Intenta de nuevo' : 'Turno perdido'}`, 'warning');
         
         // Si aún tiene intentos, mantener los dados visibles
         if (data.can_retry) {
@@ -185,6 +193,7 @@ export default function Home() {
         audioService.playDiceRoll();
         audioService.playDoubles();
         setCanMove(true);
+        showNotification('✅ ¡PAR! Selecciona una ficha para sacarla de la cárcel', 'success');
         setMessage('✅ ¡PAR! Haz clic en una ficha de la cárcel para sacarla');
         
         // Preparar movimientos (para sacar de cárcel)
@@ -196,6 +205,7 @@ export default function Home() {
       audioService.playDiceRoll();
       if (data.es_par) {
         audioService.playDoubles();
+        showNotification('🎲 ¡Dobles! Podrás lanzar de nuevo después de mover', 'info');
       }
       
       setCanMove(true);
@@ -261,16 +271,14 @@ export default function Home() {
       // Mostrar mensaje de acción
       const accion = data.accion;
       if (accion === 'sacar_carcel') {
-        setMessage('✅ Ficha sacada de la cárcel');
+        showNotification('✅ Ficha sacada de la cárcel', 'success');
       } else if (accion === 'llego_meta') {
         audioService.playPieceGoal();
-        setMessage('🏁 ¡Ficha llegó a la META!');
+        showNotification('🏁 ¡Ficha llegó a la META!', 'success');
       } else if (data.fichas_capturadas && data.fichas_capturadas.length > 0) {
         audioService.playPieceCapture();
-        setMessage(`💥 ¡Capturaste ${data.fichas_capturadas.length} ficha(s)!`);
+        showNotification(`💥 ¡Capturaste ${data.fichas_capturadas.length} ficha(s)!`, 'success');
       }
-      
-      setTimeout(() => setMessage(''), 3000);
       
       // Verificar victoria
       if (data.ganador) {
