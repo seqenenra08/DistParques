@@ -602,6 +602,11 @@ class Partida:
         ficha = jugador.fichas[id_ficha]
         posicion_anterior = ficha.posicion
         
+        # Si está en META, no puede moverse
+        if ficha.estado == EstadoFicha.META:
+            print(f"⚠️  Ficha {jugador.color}-{ficha.id} ya está en META, no puede moverse")
+            return []
+        
         # Si está en pasillo final
         if ficha.estado == EstadoFicha.PASILLO_FINAL:
             nueva_pos_pasillo = ficha.posicion_pasillo + casillas
