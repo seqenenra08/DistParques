@@ -2,7 +2,7 @@
  * Componente Menu - Pantalla de inicio del juego
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './Menu.module.css';
 import ColorSelection from './ColorSelection';
 import TurnOrderDetermination from './TurnOrderDetermination';
@@ -16,6 +16,18 @@ const Menu = ({ onStartGame, onShowRules, onCreateRoom, onJoinRoom, availableCol
   const [currentStep, setCurrentStep] = useState('menu'); // 'menu', 'players', 'bots', 'lobby', 'order', 'roomSelection'
   const [showSettings, setShowSettings] = useState(false); // Para mostrar/ocultar ajustes
   const [playersForOrder, setPlayersForOrder] = useState([]); // Jugadores para determinar orden
+  
+  // Estados para valores dinámicos (evitar problemas de hidratación)
+  const [activePlayers, setActivePlayers] = useState(25);
+  const [availableRooms, setAvailableRooms] = useState(8);
+  const [avgLatency, setAvgLatency] = useState(35);
+
+  // Generar valores aleatorios solo en el cliente
+  useEffect(() => {
+    setActivePlayers(Math.floor(Math.random() * 50) + 10);
+    setAvailableRooms(Math.floor(Math.random() * 20) + 5);
+    setAvgLatency(Math.floor(Math.random() * 50) + 20);
+  }, []);
 
   const handleStartGame = () => {
     // 🔊 Reproducir sonido de click
@@ -361,50 +373,39 @@ const Menu = ({ onStartGame, onShowRules, onCreateRoom, onJoinRoom, availableCol
     );
   }
 
-  // Pantalla principal del menú
+  // Pantalla principal del menú con nuevo layout lateral
   return (
     <div className={styles.menuContainer}>
       {/* Modal de Ajustes */}
       {showSettings && <Settings onClose={handleCloseSettings} />}
       
+      {/* Panel lateral izquierdo - Menú principal */}
       <div className={styles.menuBox}>
         <div className={styles.header}>
           <div className={styles.titleContainer}>
-            <h1 className={styles.title}>Parchese</h1>
-            <p className={styles.subtitle}>¡Bienvenido al juego clásico!</p>
+            <h1 className={styles.title}>PARCHESE</h1>
+            <p className={styles.subtitle}>CYBERNET PROTOCOL</p>
           </div>
         </div>
 
         <div className={styles.mainContent}>
           <div className={styles.playersSection}>
             <div className={styles.sectionHeader}>
-              <div className={styles.sectionIcon}>🎮</div>
-              <h2 className={styles.sectionTitle}>¿Cómo quieres jugar?</h2>
+              <div className={styles.sectionIcon}>⚡</div>
+              <h2 className={styles.sectionTitle}>CONEXIÓN</h2>
+              <div className={styles.sectionIcon}>⚡</div>
             </div>
             
             <div className={styles.modeSelection}>
-              {/* Botón de partida local oculto temporalmente
-              <button
-                className={styles.modeCard}
-                onClick={handleStartGame}
-              >
-                <div className={styles.modeIcon}>👥</div>
-                <h3 className={styles.modeTitle}>Crear Partida</h3>
-                <p className={styles.modeDescription}>
-                  Juega localmente en este dispositivo
-                </p>
-              </button>
-              */}
-              
               <button
                 className={styles.modeCard}
                 onClick={handleMultiplayerGame}
               >
                 <div className={styles.modeIcon}>🌐</div>
-                <h3 className={styles.modeTitle}>Unirse a Partida</h3>
-                <p className={styles.modeDescription}>
-                  Juega en línea con otros jugadores
-                </p>
+                <div>
+                  <h3 className={styles.modeTitle}>CONECTAR</h3>
+                  <p className={styles.modeDescription}>Red distribuida</p>
+                </div>
               </button>
             </div>
           </div>
@@ -415,7 +416,7 @@ const Menu = ({ onStartGame, onShowRules, onCreateRoom, onJoinRoom, availableCol
               onClick={onShowRules}
             >
               <span className={styles.buttonIcon}>📋</span>
-              Ver Reglas
+              PROTOCOLO
             </button>
             
             <button 
@@ -423,12 +424,37 @@ const Menu = ({ onStartGame, onShowRules, onCreateRoom, onJoinRoom, availableCol
               onClick={handleShowSettings}
             >
               <span className={styles.buttonIcon}>⚙️</span>
-              Ajustes
+              CONFIGURAR
             </button>
           </div>
 
           <div className={styles.instructionText}>
-            Únete a una partida en línea con otros jugadores
+            Inicializando conexión segura...
+          </div>
+        </div>
+      </div>
+
+      {/* Panel lateral derecho - Información del sistema */}
+      <div className={styles.infoPanel}>
+        <div className={styles.terminalWindow}>
+          <div className={styles.terminalHeader}>
+            === SISTEMA PARCHESE v2.1 ===
+          </div>
+          <div className={styles.terminalContent}>
+            <div className={styles.glitchText}>
+{`> Iniciando protocolo de juego...
+> Verificando conexiones...
+> Estado: [OK] 
+> 
+> JUGADORES ACTIVOS: ${activePlayers}
+> SALAS DISPONIBLES: ${availableRooms}
+> LATENCIA PROMEDIO: ${avgLatency}ms
+> 
+> Tip: Usa dados estratégicamente
+> para maximizar movimientos.
+>
+> ¿Listo para jugar?`}
+            </div>
           </div>
         </div>
       </div>

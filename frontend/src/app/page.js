@@ -8,7 +8,7 @@ import Menu from '../components/Menu/Menu';
 import Rules from '../components/Menu/Rules';
 import Celebration from '../components/Game/Celebration';
 import AudioControl from '../components/Game/AudioControl';
-import MoveSelector from '../components/Game/MoveSelector';
+
 import TurnOrderDetermination from '../components/Menu/TurnOrderDetermination';
 import Notification from '../components/Notification/Notification';
 import { initialGameState } from '../utils/mockData';
@@ -46,7 +46,7 @@ export default function Home() {
   
   // Selector de movimientos
   const [availableMoves, setAvailableMoves] = useState([]);
-  const [showMoveSelector, setShowMoveSelector] = useState(false);
+
   const [pendingPieceForMove, setPendingPieceForMove] = useState(null);
   const [selectedPiece, setSelectedPiece] = useState(null);
   
@@ -262,7 +262,6 @@ export default function Home() {
       setSelectedPiece(null);
       setAvailableMoves([]);
       setPendingPieceForMove(null);
-      setShowMoveSelector(false);
       setCanSplitDice(false);
       setSplitMode(false);
       setSplitMovements([]);
@@ -299,7 +298,6 @@ export default function Home() {
       setCanMove(false);
       setAvailableMoves([]);
       setSelectedPiece(null);
-      setShowMoveSelector(false);
       setCanSplitDice(false);
       setSplitMode(false);
       setSplitMovements([]);
@@ -341,7 +339,6 @@ export default function Home() {
         setCanMove(false);
         setAvailableMoves([]);
         setSelectedPiece(null);
-        setShowMoveSelector(false);
         setCanSplitDice(false);
         setSplitMode(false);
         setSplitMovements([]);
@@ -356,7 +353,6 @@ export default function Home() {
         setCanMove(false);
         setAvailableMoves([]);
         setSelectedPiece(null);
-        setShowMoveSelector(false);
         setCanSplitDice(false);
         setSplitMode(false);
         setSplitMovements([]);
@@ -652,19 +648,9 @@ export default function Home() {
     }
     
     // Para fichas fuera de la cárcel (modo normal):
-    // Si hay múltiples opciones de movimiento, mostrar selector
-    if (availableMoves.length > 1) {
-      setSelectedPiece(pieceId);
-      setPendingPieceForMove(pieceId);
-      setShowMoveSelector(true);
-    } else if (availableMoves.length === 1) {
-      // Solo una opción, mover directamente
-      movePiece(pieceId, availableMoves[0]);
-    } else {
-      // Usar suma por defecto
-      const totalMove = Array.isArray(diceValue) ? diceValue.reduce((a, b) => a + b, 0) : diceValue;
-      movePiece(pieceId, totalMove);
-    }
+    // Siempre usar la suma de los dados directamente (sin selector)
+    const totalMove = Array.isArray(diceValue) ? diceValue.reduce((a, b) => a + b, 0) : diceValue;
+    movePiece(pieceId, totalMove);
   };
 
   const handleEnableSplitMode = () => {
@@ -677,7 +663,6 @@ export default function Home() {
     setSplitMovements([]);
     setCurrentSplitDice(diceValue[0]);
     setMessage(`Selecciona una ficha para moverla ${diceValue[0]} casillas`);
-    setShowMoveSelector(false);
     audioService.playClick();
   };
 
@@ -708,19 +693,9 @@ export default function Home() {
     });
   };
 
-  const handleSelectMove = (selectedMove) => {
-    console.log('[SELECT MOVE]', selectedMove);
-    if (pendingPieceForMove) {
-      setShowMoveSelector(false);
-      movePiece(pendingPieceForMove, selectedMove);
-    }
-  };
 
-  const handleCancelMoveSelector = () => {
-    setShowMoveSelector(false);
-    setPendingPieceForMove(null);
-    setSelectedPiece(null);
-  };
+
+
 
   const handleShowRules = () => {
     setShowRules(true);
@@ -842,64 +817,109 @@ export default function Home() {
         <div className={styles.container}>
           <div className={styles.lobbyContainer}>
             <div className={styles.lobbyBox}>
-              <h1 className={styles.lobbyTitle}>🎮 Sala de Espera</h1>
-              
-              <div className={styles.roomCodeSection}>
-                <p className={styles.roomCodeLabel}>Código de Sala:</p>
-                <div className={styles.roomCodeDisplay}>
-                  <span className={styles.roomCodeText}>{roomCode}</span>
-                  <button 
-                    className={styles.copyButton}
-                    onClick={() => {
-                      navigator.clipboard.writeText(roomCode);
-                      showNotification('Código copiado al portapapeles', 'success');
-                      audioService.playClick();
-                    }}
-                  >
-                    📋 Copiar
-                  </button>
+              {/* Panel de control lateral izquierdo */}
+              <div className={styles.controlPanel}>
+                <div className={styles.lobbyHeader}>
+                  <h1 className={styles.headerTitle}>LOBBY CONTROL</h1>
+                  <div className={styles.statusIndicator}>
+                    {connected ? '🟢 ONLINE' : '🔴 OFFLINE'}
+                  </div>
                 </div>
-                <p className={styles.roomCodeHint}>
-                  Comparte este código con otros jugadores para que se unan
-                </p>
-              </div>
+                
+                <div className={styles.roomCodeSection}>
+                  <div className={styles.sectionLabel}>ROOM ACCESS</div>
+                  <div className={styles.roomCodeDisplay}>
+                    <div className={styles.roomCodeText}>{roomCode}</div>
+                    <button 
+                      className={styles.copyButton}
+                      onClick={() => {
+                        navigator.clipboard.writeText(roomCode);
+                        showNotification('Código copiado al portapapeles', 'success');
+                        audioService.playClick();
+                      }}
+                    >
+                      COPY
+                    </button>
+                  </div>
+                  <div className={styles.roomCodeHint}>
+                    Share code with other players
+                  </div>
+                </div>
 
-              <div className={styles.playersSection}>
-                <h2 className={styles.sectionTitle}>Jugadores en la sala:</h2>
-                <div className={styles.playersList}>
-                  {roomPlayers.map((player, index) => (
-                    <div key={index} className={styles.playerItem}>
-                      <div 
-                        className={styles.playerColorBadge} 
-                        style={{ backgroundColor: player.color }}
-                      ></div>
-                      <span className={styles.playerName}>{player.nombre}</span>
-                      {player.nombre === myPlayerInfo?.nombre && (
-                        <span className={styles.youBadge}>Tú</span>
-                      )}
+                <div className={styles.playersSection}>
+                  <div className={styles.sectionLabel}>CONNECTED NODES</div>
+                  <div className={styles.playersList}>
+                    {roomPlayers.map((player, index) => (
+                      <div key={index} className={styles.playerNode}>
+                        <div 
+                          className={styles.nodeIndicator} 
+                          style={{ backgroundColor: player.color }}
+                        ></div>
+                        <div className={styles.nodeInfo}>
+                          <span className={styles.nodeName}>{player.nombre}</span>
+                          {player.nombre === myPlayerInfo?.nombre && (
+                            <span className={styles.nodeTag}>YOU</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className={styles.actionMatrix}>
+                  {myPlayerInfo?.es_host ? (
+                    <button 
+                      className={styles.startButton}
+                      onClick={handleStartFromLobby}
+                      disabled={!connected}
+                    >
+                      INITIALIZE GAME
+                    </button>
+                  ) : (
+                    <div className={styles.waitingStatus}>
+                      <div className={styles.waitingText}>
+                        AWAITING HOST COMMAND...
+                      </div>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
+              
+              {/* Panel de información lateral derecho */}
+              <div className={styles.infoPanel}>
+                <div className={styles.terminalWindow}>
+                  <div className={styles.terminalHeader}>
+                    <span className={styles.glitchText}>ROOM STATUS</span>
+                  </div>
+                  <div className={styles.terminalContent}>
+                    {`Room ID: ${roomCode}
+Status: WAITING
+Nodes: ${roomPlayers.length}/2
+Host: ${myPlayerInfo?.es_host ? 'YOU' : roomPlayers.find(p => p.es_host)?.nombre || 'UNKNOWN'}
 
-              <div className={styles.lobbyActions}>
-                {myPlayerInfo?.es_host ? (
-                  <button 
-                    className={styles.startButton}
-                    onClick={handleStartFromLobby}
-                    disabled={!connected}
-                  >
-                    🚀 Iniciar Partida
-                  </button>
-                ) : (
-                  <p className={styles.waitingText}>
-                    Esperando a que el anfitrión inicie la partida...
-                  </p>
-                )}
-              </div>
+---[NETWORK STATUS]---
+Connection: ${connected ? 'STABLE' : 'DISCONNECTED'}
+Latency: 23ms
+Packet Loss: 0%
+Protocol: WebSocket
 
-              <div className={styles.connectionStatus}>
-                {connected ? '🟢 Conectado' : '🔴 Desconectado'}
+---[PLAYER REGISTRY]---`}
+                    {roomPlayers.map((player, index) => (
+                      `
+Node ${index + 1}: ${player.nombre}
+Color: ${player.color.toUpperCase()}
+Status: READY
+Role: ${player.es_host ? 'HOST' : 'CLIENT'}`
+                    )).join('')}
+                    {`
+
+---[GAME PARAMETERS]---
+Mode: Multiplayer
+Players: ${roomPlayers.length}
+Max Players: 2
+Ready State: ${myPlayerInfo?.es_host ? 'HOST_CONTROL' : 'AWAITING_START'}`}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -946,14 +966,7 @@ export default function Home() {
         <Celebration winner={winner} onClose={handleCloseCelebration} />
       )}
       
-      {showMoveSelector && (
-        <MoveSelector 
-          availableMoves={availableMoves}
-          onSelectMove={handleSelectMove}
-          onCancel={handleCancelMoveSelector}
-          selectedPiece={selectedPiece}
-        />
-      )}
+
       
       <main className={styles.main}>
         <div className={styles.header}>

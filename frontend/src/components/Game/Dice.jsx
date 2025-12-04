@@ -136,105 +136,128 @@ const Dice = ({
         </div>
       )}
       
-      <div className={styles.diceLabel}>
-        {disabled ? 'Esperando turno...' : 
-         noMovesAvailable ? 'Sin movimientos - Pasar turno' : 
-         'Lanza los dados'}
-      </div>
-      
-      {/* Botón de lanzar ANTES de los dados */}
-      {!disabled && (
-        <div className={styles.rollButton}>
-          <button
-            onClick={handleRoll}
-            disabled={disabled || animating || isRolling}
-            className={styles.rollBtn}
-          >
-            {(animating || isRolling) ? 'Rodando...' : 
-             noMovesAvailable ? 'PASAR' : 
-             'LANZAR'}
-          </button>
+      {/* Panel de control lateral izquierdo */}
+      <div className={styles.controlPanel}>
+        <div className={styles.diceHeader}>
+          <h3 className={styles.headerTitle}>DICE SYSTEM</h3>
+          <div className={styles.statusIndicator}>
+            {disabled ? '⏳ WAITING' : 
+             (animating || isRolling) ? '🎲 ROLLING' :
+             noMovesAvailable ? '⚠️ NO MOVES' : 
+             '✓ READY'}
+          </div>
         </div>
-      )}
-      
-      <div className={styles.diceWrapper}>
-        {/* Primer dado */}
-        <button
-          className={diceClasses}
-          onClick={handleRoll}
-          disabled={disabled || animating || isRolling}
-          aria-label={`Primer dado mostrando ${hasValues ? displayValue1 : 'vacío'}`}
-        >
-          <div className={styles.diceFace}>
-            {(animating || isRolling) ? (
-              <div className={styles.rollingText}>🎲</div>
-            ) : hasValues ? (
-              renderDots(displayValue1)
-            ) : (
-              <div className={styles.emptyDice}></div>
-            )}
-          </div>
-        </button>
+        
+        <div className={styles.diceInterface}>
+          <div className={styles.diceWrapper}>
+            {/* Primer dado */}
+            <button
+              className={diceClasses}
+              onClick={handleRoll}
+              disabled={disabled || animating || isRolling}
+              aria-label={`Primer dado mostrando ${hasValues ? displayValue1 : 'vacío'}`}
+            >
+              <div className={styles.diceFace}>
+                {(animating || isRolling) ? (
+                  <div className={styles.rollingText}>🎲</div>
+                ) : hasValues ? (
+                  renderDots(displayValue1)
+                ) : (
+                  <div className={styles.emptyDice}></div>
+                )}
+              </div>
+            </button>
 
-        {/* Segundo dado */}
-        <button
-          className={diceClasses}
-          onClick={handleRoll}
-          disabled={disabled || animating || isRolling}
-          aria-label={`Segundo dado mostrando ${hasValues ? displayValue2 : 'vacío'}`}
-        >
-          <div className={styles.diceFace}>
-            {(animating || isRolling) ? (
-              <div className={styles.rollingText}>🎲</div>
-            ) : hasValues ? (
-              renderDots(displayValue2)
-            ) : (
-              <div className={styles.emptyDice}></div>
-            )}
+            {/* Segundo dado */}
+            <button
+              className={diceClasses}
+              onClick={handleRoll}
+              disabled={disabled || animating || isRolling}
+              aria-label={`Segundo dado mostrando ${hasValues ? displayValue2 : 'vacío'}`}
+            >
+              <div className={styles.diceFace}>
+                {(animating || isRolling) ? (
+                  <div className={styles.rollingText}>🎲</div>
+                ) : hasValues ? (
+                  renderDots(displayValue2)
+                ) : (
+                  <div className={styles.emptyDice}></div>
+                )}
+              </div>
+            </button>
           </div>
-        </button>
+          
+          {/* Botón de lanzar */}
+          {!disabled && (
+            <div className={styles.rollButton}>
+              <button
+                onClick={handleRoll}
+                disabled={disabled || animating || isRolling}
+                className={styles.rollBtn}
+              >
+                {(animating || isRolling) ? 'ROLLING...' : 
+                 noMovesAvailable ? 'SKIP TURN' : 
+                 'ROLL DICE'}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
+      
+      {/* Panel de información lateral derecho */}
+      <div className={styles.infoPanel}>
+        <div className={styles.terminalWindow}>
+          <div className={styles.terminalHeader}>
+            <span className={styles.glitchText}>DICE ANALYTICS</span>
+          </div>
+          <div className={styles.terminalContent}>
+            {hasValues && showResults ? (
+              `RESULT: SUCCESS
+Dice 1: ${displayedValues[0]}
+Dice 2: ${displayedValues[1]}
+Sum: ${sum}
 
-      <div className={styles.diceValue}>
-        {hasValues && showResults ? (
-          <div className={styles.resultsContainer}>
-            <div className={styles.individualValues}>
-              <span className={styles.diceNumber}>{displayedValues[0]}</span>
-              <span className={styles.separator}>+</span>
-              <span className={styles.diceNumber}>{displayedValues[1]}</span>
-            </div>
-            <div className={styles.sumValue}>
-              Suma: <strong>{sum}</strong>
-            </div>
-            {/* Mostrar contador de intentos si está en fase de inicio */}
-            {startPhaseAttempts && (
-              <div className={styles.attemptsCounter}>
-                Intento: <strong>{startPhaseAttempts.current}/{startPhaseAttempts.max}</strong>
-              </div>
+---[PATTERN ANALYSIS]---
+Type: ${isDoubles ? 'DOUBLES' : 'NORMAL'}
+Probability: ${((1/36) * 100).toFixed(1)}%
+${isDoubles ? 'BONUS: Extra Turn!' : ''}
+
+---[GAME STATUS]---
+${startPhaseAttempts ? `Attempt: ${startPhaseAttempts.current}/${startPhaseAttempts.max}` : 'Phase: ACTIVE'}
+Player: ${playerColor.toUpperCase()}
+Status: ${disabled ? 'WAITING' : 'ACTIVE'}`
+            ) : (animating || isRolling) ? (
+              `PROCESSING ROLL...
+Quantum RNG: ACTIVE
+Entropy: HIGH
+Status: CALCULATING
+
+---[DICE PHYSICS]---
+Rotation: ACTIVE
+Velocity: RANDOM
+Outcome: PENDING
+
+---[SYSTEM STATE]---
+${startPhaseAttempts ? `Attempt: ${startPhaseAttempts.current}/${startPhaseAttempts.max}` : 'Phase: ACTIVE'}
+Ready: ${!disabled ? 'TRUE' : 'FALSE'}`
+            ) : (
+              `AWAITING INPUT...
+Dice System: ONLINE
+RNG Module: LOADED
+Status: STANDBY
+
+---[ROLL PARAMETERS]---
+Dice Count: 2
+Range: 1-6 each
+Mode: ${noMovesAvailable ? 'SKIP' : 'STANDARD'}
+
+---[PLAYER INFO]---
+${startPhaseAttempts ? `Attempt: ${startPhaseAttempts.current}/${startPhaseAttempts.max}` : 'Phase: ACTIVE'}
+Color: ${playerColor.toUpperCase()}
+Status: ${disabled ? 'WAITING' : 'READY'}`
             )}
-            {/* Eliminado el doublesIndicatorLarge redundante - solo mostramos el banner arriba */}
           </div>
-        ) : (animating || isRolling) ? (
-          <div className={styles.rollingMessage}>
-            🎲 Lanzando dados...
-            {/* Mostrar contador durante la animación si está en fase de inicio */}
-            {startPhaseAttempts && (
-              <div className={styles.attemptsCounter}>
-                Intento: <strong>{startPhaseAttempts.current}/{startPhaseAttempts.max}</strong>
-              </div>
-            )}
-          </div>
-        ) : (
-          <>
-            Lanza los dados
-            {/* Mostrar contador antes de lanzar si está en fase de inicio */}
-            {startPhaseAttempts && (
-              <div className={styles.attemptsCounter}>
-                Intento: <strong>{startPhaseAttempts.current}/{startPhaseAttempts.max}</strong>
-              </div>
-            )}
-          </>
-        )}
+        </div>
       </div>
     </div>
   );

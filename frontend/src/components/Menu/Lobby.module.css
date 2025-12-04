@@ -2,15 +2,18 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
+/* Nuevo diseño de sala de espera tipo command center */
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
 .lobbyContainer {
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
   background: #000000;
-  padding: 20px;
-  position: relative;
   font-family: 'Share Tech Mono', monospace;
+  position: relative;
+  overflow: hidden;
 }
 
 .lobbyContainer::before {
@@ -18,30 +21,592 @@
   position: fixed;
   inset: 0;
   background: 
-    repeating-linear-gradient(0deg, rgba(0, 255, 65, 0.03) 0px, transparent 1px, transparent 2px, rgba(0, 255, 65, 0.03) 3px),
-    radial-gradient(ellipse at center, rgba(0, 20, 40, 0.8) 0%, #000000 100%);
+    repeating-linear-gradient(0deg, rgba(0, 255, 255, 0.02) 0px, transparent 1px, transparent 2px, rgba(0, 255, 255, 0.02) 3px),
+    radial-gradient(ellipse at center, rgba(0, 30, 20, 0.8) 0%, #000000 100%);
   pointer-events: none;
-  animation: scanlines 8s linear infinite;
+  animation: scanlines 12s linear infinite;
 }
 
 @keyframes scanlines {
   0% { transform: translateY(0); }
-  100% { transform: translateY(10px); }
+  100% { transform: translateY(15px); }
 }
 
-.lobbyBox {
-  background: rgba(0, 10, 0, 0.95);
-  border-radius: 4px;
-  border: 2px solid #00ff41;
+/* Panel lateral izquierdo - Control de sala */
+.commandCenter {
+  background: rgba(0, 15, 8, 0.95);
+  border-right: 2px solid rgba(0, 255, 65, 0.5);
+  height: 100vh;
+  padding: 30px;
+  animation: slideInLeft 0.6s ease-out;
   box-shadow: 
-    0 0 40px rgba(0, 255, 65, 0.6),
-    inset 0 0 20px rgba(0, 255, 65, 0.1);
-  padding: 40px;
-  max-width: 700px;
-  width: 100%;
-  animation: slideIn 0.4s ease-out, box-pulse 3s ease-in-out infinite alternate;
+    0 0 40px rgba(0, 255, 65, 0.3),
+    inset 0 0 30px rgba(0, 255, 65, 0.1);
   position: relative;
-  z-index: 2;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* System Header */
+.systemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  clip-path: polygon(15px 0%, 100% 0%, calc(100% - 15px) 100%, 0% 100%);
+}
+
+.systemStatus {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.statusIndicator {
+  width: 12px;
+  height: 12px;
+  background: #00ff41;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.6);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+.statusText {
+  color: #00ffff;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.serverInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.serverLabel {
+  color: rgba(0, 255, 255, 0.7);
+  font-size: 0.9rem;
+}
+
+.serverId {
+  color: #00ff41;
+  font-weight: bold;
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+}
+
+.cloneButton {
+  background: rgba(0, 255, 255, 0.2);
+  border: 1px solid rgba(0, 255, 255, 0.5);
+  color: #00ffff;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+}
+
+.cloneButton:hover {
+  background: rgba(0, 255, 255, 0.3);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+}
+
+.cloneSuccess {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: rgba(0, 255, 65, 0.9);
+  color: #000;
+  padding: 8px 15px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  animation: fadeInOut 2s ease-out;
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0; transform: translateY(10px); }
+  20%, 80% { opacity: 1; transform: translateY(0); }
+}
+
+/* Panel derecho - Terminal de información */
+.infoPanel {
+  background: rgba(0, 0, 0, 0.8);
+  border-left: 2px solid rgba(0, 255, 255, 0.5);
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative;
+  overflow-y: auto;
+}
+
+/* Panel de Conexiones */
+.connectionsPanel {
+  background: rgba(0, 20, 10, 0.3);
+  border: 1px solid rgba(0, 255, 65, 0.4);
+  padding: 20px;
+  clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 20px;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(0, 255, 65, 0.3);
+}
+
+.panelTitle {
+  color: #00ff41;
+  margin: 0;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.connectionStats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.statLabel {
+  color: rgba(0, 255, 65, 0.7);
+  font-size: 0.9rem;
+}
+
+.statValue {
+  color: #00ffff;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+/* Network Grid - Nueva estructura para nodos */
+.networkGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
+}
+
+.nodeCard {
+  background: rgba(0, 30, 15, 0.8);
+  border: 1px solid rgba(0, 255, 65, 0.5);
+  padding: 15px;
+  transition: all 0.3s ease;
+  clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+}
+
+.nodeCard.nodeReady {
+  border-color: #00ff41;
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+}
+
+.nodeCard.nodePending {
+  border-color: #ffaa00;
+  box-shadow: 0 0 20px rgba(255, 170, 0, 0.2);
+}
+
+.nodeCard.nodeHost {
+  border-color: #00ffff;
+  background: rgba(0, 40, 30, 0.9);
+  box-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
+}
+
+.nodeCard.nodeBot {
+  border-color: #ff00ff;
+  background: rgba(30, 0, 30, 0.8);
+  box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+}
+
+.nodeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.nodeId {
+  color: #00ffff;
+  font-size: 0.8rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.nodeStatus {
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  clip-path: polygon(4px 0%, 100% 0%, calc(100% - 4px) 100%, 0% 100%);
+}
+
+.nodeStatus.online {
+  background: rgba(0, 255, 65, 0.3);
+  color: #00ff41;
+}
+
+.nodeStatus.sync {
+  background: rgba(255, 170, 0, 0.3);
+  color: #ffaa00;
+}
+
+.nodeInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nodeUser {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.userIcon {
+  font-size: 1.2rem;
+}
+
+.userName {
+  color: #00ffff;
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+.nodeMetadata {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.colorCode {
+  color: rgba(0, 255, 255, 0.7);
+}
+
+.accessLevel {
+  background: rgba(0, 255, 65, 0.2);
+  color: #00ff41;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  clip-path: polygon(3px 0%, 100% 0%, calc(100% - 3px) 100%, 0% 100%);
+}
+
+/* Nodos Vacíos */
+.emptyNode {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px dashed rgba(0, 255, 255, 0.3);
+  padding: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+}
+
+.emptyIcon {
+  font-size: 1.5rem;
+  opacity: 0.5;
+}
+
+.emptyLabel {
+  color: rgba(0, 255, 255, 0.6);
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.emptyDesc {
+  color: rgba(0, 255, 255, 0.4);
+  font-size: 0.7rem;
+}
+
+/* Panel de Control Derecho */
+.controlPanel {
+  background: rgba(0, 10, 20, 0.6);
+  border: 2px solid rgba(0, 255, 255, 0.4);
+  padding: 20px;
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.systemReadiness {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.readinessLabel {
+  color: rgba(0, 255, 255, 0.7);
+  font-size: 0.8rem;
+}
+
+.readinessValue {
+  color: #ffaa00;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.readinessValue.allReady {
+  color: #00ff41;
+}
+
+.readinessValue.waiting {
+  color: #ffaa00;
+}
+
+/* Terminal de Estado */
+.statusTerminal {
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  padding: 15px;
+  flex: 1;
+  clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+}
+
+.terminalHeader {
+  color: #00ffff;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+  font-size: 0.9rem;
+}
+
+.terminalOutput {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.logEntry {
+  display: flex;
+  gap: 10px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.logTime {
+  color: #00ff41;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.logMessage {
+  color: rgba(0, 255, 255, 0.8);
+}
+
+/* Action Matrix */
+.actionMatrix {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: auto;
+}
+
+.readyToggle, .launchButton, .disconnectButton {
+  background: rgba(0, 30, 20, 0.8);
+  border: 2px solid rgba(0, 255, 65, 0.5);
+  color: #00ff41;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.readyToggle:hover, .launchButton:hover, .disconnectButton:hover {
+  transform: translateX(3px);
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+}
+
+.readyToggle.toggleActive {
+  background: rgba(0, 255, 65, 0.2);
+  border-color: #00ffff;
+  color: #00ffff;
+}
+
+.launchButton {
+  border-color: rgba(0, 255, 255, 0.5);
+  color: #00ffff;
+}
+
+.launchButton.launchDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.launchButton.launchDisabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.disconnectButton {
+  border-color: rgba(255, 100, 100, 0.5);
+  color: #ff6464;
+}
+
+.disconnectButton:hover {
+  box-shadow: 0 0 20px rgba(255, 100, 100, 0.5);
+}
+
+.toggleIcon, .launchIcon, .disconnectIcon {
+  font-size: 1.2rem;
+}
+
+.toggleLabel, .launchLabel, .disconnectLabel {
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.terminalWindow {
+  background: rgba(0, 20, 10, 0.9);
+  border: 2px solid rgba(0, 255, 65, 0.5);
+  border-radius: 0;
+  padding: 20px;
+  font-family: 'Share Tech Mono', monospace;
+  box-shadow: 
+    inset 0 0 20px rgba(0, 255, 65, 0.1),
+    0 0 30px rgba(0, 255, 65, 0.2);
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+  animation: pulse-border 3s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.terminalHeader {
+  color: #00ffff;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+  text-align: center;
+}
+
+.terminalContent {
+  white-space: pre-line;
+}
+
+.glitchText {
+  animation: text-glitch 3s infinite;
+}
+
+@keyframes text-glitch {
+  0%, 90%, 100% { 
+    transform: translate(0); 
+    opacity: 1;
+  }
+  91% { 
+    transform: translate(-1px, 1px); 
+    opacity: 0.95;
+  }
+  93% { 
+    transform: translate(1px, -1px); 
+    opacity: 0.9;
+  }
+  95% { 
+    transform: translate(-1px, -1px); 
+    opacity: 0.95;
+  }
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    border-color: rgba(0, 255, 255, 0.3);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+  }
+  50% {
+    border-color: rgba(0, 255, 65, 0.8);
+    box-shadow: 0 0 25px rgba(0, 255, 65, 0.5);
+  }
+}
+
+/* Network Monitor */
+.networkMonitor {
+  background: rgba(0, 20, 10, 0.8);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  padding: 15px;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+
+.monitorTitle {
+  color: #00ff41;
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.monitorGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.monitorItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.monitorLabel {
+  color: rgba(0, 255, 65, 0.7);
+}
+
+.monitorValue {
+  color: #00ffff;
+  font-weight: bold;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes box-pulse {

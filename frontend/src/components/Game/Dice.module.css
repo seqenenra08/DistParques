@@ -3,48 +3,73 @@
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
 .diceContainer {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+  min-height: 400px;
+  padding: 20px;
+  background: rgba(0, 20, 10, 0.95);
+  border: 2px solid rgba(0, 255, 65, 0.6);
+  border-radius: 0;
+  clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 30px 100%, 0 calc(100% - 30px));
+  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(15px);
+  position: relative;
+  font-family: 'Share Tech Mono', monospace;
+  animation: slideInLeft 0.8s ease-out;
+  box-shadow: 
+    0 0 30px rgba(0, 255, 65, 0.3),
+    inset 0 0 20px rgba(0, 255, 65, 0.1);
+}
+
+/* Panel de control lateral izquierdo */
+.controlPanel {
+  background: rgba(0, 20, 10, 0.3);
+  border: 1px solid rgba(0, 255, 65, 0.4);
+  padding: 25px;
+  clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 15px;
-  background: rgba(0, 10, 0, 0.9);
-  border-radius: 4px;
-  border: 2px solid #00ff41;
-  backdrop-filter: blur(10px);
-  position: relative;
-  margin-top: 50px;
-  padding-top: 15px;
-  box-shadow: 
-    0 0 20px rgba(0, 255, 65, 0.4),
-    inset 0 0 15px rgba(0, 255, 65, 0.1);
-  font-family: 'Share Tech Mono', monospace;
+  gap: 20px;
 }
 
-.diceContainer::before {
-  content: '> DICE_SYS //';
-  position: absolute;
-  top: -12px;
-  left: 12px;
-  background: #000000;
-  padding: 0 8px;
-  color: #00ff41;
-  font-size: 12px;
-  font-weight: bold;
-  letter-spacing: 1px;
+.diceHeader {
+  border-bottom: 2px solid rgba(0, 255, 65, 0.3);
+  padding-bottom: 15px;
+  margin-bottom: 10px;
 }
 
-.diceLabel {
-  font-size: 1rem;
-  font-weight: bold;
-  color: #4ecdc4;
+.headerTitle {
+  color: #00ffff;
+  font-size: 1.4rem;
+  margin: 0 0 10px 0;
   text-align: center;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.statusIndicator {
+  color: #00ff41;
+  font-size: 1rem;
+  text-align: center;
+  padding: 8px;
+  background: rgba(0, 255, 65, 0.1);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+}
+
+.diceInterface {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  flex: 1;
 }
 
 /* Contenedor para los dos dados */
 .diceWrapper {
   display: flex;
-  gap: 20px;
+  gap: 15px;
   align-items: center;
   justify-content: center;
 }
@@ -220,30 +245,125 @@
   right: 15%;
 }
 
+/* Panel de información lateral derecho */
+.infoPanel {
+  display: flex;
+  flex-direction: column;
+}
+
+.terminalWindow {
+  background: rgba(0, 20, 10, 0.9);
+  border: 2px solid rgba(0, 255, 65, 0.5);
+  border-radius: 0;
+  padding: 20px;
+  font-family: 'Share Tech Mono', monospace;
+  box-shadow: 
+    inset 0 0 20px rgba(0, 255, 65, 0.1),
+    0 0 30px rgba(0, 255, 65, 0.2);
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+  animation: pulse-border 3s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+
+.terminalHeader {
+  color: #00ffff;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+.terminalContent {
+  white-space: pre-line;
+  color: #00ff41;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.glitchText {
+  animation: text-glitch 3s infinite;
+}
+
+@keyframes text-glitch {
+  0%, 90%, 100% { 
+    transform: translate(0); 
+    opacity: 1;
+  }
+  91% { 
+    transform: translate(-1px, 1px); 
+    opacity: 0.95;
+  }
+  93% { 
+    transform: translate(1px, -1px); 
+    opacity: 0.9;
+  }
+  95% { 
+    transform: translate(-1px, -1px); 
+    opacity: 0.95;
+  }
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    border-color: rgba(0, 255, 255, 0.3);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+  }
+  50% {
+    border-color: rgba(0, 255, 65, 0.8);
+    box-shadow: 0 0 25px rgba(0, 255, 65, 0.5);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* Botón de lanzar */
 .rollButton {
-  width: 100%; /* Ancho completo para centrar */
+  width: 100%;
   display: flex;
   justify-content: center;
-  margin-bottom: 10px; /* Espacio debajo del botón */
+  margin-top: auto;
 }
 
 .rollBtn {
-  background: linear-gradient(145deg, #4ecdc4, #45b8af);
+  background: linear-gradient(135deg, rgba(0, 255, 65, 0.2), rgba(0, 255, 255, 0.1));
   color: #00ff41;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
+  border: 2px solid #00ff41;
+  padding: 15px 25px;
+  border-radius: 0;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 8px rgba(78, 205, 196, 0.3);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  box-shadow: 
+    0 0 20px rgba(0, 255, 65, 0.3),
+    inset 0 0 10px rgba(0, 255, 65, 0.1);
 }
 
 .rollBtn:hover:not(:disabled) {
-  background: linear-gradient(145deg, #45b8af, #3da89f);
+  background: linear-gradient(135deg, rgba(0, 255, 65, 0.3), rgba(0, 255, 255, 0.2));
+  border-color: #00ffff;
+  color: #00ffff;
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(78, 205, 196, 0.4);
+  box-shadow: 
+    0 0 30px rgba(0, 255, 255, 0.5),
+    inset 0 0 15px rgba(0, 255, 255, 0.2);
 }
 
 .rollBtn:disabled {
@@ -252,32 +372,7 @@
   transform: none;
 }
 
-/* Valor del dado */
-.diceValue {
-  font-size: 0.9rem;
-  color: #bdc3c7;
-  text-align: center;
-  min-height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Mensaje durante el lanzamiento */
-.rollingMessage {
-  font-size: 1rem;
-  color: #4ecdc4;
-  font-weight: bold;
-  animation: pulse 1s ease-in-out infinite;
-}
-
-/* Contenedor de resultados */
-.resultsContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
+/* Estilos obsoletos - ahora se usa el panel de información lateral */
 
 /* Valores individuales de los dados */
 .individualValues {

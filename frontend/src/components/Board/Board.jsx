@@ -273,96 +273,146 @@ const Board = ({ gameState, onPieceClick, onBoardClick, canMove = false, current
 
   return (
     <div className={styles.boardContainer}>
-      <div 
-        className={styles.board}
-        style={{ 
-          width: `${boardSize.width}px`, 
-          height: `${boardSize.height}px` 
-        }}
-        onClick={handleBoardClick}
-      >
-        {/* Imagen de fondo del tablero */}
-        <div 
-          className={styles.boardBackground}
-          style={{ 
-            backgroundImage: 'url(/images/Parchís.svg.png)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}
-        />
-
-        {/* Renderizar todas las fichas */}
-        {(() => {
-          const allPieces = getAllPieces();
-          console.log('[BOARD RENDER] Intentando renderizar fichas:', allPieces.length);
-          console.log('[BOARD RENDER] Fichas por color:', {
-            red: allPieces.filter(p => p.color === 'red').length,
-            blue: allPieces.filter(p => p.color === 'blue').length,
-            green: allPieces.filter(p => p.color === 'green').length,
-            yellow: allPieces.filter(p => p.color === 'yellow').length
-          });
+      <div className={styles.board}>
+        {/* Panel de control lateral izquierdo */}
+        <div className={styles.controlPanel}>
+          <div className={styles.gameHeader}>
+            <h3 className={styles.headerTitle}>GAME CONTROL</h3>
+            <div className={styles.statusIndicator}>
+              {gameState?.startPhase ? '🚀 START PHASE' : 
+               gameState?.pendingPieceRelease ? '⚡ RELEASE MODE' : 
+               canMove ? '✓ CAN MOVE' : '⏳ WAITING'}
+            </div>
+          </div>
           
-          return allPieces.map(piece => {
-            const coordinates = getPieceCoordinatesWithStacking(piece, allPieces);
-            console.log(`[BOARD RENDER] Pieza ${piece.id} - position: ${piece.position}, coords:`, coordinates);
-            
-            if (!coordinates) {
-              console.warn(`[BOARD RENDER] ⚠️ Sin coordenadas para pieza ${piece.id}`);
-              return null;
-            }
-
-            return (
-              <Piece
-                key={piece.id}
-                id={piece.id}
-                color={piece.color}
-                position={coordinates}
-                isSelected={selectedPiece === piece.id || selectedPieceFromParent === piece.id}
-                canMove={canMove && currentPlayerColor === piece.color}
-                onClick={() => handlePieceClick(piece.id)}
-              />
-            );
-          });
-        })()}
-
-        {/* Información de debug */}
-        <div className={styles.debugInfo}>
-          {gameState && (
-            <div style={{ marginTop: '10px', fontSize: '12px', color: '#fff', backgroundColor: 'rgba(0,0,0,0.7)', padding: '5px', borderRadius: '3px' }}>
-              Fichas: {gameState.pieces?.length || 0}
-              {gameState.dice_values && Array.isArray(gameState.dice_values) && (
-                <>
-                  <br />
-                  Dados: {gameState.dice_values[0]} + {gameState.dice_values[1]} = {gameState.dice_values[0] + gameState.dice_values[1]}
-                </>
+          {/* Panel de jugadores */}
+          <div className={styles.playersPanel}>
+            <div className={styles.sectionLabel}>PLAYER STATUS</div>
+            <div className={styles.playersList}>
+              {gameState?.players?.map(player => (
+                <div 
+                  key={player.player_id} 
+                  className={`${styles.playerNode} ${currentPlayerColor === player.color ? styles.activePlayer : ''}`}
+                >
+                  <div 
+                    className={styles.playerIndicator}
+                    style={{ backgroundColor: PLAYER_COLORS[player.color] }}
+                  ></div>
+                  <div className={styles.playerInfo}>
+                    <div className={styles.playerName}>
+                      {player.name}
+                      {player.name && player.name.toLowerCase().includes('bot') && (
+                        <span className={styles.botTag}>🤖</span>
+                      )}
+                      {currentPlayerColor === player.color && (
+                        <span className={styles.activeTag}>ACTIVE</span>
+                      )}
+                    </div>
+                    <div className={styles.playerStatus}>
+                      Home: {player.pieces_in_home || 0}/4
+                    </div>
+                  </div>
+                </div>
+              )) || (
+                <div className={styles.loadingPlayers}>
+                  Loading player data...
+                </div>
               )}
+            </div>
+          </div>
+
+          {/* Panel de debug */}
+          {gameState && (
+            <div className={styles.debugPanel}>
+              <div className={styles.sectionLabel}>DEBUG INFO</div>
+              <div className={styles.debugContent}>
+                {`Pieces: ${gameState.pieces?.length || 0}
+Selected: ${selectedPiece || selectedPieceFromParent || 'NONE'}
+Can Move: ${canMove ? 'YES' : 'NO'}
+Current: ${currentPlayer || 'NONE'}
+Phase: ${gameState?.startPhase ? 'START' : 'NORMAL'}`}
+                {gameState.dice_values && Array.isArray(gameState.dice_values) && (
+                  `
+Dice: ${gameState.dice_values[0]} + ${gameState.dice_values[1]} = ${gameState.dice_values[0] + gameState.dice_values[1]}`
+                )}
+              </div>
             </div>
           )}
         </div>
-
-        {/* Información de jugadores */}
-        <div className={styles.playersInfo}>
-          {gameState?.players?.map(player => (
+        
+        {/* Panel del tablero central derecho */}
+        <div className={styles.gamePanel}>
+          <div className={styles.boardWrapper}>
             <div 
-              key={player.player_id} 
-              className={`${styles.playerInfo} ${styles[player.color]}`}
+              className={styles.gameBoard}
+              style={{ 
+                width: `${boardSize.width}px`, 
+                height: `${boardSize.height}px` 
+              }}
+              onClick={handleBoardClick}
             >
-              <div className={styles.playerName}>
-                {player.name}
-                {player.name && player.name.toLowerCase().includes('bot') && (
-                  <span style={{ marginLeft: '5px', fontSize: '14px' }}>🤖</span>
-                )}
-              </div>
-              <div className={styles.playerStatus}>
-                {player.pieces_in_home || 0} en casa
-              </div>
+              {/* Imagen de fondo del tablero */}
+              <div 
+                className={styles.boardBackground}
+                style={{ 
+                  backgroundImage: 'url(/images/Parchís.svg.png)',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                }}
+              />
+
+              {/* Renderizar todas las fichas */}
+              {(() => {
+                const allPieces = getAllPieces();
+                console.log('[BOARD RENDER] Intentando renderizar fichas:', allPieces.length);
+                console.log('[BOARD RENDER] Fichas por color:', {
+                  red: allPieces.filter(p => p.color === 'red').length,
+                  blue: allPieces.filter(p => p.color === 'blue').length,
+                  green: allPieces.filter(p => p.color === 'green').length,
+                  yellow: allPieces.filter(p => p.color === 'yellow').length
+                });
+                
+                return allPieces.map(piece => {
+                  const coordinates = getPieceCoordinatesWithStacking(piece, allPieces);
+                  console.log(`[BOARD RENDER] Pieza ${piece.id} - position: ${piece.position}, coords:`, coordinates);
+                  
+                  if (!coordinates) {
+                    console.warn(`[BOARD RENDER] ⚠️ Sin coordenadas para pieza ${piece.id}`);
+                    return null;
+                  }
+
+                  return (
+                    <Piece
+                      key={piece.id}
+                      id={piece.id}
+                      color={piece.color}
+                      position={coordinates}
+                      isSelected={selectedPiece === piece.id || selectedPieceFromParent === piece.id}
+                      canMove={canMove && currentPlayerColor === piece.color}
+                      onClick={() => handlePieceClick(piece.id)}
+                    />
+                  );
+                });
+              })()}
             </div>
-          )) || (
-            // Fallback si no hay players definidos
-            <div style={{ color: '#ccc', fontSize: '12px' }}>
-              Esperando información de jugadores...
+
+            <div className={styles.boardStats}>
+              <div className={styles.statItem}>
+                <span className={styles.statLabel}>Active Pieces:</span>
+                <span className={styles.statValue}>{getAllPieces().length}</span>
+              </div>
+              <div className={styles.statItem}>
+                <span className={styles.statLabel}>Board Size:</span>
+                <span className={styles.statValue}>{boardSize.width}px</span>
+              </div>
+              {gameState?.dice_values && Array.isArray(gameState.dice_values) && (
+                <div className={styles.statItem}>
+                  <span className={styles.statLabel}>Last Roll:</span>
+                  <span className={styles.statValue}>{gameState.dice_values[0]} + {gameState.dice_values[1]}</span>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

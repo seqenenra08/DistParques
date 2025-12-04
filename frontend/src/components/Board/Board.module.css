@@ -32,17 +32,27 @@
 }
 
 .board {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 20px;
+  min-height: 100vh;
+  padding: 20px;
+  background: rgba(0, 20, 10, 0.95);
+  border: 2px solid rgba(0, 255, 65, 0.6);
+  border-radius: 0;
+  clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 30px 100%, 0 calc(100% - 30px));
+  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(15px);
   position: relative;
-  border: 3px solid #00ff41;
-  border-radius: 4px;
-  box-shadow: 
-    0 0 30px rgba(0, 255, 65, 0.5),
-    0 0 60px rgba(0, 255, 65, 0.3),
-    inset 0 0 20px rgba(0, 255, 65, 0.1);
-  overflow: hidden;
-  margin-bottom: 20px;
   z-index: 100;
-  animation: board-glow 3s ease-in-out infinite alternate;
+  font-family: 'Share Tech Mono', monospace;
+  animation: slideInLeft 0.8s ease-out;
+  box-shadow: 
+    0 0 30px rgba(0, 255, 65, 0.3),
+    inset 0 0 20px rgba(0, 255, 65, 0.1);
+  width: 100%;
+  max-width: none;
+  margin: 0;
 }
 
 @keyframes board-glow {
@@ -282,6 +292,276 @@
   
   .playerStats {
     font-size: 10px;
+  }
+}
+
+/* ==============================================
+   ESTILOS PARA DISEÑO LATERAL CYBERPUNK BOARD
+   ============================================== */
+
+/* Panel de control lateral izquierdo */
+.controlPanel {
+  background: rgba(0, 20, 10, 0.3);
+  border: 1px solid rgba(0, 255, 65, 0.4);
+  padding: 25px;
+  clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: fit-content;
+}
+
+.gameHeader {
+  border-bottom: 2px solid rgba(0, 255, 65, 0.3);
+  padding-bottom: 15px;
+  margin-bottom: 10px;
+}
+
+.headerTitle {
+  color: #00ffff;
+  font-size: 1.4rem;
+  margin: 0 0 10px 0;
+  text-align: center;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.statusIndicator {
+  color: #00ff41;
+  font-size: 1rem;
+  text-align: center;
+  padding: 8px;
+  background: rgba(0, 255, 65, 0.1);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+}
+
+.sectionLabel {
+  color: #00ffff;
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.playersPanel {
+  background: rgba(0, 20, 10, 0.2);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  padding: 15px;
+  margin-bottom: 20px;
+  clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+  flex: 1;
+}
+
+.playersList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.playerNode {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 40, 20, 0.4);
+  border: 1px solid rgba(0, 255, 65, 0.2);
+  padding: 10px;
+  clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
+  transition: all 0.3s ease;
+}
+
+.playerNode.activePlayer {
+  background: rgba(0, 255, 65, 0.1);
+  border-color: rgba(0, 255, 65, 0.6);
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+}
+
+.playerIndicator {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.playerInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.playerName {
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+.botTag {
+  font-size: 0.8rem;
+  color: #ff8c00;
+  text-shadow: 0 0 5px rgba(255, 140, 0, 0.8);
+}
+
+.activeTag {
+  color: #00ff00;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: rgba(0, 255, 0, 0.3);
+  padding: 2px 6px;
+  clip-path: polygon(2px 0, calc(100% - 2px) 0, 100% 100%, 0 100%);
+  border: 1px solid rgba(0, 255, 0, 0.6);
+  text-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.playerStatus {
+  color: #ff69b4;
+  font-size: 0.8rem;
+  text-shadow: 0 0 5px rgba(255, 105, 180, 0.6);
+}
+
+.loadingPlayers {
+  color: #ffc107;
+  font-style: italic;
+  text-align: center;
+  padding: 10px;
+}
+
+.debugPanel {
+  background: rgba(0, 20, 10, 0.2);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  padding: 15px;
+  clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+}
+
+.debugContent {
+  white-space: pre-line;
+  color: #ffc107;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+/* Panel del tablero central derecho */
+.gamePanel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.boardWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  background: rgba(0, 20, 10, 0.2);
+  border: 1px solid rgba(0, 255, 65, 0.4);
+  padding: 20px;
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+
+.gameBoard {
+  position: relative;
+  border: 3px solid #00ff41;
+  border-radius: 0;
+  box-shadow: 
+    0 0 30px rgba(0, 255, 65, 0.5),
+    0 0 60px rgba(0, 255, 65, 0.3),
+    inset 0 0 20px rgba(0, 255, 65, 0.1);
+  overflow: hidden;
+  z-index: 110;
+  animation: board-glow 3s ease-in-out infinite alternate;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+
+@keyframes board-glow {
+  0% {
+    box-shadow: 
+      0 0 30px rgba(0, 255, 65, 0.5),
+      0 0 60px rgba(0, 255, 65, 0.3),
+      inset 0 0 20px rgba(0, 255, 65, 0.1);
+  }
+  100% {
+    box-shadow: 
+      0 0 40px rgba(0, 255, 255, 0.6),
+      0 0 80px rgba(0, 255, 255, 0.4),
+      inset 0 0 30px rgba(0, 255, 255, 0.15);
+  }
+}
+
+.boardStats {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: rgba(0, 40, 20, 0.4);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  padding: 10px 15px;
+  clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+  min-width: 80px;
+}
+
+.statLabel {
+  color: #00ffff;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.statValue {
+  color: #00ff41;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+/* Animaciones */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .board {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 15px;
+  }
+  
+  .controlPanel {
+    order: 2;
+  }
+  
+  .gamePanel {
+    order: 1;
+  }
+  
+  .boardStats {
+    gap: 10px;
+  }
+  
+  .statItem {
+    min-width: 60px;
+    padding: 8px 12px;
   }
 }
 

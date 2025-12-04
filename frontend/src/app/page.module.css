@@ -1661,21 +1661,26 @@
 }
 
 .lobbyBox {
-  background: rgba(0, 10, 0, 0.95);
-  border: 2px solid #00ff41;
-  border-radius: 4px;
-  padding: 2.5rem;
-  max-width: 600px;
-  width: 100%;
-  box-shadow: 
-    0 0 40px rgba(0, 255, 65, 0.6),
-    inset 0 0 20px rgba(0, 255, 65, 0.1);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  animation: slideUp 0.5s ease-out, box-glow 3s ease-in-out infinite alternate;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+  min-height: 500px;
+  padding: 20px;
+  background: rgba(0, 20, 10, 0.95);
+  border: 2px solid rgba(0, 255, 65, 0.6);
+  border-radius: 0;
+  clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 30px 100%, 0 calc(100% - 30px));
+  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(15px);
   position: relative;
   z-index: 2;
   font-family: 'Share Tech Mono', monospace;
+  animation: slideInLeft 0.8s ease-out;
+  box-shadow: 
+    0 0 30px rgba(0, 255, 65, 0.3),
+    inset 0 0 20px rgba(0, 255, 65, 0.1);
+  width: 100%;
+  max-width: none;
 }
 
 @keyframes box-glow {
@@ -1689,6 +1694,42 @@
       0 0 60px rgba(0, 255, 255, 0.7),
       inset 0 0 30px rgba(0, 255, 255, 0.15);
   }
+}
+
+/* Panel de control lateral izquierdo */
+.controlPanel {
+  background: rgba(0, 20, 10, 0.3);
+  border: 1px solid rgba(0, 255, 65, 0.4);
+  padding: 25px;
+  clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.lobbyHeader {
+  border-bottom: 2px solid rgba(0, 255, 65, 0.3);
+  padding-bottom: 15px;
+  margin-bottom: 10px;
+}
+
+.headerTitle {
+  color: #00ffff;
+  font-size: 1.4rem;
+  margin: 0 0 10px 0;
+  text-align: center;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.statusIndicator {
+  color: #00ff41;
+  font-size: 1rem;
+  text-align: center;
+  padding: 8px;
+  background: rgba(0, 255, 65, 0.1);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
 }
 
 .lobbyTitle {
@@ -1853,18 +1894,21 @@
 .startButton {
   background: linear-gradient(135deg, rgba(0, 255, 65, 0.2) 0%, rgba(0, 255, 255, 0.2) 100%);
   border: 2px solid #00ffff;
-  border-radius: 4px;
+  border-radius: 0;
   color: #00ffff;
-  padding: 1rem 2.5rem;
-  font-size: 1.1rem;
+  padding: 15px 25px;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
   width: 100%;
-  max-width: 300px;
   position: relative;
   overflow: hidden;
   box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+  font-family: 'Share Tech Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
 }
 
 .startButton::before {
@@ -2076,4 +2120,165 @@
   color: white;
   font-size: 1rem;
   font-weight: 500;
+}
+
+/* ==============================================
+   ESTILOS PARA LOBBY LATERAL
+   ============================================== */
+
+.sectionLabel {
+  color: #00ffff;
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.playersList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.playerNode {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 40, 20, 0.4);
+  border: 1px solid rgba(0, 255, 65, 0.2);
+  padding: 10px;
+  clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
+}
+
+.nodeIndicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.nodeInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.nodeName {
+  color: #00ff41;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.nodeTag {
+  color: #00ffff;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.actionMatrix {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid rgba(0, 255, 65, 0.3);
+}
+
+.waitingStatus {
+  text-align: center;
+  padding: 15px;
+  background: rgba(0, 20, 10, 0.2);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+}
+
+.waitingText {
+  color: #ffc107;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+/* Panel de información lateral derecho */
+.infoPanel {
+  display: flex;
+  flex-direction: column;
+}
+
+.terminalWindow {
+  background: rgba(0, 20, 10, 0.9);
+  border: 2px solid rgba(0, 255, 65, 0.5);
+  border-radius: 0;
+  padding: 20px;
+  font-family: 'Share Tech Mono', monospace;
+  box-shadow: 
+    inset 0 0 20px rgba(0, 255, 65, 0.1),
+    0 0 30px rgba(0, 255, 65, 0.2);
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+  animation: pulse-border 3s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+
+.terminalHeader {
+  color: #00ffff;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+.terminalContent {
+  white-space: pre-line;
+  color: #00ff41;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.glitchText {
+  animation: text-glitch 3s infinite;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes text-glitch {
+  0%, 90%, 100% { 
+    transform: translate(0); 
+    opacity: 1;
+  }
+  91% { 
+    transform: translate(-1px, 1px); 
+    opacity: 0.95;
+  }
+  93% { 
+    transform: translate(1px, -1px); 
+    opacity: 0.9;
+  }
+  95% { 
+    transform: translate(-1px, -1px); 
+    opacity: 0.95;
+  }
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    border-color: rgba(0, 255, 255, 0.3);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+  }
+  50% {
+    border-color: rgba(0, 255, 65, 0.8);
+    box-shadow: 0 0 25px rgba(0, 255, 65, 0.5);
+  }
 }

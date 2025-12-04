@@ -1,14 +1,147 @@
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
 .menuContainer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  align-items: stretch;
   min-height: 100vh;
   background: #000000;
-  padding: 2rem;
   position: relative;
   font-family: 'Share Tech Mono', monospace;
+  gap: 0;
+}
+
+/* Nuevo panel lateral derecho para información */
+.infoPanel {
+  background: rgba(0, 5, 15, 0.95);
+  border-left: 4px solid #00ffff;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.infoPanel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    linear-gradient(45deg, transparent 30%, rgba(0, 255, 255, 0.05) 50%, transparent 70%),
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0, 255, 255, 0.1) 2px, rgba(0, 255, 255, 0.1) 4px);
+  animation: info-scan 8s linear infinite;
+}
+
+@keyframes info-scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.terminalWindow {
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid #00ffff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  font-family: 'Courier New', monospace;
+  color: #00ff41;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  max-width: 400px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Panel de información del sistema */
+.infoPanel {
+  background: rgba(0, 0, 0, 0.8);
+  border-left: 3px solid rgba(0, 255, 255, 0.5);
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative;
+  overflow-y: auto;
+}
+
+.infoPanel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #00ffff, transparent);
+  animation: data-stream 2s ease-in-out infinite;
+}
+
+.terminalWindow {
+  background: rgba(0, 20, 10, 0.9);
+  border: 2px solid rgba(0, 255, 65, 0.5);
+  border-radius: 0;
+  padding: 20px;
+  font-family: 'Share Tech Mono', monospace;
+  box-shadow: 
+    inset 0 0 20px rgba(0, 255, 65, 0.1),
+    0 0 30px rgba(0, 255, 65, 0.2);
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+  animation: pulse-border 3s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.terminalHeader {
+  color: #00ffff;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+  text-align: center;
+}
+
+.terminalContent {
+  white-space: pre-line;
+}
+
+.glitchText {
+  animation: text-glitch 3s infinite;
+}
+
+@keyframes text-glitch {
+  0%, 90%, 100% { 
+    transform: translate(0); 
+    opacity: 1;
+  }
+  91% { 
+    transform: translate(-1px, 1px); 
+    opacity: 0.95;
+  }
+  93% { 
+    transform: translate(1px, -1px); 
+    opacity: 0.9;
+  }
+  95% { 
+    transform: translate(-1px, -1px); 
+    opacity: 0.95;
+  }
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    border-color: rgba(0, 255, 255, 0.3);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+  }
+  50% {
+    border-color: rgba(0, 255, 65, 0.8);
+    box-shadow: 0 0 25px rgba(0, 255, 65, 0.5);
+  }
+}
+
+@keyframes data-stream {
+  0% { opacity: 0; transform: translateY(-10px); }
+  50% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(10px); }
 }
 
 .menuContainer::before {
@@ -102,20 +235,24 @@
 }
 
 .menuBox {
-  background: rgba(0, 10, 0, 0.95);
-  border: 2px solid #00ff41;
-  border-radius: 4px;
-  padding: 2.5rem;
-  max-width: 500px;
+  background: rgba(0, 10, 0, 0.98);
+  border-right: 4px solid #00ff41;
+  border-radius: 0;
+  padding: 3rem 2rem;
   width: 100%;
+  height: 100vh;
   box-shadow: 
-    0 0 30px rgba(0, 255, 65, 0.5),
-    0 0 60px rgba(0, 255, 65, 0.3),
-    inset 0 0 20px rgba(0, 255, 65, 0.1);
-  backdrop-filter: blur(10px);
-  animation: slideIn 0.6s ease-out, box-glow 3s ease-in-out infinite alternate;
+    inset -20px 0 40px rgba(0, 255, 65, 0.1),
+    4px 0 20px rgba(0, 255, 65, 0.3);
+  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(15px);
+  animation: slideInLeft 0.8s ease-out;
   position: relative;
   z-index: 2;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 @keyframes box-glow {
@@ -133,6 +270,17 @@
   }
 }
 
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -147,10 +295,12 @@
 .header {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   width: 100%;
-  margin-bottom: 2rem;
-  gap: 15px;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid rgba(0, 255, 65, 0.3);
+  gap: 8px;
 }
 
 .titleContainer {
@@ -158,19 +308,21 @@
 }
 
 .title {
-  font-size: 2.75rem;
+  font-size: 1.8rem;
   font-weight: 700;
   color: #00ff41;
   margin-bottom: 0.25rem;
   text-shadow: 
-    0 0 20px #00ff41,
-    0 0 40px #00ff41,
-    0 0 60px #00ff41;
+    0 0 15px #00ff41,
+    0 0 30px #00ff41;
   text-align: center;
   font-family: 'Share Tech Mono', monospace;
-  letter-spacing: 4px;
+  letter-spacing: 2px;
   text-transform: uppercase;
   animation: title-glitch 5s infinite;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
 }
 
 @keyframes title-glitch {
@@ -194,7 +346,8 @@
 }
 
 .playersSection {
-  margin-bottom: 2rem;
+  margin: 1rem 0;
+  flex: 1;
 }
 
 .sectionHeader {
@@ -411,31 +564,34 @@
 
 .rulesButton,
 .settingsButton {
-  background: rgba(0, 10, 0, 0.5);
-  color: #00ff41;
-  border: 1px solid rgba(0, 255, 65, 0.3);
-  border-radius: 4px;
-  padding: 0.75rem 1rem;
-  font-size: 0.9rem;
-  font-weight: 500;
+  background: linear-gradient(45deg, rgba(0, 255, 255, 0.1), rgba(0, 255, 65, 0.05));
+  color: #00ffff;
+  border: 2px solid rgba(0, 255, 255, 0.5);
+  border-radius: 0;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 8px;
   font-family: 'Share Tech Mono', monospace;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+  position: relative;
+  overflow: hidden;
 }
 
 .rulesButton:hover,
 .settingsButton:hover {
-  background: rgba(0, 30, 15, 0.8);
+  background: linear-gradient(45deg, rgba(0, 255, 255, 0.2), rgba(0, 255, 65, 0.1));
   border-color: #00ff41;
-  transform: translateY(-2px);
-  box-shadow: 0 0 15px rgba(0, 255, 65, 0.4);
-  text-shadow: 0 0 10px #00ff41;
+  transform: translateX(5px);
+  box-shadow: 0 0 25px rgba(0, 255, 255, 0.6);
+  text-shadow: 0 0 15px #00ffff;
 }
 
 .instructionText {
@@ -450,26 +606,31 @@
 
 .modeSelection {
   display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 2rem 0;
+  align-items: stretch;
 }
 
 .modeCard {
-  background: rgba(0, 20, 10, 0.6);
-  border: 2px solid rgba(0, 255, 65, 0.3);
-  border-radius: 4px;
-  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 255, 0.05));
+  border: 2px solid #00ff41;
+  border-radius: 0;
+  padding: 20px 30px;
   cursor: pointer;
   transition: all 0.3s ease;
-  text-align: center;
+  text-align: left;
   position: relative;
   overflow: hidden;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 0.75rem;
-  max-width: 300px;
+  gap: 15px;
+  clip-path: polygon(15px 0%, 100% 0%, calc(100% - 15px) 100%, 0% 100%);
+  transform: none;
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
 }
 
 .modeCard::before {
@@ -488,10 +649,10 @@
 }
 
 .modeCard:hover {
-  transform: translateY(-4px);
-  border-color: #00ff41;
+  transform: translateX(5px);
+  border-color: #00ffff;
   box-shadow: 
-    0 0 20px rgba(0, 255, 65, 0.5),
+    0 0 30px rgba(0, 255, 255, 0.6),
     inset 0 0 15px rgba(0, 255, 65, 0.2);
   background: rgba(0, 30, 15, 0.8);
 }

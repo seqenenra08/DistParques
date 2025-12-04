@@ -489,85 +489,96 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <div className={styles.header}>
-          <button onClick={onBack} className={styles.backButton}>
-            ← Atrás
-          </button>
-          <h1 className={styles.title}>Determinación del Orden</h1>
-        </div>
-        
-        {!showResults ? (
-          <>
-            {isTiebreaker && (
-              <div className={styles.tiebreakerBanner}>
-                🎲 ¡DESEMPATE! 🎲
-                <p>Los siguientes jugadores empataron y deben volver a lanzar:</p>
-              </div>
-            )}
-            
-            <p className={styles.instruction}>
-              {isTiebreaker 
-                ? 'Los jugadores empatados lanzarán de nuevo. El que obtenga el valor más alto ganará el desempate.'
-                : 'Cada jugador lanzará el dado. El que obtenga el valor más alto comenzará primero. El orden continuará siguiendo el tablero en sentido antihorario.'}
-            </p>
-
-            {showCurrentPlayer && currentPlayer && (
-              <div className={styles.currentPlayer}>
-                <h2 className={styles.playerName}>
-                  Turno de: {currentPlayer.name}
-                  {isMultiplayer && currentPlayer.id === myPlayerId && (
-                    <span style={{ color: '#10b981', marginLeft: '10px' }}>👤 (Tú)</span>
-                  )}
-                  {isMultiplayer && currentPlayer.id !== myPlayerId && (
-                    <span style={{ color: '#f59e0b', marginLeft: '10px' }}>⏳ Esperando...</span>
-                  )}
-                </h2>
-                <div 
-                  className={styles.playerColor}
-                  style={{ backgroundColor: getColorInfo(currentPlayer.color).color }}
-                >
-                  {getColorInfo(currentPlayer.color).name}
-                </div>
-                
-                <div className={styles.diceContainer}>
-                  <div className={`${styles.dice} ${isRolling ? styles.rolling : ''}`}>
-                    {isRolling ? animatedValue : (diceResults[currentPlayer.id] || '🎲')}
+        {/* Panel de control lateral izquierdo */}
+        <div className={styles.controlPanel}>
+          <div className={styles.orderHeader}>
+            <button onClick={onBack} className={styles.backButton}>
+              ← BACK
+            </button>
+            <h1 className={styles.headerTitle}>TURN ORDER SYSTEM</h1>
+            <div className={styles.statusIndicator}>
+              {isTiebreaker ? '⚡ TIEBREAKER' : showResults ? '✓ COMPLETED' : '🎲 ROLLING'}
+            </div>
+          </div>
+          
+          {!showResults ? (
+            <>
+              {isTiebreaker && (
+                <div className={styles.tiebreakerAlert}>
+                  <div className={styles.alertTitle}>⚡ TIEBREAKER REQUIRED</div>
+                  <div className={styles.alertMessage}>
+                    Players tied - reroll needed
                   </div>
-                  
-                  {!isRolling && !diceResults[currentPlayer.id] && (
-                    <button 
-                      className={styles.rollButton}
-                      onClick={rollDice}
-                      data-bot-roll="true"
-                      disabled={isMultiplayer && currentPlayer.id !== myPlayerId}
-                      style={{
-                        opacity: (isMultiplayer && currentPlayer.id !== myPlayerId) ? 0.5 : 1,
-                        cursor: (isMultiplayer && currentPlayer.id !== myPlayerId) ? 'not-allowed' : 'pointer'
-                      }}
-                    >
-                      {isMultiplayer && currentPlayer.id !== myPlayerId 
-                        ? '⏳ Esperando...' 
-                        : currentPlayer.isHuman ? 'Lanzar Dado' : '🤖 Lanzando...'}
-                    </button>
-                  )}
+                </div>
+              )}
+              
+              <div className={styles.instructionPanel}>
+                <div className={styles.sectionLabel}>PROTOCOL</div>
+                <div className={styles.instructionText}>
+                  {isTiebreaker 
+                    ? 'Tied players roll again. Highest value wins tiebreaker.'
+                    : 'Each player rolls dice. Highest value starts first. Turn order follows board counterclockwise.'}
                 </div>
               </div>
-            )}
 
-            {/* Mostrar notificación de empate si todos lanzaron y hay empate */}
+              {showCurrentPlayer && currentPlayer && (
+                <div className={styles.activePlayer}>
+                  <div className={styles.sectionLabel}>ACTIVE PLAYER</div>
+                  <div className={styles.playerCard}>
+                    <div className={styles.playerInfo}>
+                      <div className={styles.playerName}>
+                        {currentPlayer.name}
+                        {isMultiplayer && currentPlayer.id === myPlayerId && (
+                          <span className={styles.youTag}>YOU</span>
+                        )}
+                        {isMultiplayer && currentPlayer.id !== myPlayerId && (
+                          <span className={styles.waitTag}>WAITING</span>
+                        )}
+                      </div>
+                      <div 
+                        className={styles.colorBadge}
+                        style={{ backgroundColor: getColorInfo(currentPlayer.color).color }}
+                      >
+                        {getColorInfo(currentPlayer.color).name}
+                      </div>
+                    </div>
+                    
+                    <div className={styles.diceInterface}>
+                      <div className={`${styles.diceDisplay} ${isRolling ? styles.rolling : ''}`}>
+                        {isRolling ? animatedValue : (diceResults[currentPlayer.id] || '🎲')}
+                      </div>
+                      
+                      {!isRolling && !diceResults[currentPlayer.id] && (
+                        <button 
+                          className={styles.rollButton}
+                          onClick={rollDice}
+                          data-bot-roll="true"
+                          disabled={isMultiplayer && currentPlayer.id !== myPlayerId}
+                        >
+                          {isMultiplayer && currentPlayer.id !== myPlayerId 
+                            ? 'WAITING...' 
+                            : currentPlayer.isHuman ? 'ROLL DICE' : 'BOT ROLLING...'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            {/* Mostrar notificación de empate */}
             {tiedPlayers.length > 0 && (
-              <div className={styles.tieNotification}>
-                <h3 className={styles.tieTitle}>⚠️ ¡Empate Detectado!</h3>
-                <p className={styles.tieMessage}>
-                  Los siguientes jugadores obtuvieron el mismo puntaje ({finalDiceResults[tiedPlayers[0].id]}):
-                </p>
-                <div className={styles.tiedPlayersList}>
+              <div className={styles.tieAlert}>
+                <div className={styles.alertTitle}>⚠️ TIE DETECTED</div>
+                <div className={styles.alertMessage}>
+                  Score: {finalDiceResults[tiedPlayers[0].id]} - {tiedPlayers.length} players tied
+                </div>
+                <div className={styles.tiedList}>
                   {tiedPlayers.map(player => {
                     const colorInfo = getColorInfo(player.color);
                     return (
-                      <div key={player.id} className={styles.tiedPlayer}>
+                      <div key={player.id} className={styles.tiedNode}>
                         <div 
-                          className={styles.tiedPlayerColor}
+                          className={styles.tiedColor}
                           style={{ backgroundColor: colorInfo.color }}
                         ></div>
                         <span>{player.name}</span>
@@ -579,18 +590,14 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
                   className={styles.tiebreakerButton}
                   onClick={startTiebreaker}
                   disabled={isMultiplayer && !isHost}
-                  style={{
-                    opacity: (isMultiplayer && !isHost) ? 0.7 : 1,
-                    cursor: (isMultiplayer && !isHost) ? 'not-allowed' : 'pointer'
-                  }}
                 >
-                  {isMultiplayer && !isHost ? '⏳ Esperando al host...' : 'Iniciar Desempate 🎲'}
+                  {isMultiplayer && !isHost ? 'WAITING FOR HOST...' : 'START TIEBREAKER'}
                 </button>
               </div>
             )}
 
-            <div className={styles.results}>
-              <h3 className={styles.resultsTitle}>Resultados:</h3>
+            <div className={styles.resultsPanel}>
+              <div className={styles.sectionLabel}>ROLL RESULTS</div>
               <div className={styles.resultsList}>
                 {activePlayers.map((player) => {
                   const colorInfo = getColorInfo(player.color);
@@ -599,37 +606,100 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
                   return (
                     <div 
                       key={player.id} 
-                      className={styles.playerResult}
+                      className={styles.resultNode}
                     >
                       <div 
-                        className={styles.resultColor}
+                        className={styles.nodeColor}
                         style={{ backgroundColor: colorInfo.color }}
                       ></div>
-                      <span className={styles.resultName}>
+                      <span className={styles.nodeName}>
                         {player.name}
                         {player.isHuman && ' 👤'}
                         {!player.isHuman && ' 🤖'}
                       </span>
-                      <span className={styles.resultDice}>
-                        {result ? `🎲 ${result}` : '⏳'}
+                      <span className={styles.nodeResult}>
+                        {result ? `${result}` : '⏳'}
                       </span>
                     </div>
                   );
                 })}
               </div>
             </div>
-          </>
-        ) : (
-          <div className={styles.finalResults}>
-            <h2 className={styles.orderTitle}>¡Orden de Juego Determinado!</h2>
+            </>
+          ) : null}
+        </div>
+        
+        {/* Panel de información lateral derecho */}
+        <div className={styles.infoPanel}>
+          <div className={styles.terminalWindow}>
+            <div className={styles.terminalHeader}>
+              <span className={styles.glitchText}>TURN ORDER ANALYSIS</span>
+            </div>
+            <div className={styles.terminalContent}>
+              {!showResults ? (
+                `DETERMINING TURN ORDER...
+Phase: ${isTiebreaker ? 'TIEBREAKER' : 'INITIAL_ROLL'}
+Players: ${activePlayers.length}
+Current: ${currentPlayer?.name || 'NONE'}
+
+---[DICE STATISTICS]---
+Rolled: ${Object.keys(diceResults).length}/${activePlayers.length}
+Pending: ${activePlayers.length - Object.keys(diceResults).length}
+${tiedPlayers.length > 0 ? `Tied: ${tiedPlayers.length}` : ''}
+
+---[PLAYER STATUS]---`
+                + activePlayers.map((player, index) => {
+                  const result = diceResults[player.id] || finalDiceResults[player.id];
+                  return `
+${player.name}: ${result ? `ROLLED ${result}` : 'PENDING'}
+Color: ${getColorInfo(player.color).name.toUpperCase()}
+Type: ${player.isHuman ? 'HUMAN' : 'BOT'}
+Status: ${result ? 'COMPLETE' : currentPlayer?.id === player.id ? 'ACTIVE' : 'WAITING'}`;
+                }).join('')
+                + (isMultiplayer ? `
+
+---[MULTIPLAYER INFO]---
+Mode: Online
+Your ID: ${myPlayerId}
+Host: ${isHost ? 'YOU' : 'OTHER'}
+Room: ${roomCode}` : `
+
+---[LOCAL GAME]---
+Mode: Single Player
+AI Opponents: ${activePlayers.filter(p => !p.isHuman).length}`)
+              ) : (
+                `TURN ORDER DETERMINED!
+Final Ranking Complete
+
+---[FINAL ORDER]---`
+                + finalOrder.map((player, index) => `
+${index + 1}. ${player.name}
+   Color: ${getColorInfo(player.color).name.toUpperCase()}
+   Roll: ${finalDiceResults[player.id] || diceResults[player.id]}
+   Type: ${player.isHuman ? 'HUMAN' : 'BOT'}`).join('')
+                + `
+
+---[GAME START READY]---
+First Player: ${finalOrder[0]?.name}
+Turn Direction: Counterclockwise
+Board Setup: Complete
+Status: READY TO START`
+              )}
+            </div>
+          </div>
+        </div>
+        
+        {showResults && (
+          <div className={styles.orderResults}>
+            <div className={styles.orderTitle}>TURN ORDER ESTABLISHED</div>
             
             <div className={styles.orderList}>
               {finalOrder.map((player, index) => {
                 const colorInfo = getColorInfo(player.color);
                 
                 return (
-                  <div key={player.id} className={styles.orderItem}>
-                    <div className={styles.orderNumber}>{index + 1}</div>
+                  <div key={player.id} className={styles.orderNode}>
+                    <div className={styles.orderRank}>{index + 1}</div>
                     <div 
                       className={styles.orderColor}
                       style={{ backgroundColor: colorInfo.color }}
@@ -638,12 +708,12 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
                       <span className={styles.orderName}>{player.name}</span>
                       <span className={styles.orderColorName}>({colorInfo.name})</span>
                       <span className={styles.orderDiceResult}>
-                        Dado: {finalDiceResults[player.id]}
+                        Roll: {finalDiceResults[player.id]}
                       </span>
                     </div>
                     {index === 0 && (
-                      <div className={styles.firstPlayerBadge}>
-                        👑 Primer jugador
+                      <div className={styles.crownBadge}>
+                        👑 FIRST
                       </div>
                     )}
                   </div>
@@ -651,63 +721,42 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
               })}
             </div>
 
-            <p className={styles.orderExplanation}>
+            <div className={styles.orderExplanation}>
               {finalOrder.length > 0 && (
                 <>
-                  {finalOrder[0].name} ({getColorInfo(finalOrder[0].color).name}) obtuvo el valor más alto ({finalDiceResults[finalOrder[0].id]}) 
-                  y comenzará el juego. Los demás seguirán el orden del tablero en sentido antihorario.
+                  {finalOrder[0].name} ({getColorInfo(finalOrder[0].color).name}) rolled highest ({finalDiceResults[finalOrder[0].id]}) 
+                  and starts first. Order follows board counterclockwise.
                 </>
               )}
-            </p>
+            </div>
             
             {isMultiplayer && !isHost && (
-              <div style={{ 
-                marginTop: '20px', 
-                padding: '15px', 
-                backgroundColor: '#f59e0b20',
-                borderRadius: '8px',
-                textAlign: 'center',
-                color: '#f59e0b',
-                fontWeight: 'bold'
-              }}>
-                ⏳ Esperando a que el host decida continuar...
+              <div className={styles.hostWaitMessage}>
+                ⏳ WAITING FOR HOST DECISION...
               </div>
             )}
-          </div>
-        )}
 
-        <div className={styles.actions}>
-          
-          {showResults && (
-            <>
+            <div className={styles.actionButtons}>
               <button
-                className={`${styles.button} ${styles.rerollButton}`}
+                className={styles.rerollButton}
                 onClick={handleReroll}
                 disabled={isMultiplayer && !isHost}
-                style={{
-                  opacity: (isMultiplayer && !isHost) ? 0.5 : 1,
-                  cursor: (isMultiplayer && !isHost) ? 'not-allowed' : 'pointer'
-                }}
               >
-                🎲 Volver a lanzar
-                {isMultiplayer && !isHost && ' (Solo host)'}
+                REROLL DICE
+                {isMultiplayer && !isHost && ' (HOST ONLY)'}
               </button>
               
               <button
-                className={`${styles.button} ${styles.continueButton}`}
+                className={styles.continueButton}
                 onClick={handleContinue}
                 disabled={isMultiplayer && !isHost}
-                style={{
-                  opacity: (isMultiplayer && !isHost) ? 0.5 : 1,
-                  cursor: (isMultiplayer && !isHost) ? 'not-allowed' : 'pointer'
-                }}
               >
-                Iniciar Juego
-                {isMultiplayer && !isHost && ' (Solo host)'}
+                START GAME
+                {isMultiplayer && !isHost && ' (HOST ONLY)'}
               </button>
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
