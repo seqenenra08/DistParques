@@ -430,12 +430,13 @@ class Partida:
                             # Se agotaron las 3 oportunidades
                             resultado["accion"] = "intentos_agotados"
                             resultado["mensaje"] = f"No sacaste par en 3 intentos. Turno perdido."
+                            jugador.ya_lanzo_dados = True  # Marcar que ya lanzó para evitar más lanzamientos
                             jugador.resetear_intentos_carcel()
                             self._cambiar_turno()
                             resultado["cambio_turno"] = True
                             return resultado
                         else:
-                            # Aún tiene oportunidades
+                            # Aún tiene oportunidades - NO marcar ya_lanzo para permitir relanzar
                             resultado["accion"] = "sin_par_carcel"
                             resultado["mensaje"] = f"No sacaste par. Te quedan {resultado['intentos_restantes']} intentos."
                             return resultado
@@ -751,7 +752,8 @@ class Partida:
     def _cambiar_turno(self):
         """Cambia al siguiente jugador."""
         self.jugadores[self.turno_actual].es_su_turno = False
-        self.jugadores[self.turno_actual].resetear_lanzamiento()
+        # NO resetear lanzamiento del jugador saliente - puede haber sido marcado por el servidor
+        # self.jugadores[self.turno_actual].resetear_lanzamiento()
         self.jugadores[self.turno_actual].resetear_intentos_carcel()
         self.turno_actual = (self.turno_actual + 1) % len(self.jugadores)
         self.jugadores[self.turno_actual].es_su_turno = True

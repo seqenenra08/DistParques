@@ -146,6 +146,20 @@ export default function Home() {
       // Si todas están en cárcel y no sacó par
       if (data.todas_en_carcel && !data.es_par) {
         audioService.playError();
+        
+        // Si se pasó el turno (agotó los 3 intentos)
+        if (data.turn_passed) {
+          setMessage(`❌ Agotaste los 3 intentos sin sacar par. Turno perdido.`);
+          setTimeout(() => {
+            setDiceValue(null);
+            setLastDiceRolled(null);
+            setMessage('');
+            setCanMove(false);
+            setIsRolling(false);
+          }, 2500);
+          return;
+        }
+        
         setMessage(`❌ Sin par (${data.attempts_used}/${data.attempts_used + data.attempts_remaining}) - ${data.attempts_remaining > 0 ? 'Intenta de nuevo' : 'Turno perdido'}`);
         
         // Si aún tiene intentos, mantener los dados visibles
@@ -234,6 +248,7 @@ export default function Home() {
       // Limpiar estado de movimiento
       setCanMove(false);
       setDiceValue(null);
+      setLastDiceRolled(null);
       setSelectedPiece(null);
       setAvailableMoves([]);
       setPendingPieceForMove(null);
@@ -265,10 +280,50 @@ export default function Home() {
       }
     });
 
+    // Cambio de turno
+    socket.on('TURN_CHANGE', (data) => {
+      console.log('[TURN_CHANGE]', data);
+      setGameState(data.estado);
+      
+      // Limpiar estado de dados y movimientos
+      setDiceValue(null);
+      setLastDiceRolled(null);
+      setCanMove(false);
+      setAvailableMoves([]);
+      setSelectedPiece(null);
+      setShowMoveSelector(false);
+      setCanSplitDice(false);
+      setSplitMode(false);
+      setSplitMovements([]);
+      setCurrentSplitDice(null);
+      setMessage('');
+      setIsRolling(false);
+      
+      // Mostrar notificación del cambio de turno
+      if (data.razon === 'intentos_agotados') {
+        audioService.playError();
+        showNotification(data.mensaje || `Turno de ${data.jugador_actual}`, 'info');
+      }
+    });
+
     // Estado actualizado
     socket.on('UPDATE', (data) => {
       console.log('[UPDATE]', data.estado);
       setGameState(data.estado);
+      
+      // Si no es mi turno, limpiar estado de dados
+      if (myPlayerInfo && data.estado.jugador_actual !== myPlayerInfo.nombre) {
+        setDiceValue(null);
+        setLastDiceRolled(null);
+        setCanMove(false);
+        setAvailableMoves([]);
+        setSelectedPiece(null);
+        setShowMoveSelector(false);
+        setCanSplitDice(false);
+        setSplitMode(false);
+        setSplitMovements([]);
+        setCurrentSplitDice(null);
+      }
     });
 
     // Información de fichas
@@ -353,6 +408,7 @@ export default function Home() {
       socket.off('PARTIDA_INICIADA');
       socket.off('DICE_RESULT');
       socket.off('MOVE_RESULT');
+      socket.off('TURN_CHANGE');
       socket.off('UPDATE');
       socket.off('FICHAS_INFO');
       socket.off('JUGADOR_UNIDO');

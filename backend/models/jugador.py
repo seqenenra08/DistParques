@@ -117,6 +117,10 @@ class Jugador:
         # Si todas las fichas están en cárcel, puede lanzar hasta 3 veces
         todas_en_carcel = all(f.esta_en_carcel() for f in self.fichas)
         if todas_en_carcel:
+            # Si ya lanzó y no puede lanzar de nuevo, NO puede (incluso con todas en cárcel)
+            if self.ya_lanzo_dados and not self.puede_lanzar_de_nuevo:
+                return False
+            # Si no ha agotado los intentos, puede lanzar
             return not self.agotar_intentos_carcel()
         
         # Si tiene permiso explícito para lanzar de nuevo (por par), sí puede

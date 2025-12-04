@@ -383,6 +383,9 @@ class ServidorSalas:
             }))
             return
         
+        print(f"\n🎲 {jugador.nombre} intenta lanzar dados:")
+        print(f"   Estado actual: intentos_carcel={jugador.intentos_carcel}, ya_lanzo={jugador.ya_lanzo_dados}")
+        
         # Lanzar dados
         dados = sala.partida.lanzar_dados()
         suma_dados = dados[0] + dados[1]
@@ -416,11 +419,12 @@ class ServidorSalas:
                     # Se agotaron los 3 intentos - pasar turno
                     resultado_info["turn_passed"] = True
                     resultado_info["can_retry"] = False
+                    jugador.ya_lanzo_dados = True  # Marcar que ya lanzó para evitar más lanzamientos
                     jugador.resetear_intentos_carcel()
                     sala.partida._cambiar_turno()
                     print(f"❌ {jugador.nombre} agotó los 3 intentos sin sacar par. Turno pasado.")
                 else:
-                    # Puede intentar de nuevo
+                    # Puede intentar de nuevo - NO marcar ya_lanzo_dados para permitir relanzar
                     resultado_info["can_retry"] = True
                     print(f"⚠️ {jugador.nombre} no sacó par. Intentos: {resultado_info['attempts_used']}/3")
             else:
@@ -428,6 +432,8 @@ class ServidorSalas:
                 resultado_info["needs_piece_selection"] = True
                 jugador.resetear_intentos_carcel()
                 jugador.incrementar_pares()
+                jugador.ya_lanzo_dados = True  # Marcar que ya lanzó
+                jugador.puede_lanzar_de_nuevo = False  # Debe mover primero
                 print(f"✅ {jugador.nombre} sacó par! Puede sacar ficha de la cárcel.")
         
         # Obtener fichas en cárcel si sacó par
@@ -468,9 +474,24 @@ class ServidorSalas:
             "fichas_movibles": fichas_movibles_info.get("fichas_movibles", [])
         })
         
-        # Si se pasó el turno, ejecutar turno del bot si es necesario
+        # Si se pasó el turno, enviar mensaje adicional de cambio de turno
         if resultado_info["turn_passed"]:
-            await asyncio.sleep(1.5)  # Dar tiempo para que el frontend muestre el mensaje
+            await asyncio.sleep(0.5)  # Breve pausa para que se procese el mensaje anterior
+            
+            # Obtener el nuevo jugador actual
+            nuevo_jugador = sala.partida.obtener_jugador_actual()
+            
+            # Enviar mensaje de cambio de turno con estado limpio
+            await self.broadcast_sala(codigo_sala, {
+                "tipo": "TURN_CHANGE",
+                "jugador_anterior": jugador.nombre,
+                "jugador_actual": nuevo_jugador.nombre,
+                "razon": "intentos_agotados",
+                "mensaje": f"{jugador.nombre} agotó los 3 intentos. Turno de {nuevo_jugador.nombre}",
+                "estado": self._enviar_estado_actualizado(sala)
+            })
+            
+            await asyncio.sleep(1.0)  # Dar tiempo para que el frontend procese
             await self.ejecutar_turno_bot_si_necesario(codigo_sala)
     
     async def mover_ficha(self, websocket, mensaje: dict):
@@ -980,6 +1001,11 @@ class ServidorSalas:
         
         # Verificar si puede lanzar
         if not jugador.puede_lanzar():
+            print(f"   ❌ {jugador.nombre} NO puede lanzar:")
+            print(f"      ya_lanzo_dados: {jugador.ya_lanzo_dados}")
+            print(f"      puede_lanzar_de_nuevo: {jugador.puede_lanzar_de_nuevo}")
+            print(f"      intentos_carcel: {jugador.intentos_carcel}")
+            print(f"      todas_en_carcel: {all(f.esta_en_carcel() for f in jugador.fichas)}")
             await websocket.send(json.dumps({"error": "Ya lanzaste los dados. Debes mover primero o esperar a sacar par."}))
             return
         
@@ -989,9 +1015,7 @@ class ServidorSalas:
         print(f"🎲 {jugador.nombre} lanzó {dados}")
         print(f"   📊 Estado antes: ya_lanzo={jugador.ya_lanzo_dados}, puede_lanzar_nuevo={jugador.puede_lanzar_de_nuevo}")
         
-        # Marcar que ya lanzó los dados
-        jugador.ya_lanzo_dados = True
-        jugador.puede_lanzar_de_nuevo = False  # Por defecto no puede lanzar de nuevo, se activará si es par
+        # NO marcar ya_lanzo_dados aquí si todas están en cárcel - se manejará después según el resultado
         
         # Verificar si todas las fichas están en cárcel
         todas_en_carcel = all(f.esta_en_carcel() for f in jugador.fichas)
@@ -1019,11 +1043,12 @@ class ServidorSalas:
                     # Se agotaron los 3 intentos - pasar turno
                     resultado_info["turn_passed"] = True
                     resultado_info["can_retry"] = False
+                    jugador.ya_lanzo_dados = True  # Marcar que ya lanzó para evitar más lanzamientos
                     jugador.resetear_intentos_carcel()
                     sala.partida._cambiar_turno()
                     print(f"❌ {jugador.nombre} agotó los 3 intentos sin sacar par. Turno pasado.")
                 else:
-                    # Puede intentar de nuevo
+                    # Puede intentar de nuevo - NO marcar ya_lanzo_dados para permitir relanzar
                     resultado_info["can_retry"] = True
                     print(f"⚠️ {jugador.nombre} no sacó par. Intentos: {resultado_info['attempts_used']}/3")
             else:
@@ -1031,7 +1056,13 @@ class ServidorSalas:
                 resultado_info["needs_piece_selection"] = True
                 jugador.resetear_intentos_carcel()
                 jugador.incrementar_pares()
+                jugador.ya_lanzo_dados = True  # Marcar que ya lanzó
+                jugador.puede_lanzar_de_nuevo = False  # Debe mover primero
                 print(f"✅ {jugador.nombre} sacó par! Puede sacar ficha de la cárcel.")
+        else:
+            # Si NO todas están en cárcel, marcar que ya lanzó normalmente
+            jugador.ya_lanzo_dados = True
+            jugador.puede_lanzar_de_nuevo = False  # Por defecto no puede lanzar de nuevo, se activará si es par
         
         # Obtener fichas en cárcel si sacó par
         pieces_in_prison = []
@@ -1076,13 +1107,24 @@ class ServidorSalas:
         # Broadcast a todos los demás jugadores en la sala
         await self.broadcast_sala(codigo_sala, dice_message, exclude=websocket)
         
-        # Si se pasó el turno, ejecutar siguiente bot si es necesario
+        # Si se pasó el turno, enviar mensaje adicional de cambio de turno
         if resultado_info["turn_passed"]:
             print(f"⏭️  {jugador.nombre} perdió el turno (intentos agotados)")
+            await asyncio.sleep(0.5)
+            
+            # Obtener el nuevo jugador actual
+            nuevo_jugador = sala.partida.obtener_jugador_actual()
+            
+            # Enviar mensaje de cambio de turno con estado limpio
             await self.broadcast_sala(codigo_sala, {
-                "tipo": "UPDATE",
+                "tipo": "TURN_CHANGE",
+                "jugador_anterior": jugador.nombre,
+                "jugador_actual": nuevo_jugador.nombre,
+                "razon": "intentos_agotados",
+                "mensaje": f"{jugador.nombre} agotó los 3 intentos. Turno de {nuevo_jugador.nombre}",
                 "estado": self._enviar_estado_actualizado(sala)
             })
+            
             await asyncio.sleep(1.0)
             await self.ejecutar_turno_bot_si_necesario(codigo_sala)
     
