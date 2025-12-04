@@ -255,15 +255,19 @@ class Partida:
         # Puede dividir si:
         # 1. Los dados son diferentes Y
         # 2. Tiene al menos 2 fichas fuera de cárcel Y
-        # 3. Al menos una ficha puede moverse con dado1 Y otra con dado2
+        # 3. Al menos 2 fichas DIFERENTES pueden moverse (una con dado1, otra con dado2)
         if dados[0] != dados[1] and len(fichas_fuera) >= 2:
             if fichas_movibles_dado1 and fichas_movibles_dado2:
-                puede_dividir = True
-                opciones_division = [
-                    {"tipo": "suma", "valor": suma, "fichas": fichas_movibles_suma},
-                    {"tipo": "dado1", "valor": dados[0], "fichas": fichas_movibles_dado1},
-                    {"tipo": "dado2", "valor": dados[1], "fichas": fichas_movibles_dado2}
-                ]
+                # Verificar que haya al menos 2 fichas diferentes que puedan moverse
+                # (una ficha podría moverse con ambos dados, pero no cuenta para división)
+                fichas_unicas_division = set(fichas_movibles_dado1 + fichas_movibles_dado2)
+                if len(fichas_unicas_division) >= 2:
+                    puede_dividir = True
+                    opciones_division = [
+                        {"tipo": "suma", "valor": suma, "fichas": fichas_movibles_suma},
+                        {"tipo": "dado1", "valor": dados[0], "fichas": fichas_movibles_dado1},
+                        {"tipo": "dado2", "valor": dados[1], "fichas": fichas_movibles_dado2}
+                    ]
         
         # Combinar todas las fichas movibles
         fichas_movibles = list(set(fichas_movibles_suma + fichas_movibles_dado1 + fichas_movibles_dado2))
