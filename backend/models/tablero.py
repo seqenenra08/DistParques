@@ -8,7 +8,7 @@ from .ficha import Ficha
 class Tablero:
     """Representa el tablero del juego con 68 casillas."""
     
-    SEGUROS: Set[int] = {5, 12, 17, 22, 29, 34, 39, 46, 51, 56, 63, 0}  # Casillas seguras
+    SEGUROS: Set[int] = {5, 12, 17, 22, 29, 34, 39, 46, 51, 56, 63, 68, 0}  # Casillas seguras
     SALIDAS = {"red": 39, "blue": 22, "yellow": 5, "green": 56}
     ENTRADAS_PASILLO = {"red": 29, "blue": 12, "yellow": 63, "green": 46}
     
