@@ -395,9 +395,6 @@ class Partida:
             if not jugador.es_su_turno:
                 return {"error": "No es tu turno"}
             
-            # Marcar que lanzó los dados (se validará antes en procesar_roll)
-            jugador.marcar_lanzamiento()
-            
             resultado = {
                 "dados": dados,
                 "es_par": self.es_par(dados),
@@ -415,31 +412,44 @@ class Partida:
             
             # TODAS LAS FICHAS EN CÁRCEL: 3 oportunidades para sacar fichas con pares
             if todas_en_carcel:
-                jugador.incrementar_intento_carcel()
+                # Solo incrementar intentos si NO se está especificando una ficha (primera llamada desde ROLL)
+                # Esto evita incrementar dos veces: una en ROLL y otra en MOVE
+                if id_ficha is None:
+                    jugador.incrementar_intento_carcel()
+                
                 resultado["intentos_restantes"] = jugador.max_intentos_carcel - jugador.intentos_carcel
                 
                 if not self.es_par(dados):
-                    # No sacó par
-                    if jugador.agotar_intentos_carcel():
-                        # Se agotaron las 3 oportunidades
-                        resultado["accion"] = "intentos_agotados"
-                        resultado["mensaje"] = f"No sacaste par en 3 intentos. Turno perdido."
+                    # No sacó par - solo validar si es la primera llamada (id_ficha es None)
+                    if id_ficha is None:
+                        if jugador.agotar_intentos_carcel():
+                            # Se agotaron las 3 oportunidades
+                            resultado["accion"] = "intentos_agotados"
+                            resultado["mensaje"] = f"No sacaste par en 3 intentos. Turno perdido."
+                            jugador.resetear_intentos_carcel()
+                            self._cambiar_turno()
+                            resultado["cambio_turno"] = True
+                            return resultado
+                        else:
+                            # Aún tiene oportunidades
+                            resultado["accion"] = "sin_par_carcel"
+                            resultado["mensaje"] = f"No sacaste par. Te quedan {resultado['intentos_restantes']} intentos."
+                            return resultado
+                    else:
+                        # Esto no debería ocurrir (intentar mover sin par cuando todas están en cárcel)
+                        return {"error": "No puedes mover fichas. Necesitas sacar PAR para sacar de la cárcel."}
+                else:
+                    # Sacó par - debe sacar ficha de la cárcel
+                    if id_ficha is None:
+                        # Primera llamada desde ROLL - informar que sacó par
                         jugador.resetear_intentos_carcel()
-                        self._cambiar_turno()
-                        resultado["cambio_turno"] = True
+                        jugador.incrementar_pares()  # Contar este par para futuros lanzamientos
+                        resultado["accion"] = "par_sacar_carcel"
+                        resultado["puede_sacar_carcel"] = True
+                        resultado["mensaje"] = "¡Sacaste par! Ahora saca una ficha de la cárcel con 'mover N'."
                         return resultado
                     else:
-                        # Aún tiene oportunidades
-                        resultado["accion"] = "sin_par_carcel"
-                        resultado["mensaje"] = f"No sacaste par. Te quedan {resultado['intentos_restantes']} intentos."
-                        return resultado
-                else:
-                    # Sacó par - debe sacar ficha
-                    jugador.resetear_intentos_carcel()
-                    jugador.incrementar_pares()  # Contar este par para futuros lanzamientos
-                    
-                    if id_ficha is not None:
-                        # Intentar sacar la ficha especificada
+                        # Segunda llamada desde MOVE - ejecutar sacar ficha
                         ficha = jugador.fichas[id_ficha]
                         if not ficha.esta_en_carcel():
                             return {"error": f"La ficha {id_ficha} no está en la cárcel."}
@@ -447,15 +457,12 @@ class Partida:
                         exito = self._sacar_ficha_carcel(jugador, id_ficha)
                         if exito:
                             resultado["accion"] = "sacar_carcel"
-                            resultado["mensaje"] = "Ficha sacada. Puedes lanzar de nuevo."
+                            resultado["mensaje"] = "Ficha sacada de la cárcel. Puedes lanzar de nuevo."
                             # Con par puede tirar de nuevo
                             jugador.permitir_lanzar_de_nuevo()
                             return resultado
-                    else:
-                        # Esperar que especifique la ficha
-                        resultado["accion"] = "par_sacar_carcel"
-                        resultado["mensaje"] = "¡Sacaste par! Ahora saca una ficha de la cárcel."
-                        return resultado
+                        else:
+                            return {"error": "No se pudo sacar la ficha de la cárcel."}
             
             # REGLA DE 3 PARES CONSECUTIVOS: Permite sacar una ficha del juego
             # (Solo cuenta si NO es primer turno, ya que el primer turno ya lo maneja arriba)

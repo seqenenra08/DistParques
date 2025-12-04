@@ -33,6 +33,7 @@ export default function Home() {
   
   // Estados de dados
   const [diceValue, setDiceValue] = useState(null);
+  const [lastDiceRolled, setLastDiceRolled] = useState(null);
   const [isRolling, setIsRolling] = useState(false);
   const [canMove, setCanMove] = useState(false);
   
@@ -48,6 +49,12 @@ export default function Home() {
   const [showMoveSelector, setShowMoveSelector] = useState(false);
   const [pendingPieceForMove, setPendingPieceForMove] = useState(null);
   const [selectedPiece, setSelectedPiece] = useState(null);
+  
+  // División de dados
+  const [canSplitDice, setCanSplitDice] = useState(false);
+  const [splitMode, setSplitMode] = useState(false);
+  const [splitMovements, setSplitMovements] = useState([]);
+  const [currentSplitDice, setCurrentSplitDice] = useState(null);
   
   // Inicializar audio
   useEffect(() => {
@@ -128,6 +135,7 @@ export default function Home() {
       
       setIsRolling(false);
       setDiceValue(data.dados);
+      setLastDiceRolled(data.dados);
       
       if (data.error) {
         audioService.playError();
@@ -159,6 +167,7 @@ export default function Home() {
       
       // Si sacó par con todas en cárcel
       if (data.todas_en_carcel && data.es_par) {
+        console.log('[DICE_RESULT] ✅ Par con todas en cárcel - Dados:', data.dados);
         audioService.playDiceRoll();
         audioService.playDoubles();
         setCanMove(true);
@@ -184,7 +193,30 @@ export default function Home() {
       }
       setAvailableMoves(moves);
       
-      setMessage(data.mensaje || '');
+      // Verificar si puede dividir dados
+      if (data.puede_dividir_dados && data.dados[0] !== data.dados[1]) {
+        console.log('[DICE_RESULT] ✂️ Puede dividir dados');
+        setCanSplitDice(true);
+        setMessage(`✂️ Dados: ${data.dados[0]} y ${data.dados[1]}. Puedes dividirlos o usar la suma (${data.suma})`);
+      } else {
+        setCanSplitDice(false);
+        setMessage(data.mensaje || '');
+      }
+      if (data.puede_dividir_dados) {
+        console.log('[DICE_RESULT] ✂️ Puede dividir dados:', data.opciones_division);
+        setCanSplitDice(true);
+        setSplitOptions({
+          dados: data.dados,
+          suma: data.suma,
+          fichas_movibles: data.fichas_movibles,
+          opciones_division: data.opciones_division
+        });
+        setMessage(`Dados: ${data.dados[0]} + ${data.dados[1]} = ${data.suma}. Haz clic en 'Dividir dados' o elige una ficha`);
+      } else {
+        setCanSplitDice(false);
+        setSplitOptions(null);
+        setMessage(data.mensaje || '');
+      }
     });
 
     // Resultado de movimiento
@@ -206,6 +238,10 @@ export default function Home() {
       setAvailableMoves([]);
       setPendingPieceForMove(null);
       setShowMoveSelector(false);
+      setCanSplitDice(false);
+      setSplitMode(false);
+      setSplitMovements([]);
+      setCurrentSplitDice(null);
       
       // Mostrar mensaje de acción
       const accion = data.accion;
@@ -447,12 +483,13 @@ export default function Home() {
     
     // Si la ficha está en cárcel, mover directamente (sacar con par)
     if (isInPrison) {
-      console.log('[PRISON PIECE] Sacando ficha de la cárcel...');
+      console.log('[PRISON PIECE] Sacando ficha de la cárcel...', { diceValue, canMove });
       
-      // Verificar que efectivamente sea un par
-      if (!diceValue || !Array.isArray(diceValue) || diceValue[0] !== diceValue[1]) {
+      // El backend validará si puede sacar de la cárcel
+      // Solo verificamos que haya lanzado los dados
+      if (!canMove) {
         audioService.playError();
-        showNotification('Necesitas un PAR para sacar fichas de la cárcel', 'warning');
+        showNotification('Debes lanzar los dados primero', 'warning');
         return;
       }
       
@@ -460,7 +497,53 @@ export default function Home() {
       return;
     }
     
-    // Para fichas fuera de la cárcel:
+    // MODO DIVISIÓN DE DADOS
+    if (splitMode) {
+      const pieceId_num = parseInt(pieceIndex);
+      
+      // Verificar que no se use la misma ficha dos veces
+      if (splitMovements.some(m => m.id_ficha === pieceId_num)) {
+        audioService.playError();
+        showNotification('No puedes mover la misma ficha dos veces', 'warning');
+        return;
+      }
+      
+      // Agregar movimiento
+      const nuevoMovimiento = {
+        id_ficha: pieceId_num,
+        valor_dado: currentSplitDice
+      };
+      
+      const nuevosMovimientos = [...splitMovements, nuevoMovimiento];
+      setSplitMovements(nuevosMovimientos);
+      
+      console.log('[SPLIT MODE] Movimiento agregado:', nuevoMovimiento);
+      
+      // Si ya tenemos 2 movimientos, enviar
+      if (nuevosMovimientos.length === 2) {
+        console.log('[SPLIT MODE] Enviando movimientos divididos:', nuevosMovimientos);
+        emit('MOVE_DIVIDIDO', {
+          dados: diceValue,
+          movimientos: nuevosMovimientos
+        });
+        
+        // Resetear modo división
+        setSplitMode(false);
+        setSplitMovements([]);
+        setCurrentSplitDice(null);
+        setCanMove(false);
+        setCanSplitDice(false);
+      } else {
+        // Esperar segundo movimiento
+        const siguienteDado = diceValue[0] === currentSplitDice ? diceValue[1] : diceValue[0];
+        setCurrentSplitDice(siguienteDado);
+        setMessage(`Ahora selecciona otra ficha para moverla ${siguienteDado} casillas`);
+      }
+      
+      return;
+    }
+    
+    // Para fichas fuera de la cárcel (modo normal):
     // Si hay múltiples opciones de movimiento, mostrar selector
     if (availableMoves.length > 1) {
       setSelectedPiece(pieceId);
@@ -476,14 +559,40 @@ export default function Home() {
     }
   };
 
+  const handleEnableSplitMode = () => {
+    if (!canSplitDice || !Array.isArray(diceValue) || diceValue.length !== 2) {
+      return;
+    }
+    
+    console.log('[SPLIT MODE] Activando modo división');
+    setSplitMode(true);
+    setSplitMovements([]);
+    setCurrentSplitDice(diceValue[0]);
+    setMessage(`Selecciona una ficha para moverla ${diceValue[0]} casillas`);
+    setShowMoveSelector(false);
+    audioService.playClick();
+  };
+
+  const handleCancelSplitMode = () => {
+    console.log('[SPLIT MODE] Cancelando modo división');
+    setSplitMode(false);
+    setSplitMovements([]);
+    setCurrentSplitDice(null);
+    setMessage(`Dados: ${diceValue[0]} + ${diceValue[1]} = ${diceValue[0] + diceValue[1]}`);
+    audioService.playClick();
+  };
+
   const movePiece = (pieceId, diceValueToUse) => {
     const [color, pieceIndex] = pieceId.split('_');
     const pieceId_num = parseInt(pieceIndex);
     
-    console.log('[MOVE]', { pieceId: pieceId_num, dados: diceValue, valor: diceValueToUse });
+    // Usar diceValue o lastDiceRolled como respaldo
+    const dadosActuales = diceValue || lastDiceRolled;
+    
+    console.log('[MOVE]', { pieceId: pieceId_num, dados: dadosActuales, valor: diceValueToUse });
     
     // Asegurar que los dados siempre sean un array válido
-    const dadosToSend = Array.isArray(diceValue) ? diceValue : [diceValue, diceValue];
+    const dadosToSend = Array.isArray(dadosActuales) ? dadosActuales : [dadosActuales, dadosActuales];
     
     emit('MOVE', {
       id_ficha: pieceId_num,
@@ -784,6 +893,30 @@ export default function Home() {
               isRolling={isRolling}
               canRoll={isMyTurn() && !canMove && !isRolling}
             />
+
+            {canSplitDice && !splitMode && (
+              <div className={styles.splitButtonsContainer}>
+                <button 
+                  onClick={handleEnableSplitMode} 
+                  className={styles.splitButton}
+                >
+                  ✂️ Dividir dados
+                </button>
+              </div>
+            )}
+
+            {splitMode && (
+              <div className={styles.splitModeIndicator}>
+                <p>🎯 Modo división activo</p>
+                <p>Movimiento {splitMovements.length + 1} de 2</p>
+                <button 
+                  onClick={handleCancelSplitMode} 
+                  className={styles.cancelSplitButton}
+                >
+                  ❌ Cancelar
+                </button>
+              </div>
+            )}
 
             {message && (
               <div className={styles.messageBox}>

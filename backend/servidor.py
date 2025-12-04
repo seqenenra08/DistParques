@@ -108,6 +108,9 @@ class ServidorParques:
         elif tipo == "GET_STATE":
             return {"tipo": "UPDATE", "estado": self.partida.obtener_estado()}
         
+        elif tipo == "EMOJI_REACTION":
+            return self.procesar_emoji(mensaje)
+        
         else:
             return {"error": "Tipo de mensaje desconocido"}
     
@@ -244,6 +247,7 @@ class ServidorParques:
         
         # TODAS EN CÁRCEL: Procesar SIEMPRE para manejar intentos correctamente
         if todas_en_carcel:
+            # NO marcar lanzamiento aquí, procesar_turno maneja el flujo de cárcel
             # Procesar el turno para que se actualice el contador de intentos
             resultado = self.partida.procesar_turno(jugador, dados, None)
             resultado["tipo"] = "DICE_RESULT"
@@ -254,11 +258,14 @@ class ServidorParques:
             
             return resultado
         
+        # Para casos normales (no todas en cárcel), marcar lanzamiento
+        jugador.marcar_lanzamiento()
+        
         # Verificar si puede sacar de cárcel con par
         puede_sacar = es_par and jugador.tiene_fichas_en_carcel()
         
         # Verificar si tiene movimientos válidos
-        info_movimientos = partida.tiene_movimientos_validos(jugador, dados)
+        info_movimientos = self.partida.tiene_movimientos_validos(jugador, dados)
         
         # Si NO tiene movimientos válidos, saltar turno automáticamente
         if not info_movimientos["tiene_movimientos"]:
@@ -267,7 +274,7 @@ class ServidorParques:
             
             # Si no es par, cambiar turno
             if not es_par:
-                partida._cambiar_turno()
+                self.partida._cambiar_turno()
                 self.broadcast_estado()
                 
                 return {
@@ -387,6 +394,28 @@ class ServidorParques:
         
         resultado["tipo"] = "MOVE_RESULT"
         return resultado
+    
+    def procesar_emoji(self, mensaje: dict) -> dict:
+        """Procesa y envía emoji a todos los jugadores."""
+        playerColor = mensaje.get("playerColor")
+        emoji = mensaje.get("emoji")
+        
+        if not playerColor or not emoji:
+            return {"error": "Faltan datos de emoji"}
+        
+        # Preparar mensaje de emoji para broadcast
+        emoji_message = {
+            "tipo": "EMOJI_REACTION",
+            "playerColor": playerColor,
+            "emoji": emoji
+        }
+        
+        print(f"😊 Emoji recibido: {emoji} del jugador {playerColor}")
+        
+        # Enviar a todos los clientes
+        self.broadcast_mensaje(emoji_message)
+        
+        return {"tipo": "EMOJI_REACTION", "exito": True}
     
     def broadcast_estado(self):
         """Envía el estado actual a todos los clientes."""

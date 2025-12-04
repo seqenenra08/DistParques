@@ -435,6 +435,16 @@ class ServidorSalas:
         if es_par and todas_en_carcel:
             pieces_in_prison = [f.id for f in jugador.fichas if f.esta_en_carcel()]
         
+        # Verificar si puede dividir los dados (solo si NO están todas en cárcel y NO es par)
+        puede_dividir = False
+        opciones_division = []
+        fichas_movibles_info = {"fichas_movibles": [], "puede_dividir": False}
+        
+        if not todas_en_carcel:
+            fichas_movibles_info = sala.partida.tiene_movimientos_validos(jugador, dados)
+            puede_dividir = fichas_movibles_info.get("puede_dividir", False)
+            opciones_division = fichas_movibles_info.get("opciones_division", [])
+        
         # Broadcast a todos en la sala con nombre consistente DICE_RESULT
         await self.broadcast_sala(codigo_sala, {
             "tipo": "DICE_RESULT",
@@ -452,7 +462,10 @@ class ServidorSalas:
             "needs_piece_selection": resultado_info["needs_piece_selection"],
             "attempts_used": resultado_info["attempts_used"],
             "attempts_remaining": resultado_info["attempts_remaining"],
-            "pieces_in_prison": pieces_in_prison
+            "pieces_in_prison": pieces_in_prison,
+            "puede_dividir_dados": puede_dividir,
+            "opciones_division": opciones_division,
+            "fichas_movibles": fichas_movibles_info.get("fichas_movibles", [])
         })
         
         # Si se pasó el turno, ejecutar turno del bot si es necesario
@@ -609,6 +622,16 @@ class ServidorSalas:
         if es_par and todas_en_carcel:
             pieces_in_prison = [f.id for f in jugador_actual.fichas if f.esta_en_carcel()]
         
+        # Verificar si puede dividir los dados (solo si NO están todas en cárcel y NO es par)
+        puede_dividir = False
+        opciones_division = []
+        fichas_movibles_info = {"fichas_movibles": [], "puede_dividir": False}
+        
+        if not todas_en_carcel:
+            fichas_movibles_info = sala.partida.tiene_movimientos_validos(jugador_actual, dados)
+            puede_dividir = fichas_movibles_info.get("puede_dividir", False)
+            opciones_division = fichas_movibles_info.get("opciones_division", [])
+        
         # Broadcast del lanzamiento de dados con estructura completa
         print(f"   📡 [BOT] Broadcasting DICE_RESULT...")
         await self.broadcast_sala(codigo_sala, {
@@ -627,7 +650,10 @@ class ServidorSalas:
             "needs_piece_selection": resultado_info["needs_piece_selection"],
             "attempts_used": resultado_info["attempts_used"],
             "attempts_remaining": resultado_info["attempts_remaining"],
-            "pieces_in_prison": pieces_in_prison
+            "pieces_in_prison": pieces_in_prison,
+            "puede_dividir_dados": puede_dividir,
+            "opciones_division": opciones_division,
+            "fichas_movibles": fichas_movibles_info.get("fichas_movibles", [])
         })
         
         # Si se pasó el turno, ejecutar siguiente bot si es necesario
@@ -823,8 +849,10 @@ class ServidorSalas:
                             "estado": self._enviar_estado_actualizado(sala)
                         })
                         
-                        # Si el primer jugador es un bot, ejecutar su turno
-                        await asyncio.sleep(1.0)
+                        # CRÍTICO: Si el primer jugador es un bot, ejecutar su turno
+                        print(f"   🔍 [BOT CHECK] Verificando si jugador inicial es bot...")
+                        print(f"   👤 Jugador inicial: {jugador_actual.nombre} (ID: {jugador_actual.id})")
+                        await asyncio.sleep(1.5)
                         await self.ejecutar_turno_bot_si_necesario(codigo_sala)
                         
                         return  # Salir después de determinar el orden
@@ -899,6 +927,12 @@ class ServidorSalas:
                 "tipo": "UPDATE",
                 "estado": self._enviar_estado_actualizado(sala)
             })
+            
+            # CRÍTICO: Si el jugador inicial es un bot, ejecutar su turno
+            jugador_actual = sala.partida.obtener_jugador_actual()
+            print(f"   🔍 [BOT CHECK] Turno inicial determinado - Jugador: {jugador_actual.nombre} (ID: {jugador_actual.id})")
+            await asyncio.sleep(1.5)
+            await self.ejecutar_turno_bot_si_necesario(codigo_sala)
         
         await websocket.send(json.dumps({
             "tipo": "DADO_INICIO_RESULT",
@@ -1004,6 +1038,16 @@ class ServidorSalas:
         if es_par and todas_en_carcel:
             pieces_in_prison = [f.id for f in jugador.fichas if f.esta_en_carcel()]
         
+        # Verificar si puede dividir los dados (solo si NO están todas en cárcel y NO es par)
+        puede_dividir = False
+        opciones_division = []
+        fichas_movibles_info = {"fichas_movibles": [], "puede_dividir": False}
+        
+        if not todas_en_carcel:
+            fichas_movibles_info = sala.partida.tiene_movimientos_validos(jugador, dados)
+            puede_dividir = fichas_movibles_info.get("puede_dividir", False)
+            opciones_division = fichas_movibles_info.get("opciones_division", [])
+        
         # Preparar mensaje de dados
         dice_message = {
             "tipo": "DICE_RESULT",
@@ -1020,7 +1064,10 @@ class ServidorSalas:
             "needs_piece_selection": resultado_info["needs_piece_selection"],
             "attempts_used": resultado_info["attempts_used"],
             "attempts_remaining": resultado_info["attempts_remaining"],
-            "pieces_in_prison": pieces_in_prison
+            "pieces_in_prison": pieces_in_prison,
+            "puede_dividir_dados": puede_dividir,
+            "opciones_division": opciones_division,
+            "fichas_movibles": fichas_movibles_info.get("fichas_movibles", [])
         }
         
         # Enviar al jugador que lanzó
