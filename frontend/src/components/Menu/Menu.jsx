@@ -383,6 +383,7 @@ const Menu = ({ onStartGame, onShowRules, onCreateRoom, onJoinRoom, availableCol
             </div>
             
             <div className={styles.modeSelection}>
+              {/* Botón de partida local oculto temporalmente
               <button
                 className={styles.modeCard}
                 onClick={handleStartGame}
@@ -393,6 +394,7 @@ const Menu = ({ onStartGame, onShowRules, onCreateRoom, onJoinRoom, availableCol
                   Juega localmente en este dispositivo
                 </p>
               </button>
+              */}
               
               <button
                 className={styles.modeCard}
@@ -426,7 +428,7 @@ const Menu = ({ onStartGame, onShowRules, onCreateRoom, onJoinRoom, availableCol
           </div>
 
           <div className={styles.instructionText}>
-            Elige entre crear una partida local o unirte a una partida en línea
+            Únete a una partida en línea con otros jugadores
           </div>
         </div>
       </div>

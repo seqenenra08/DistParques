@@ -18,15 +18,13 @@ def test_bug_intentos_carcel_dos_jugadores():
     - Jugador 1 eventualmente no saca par y su turno termina
     - Jugador 2 debe poder lanzar hasta 3 veces para intentar sacar par
     """
-    partida = Partida()
-    jugador1 = Jugador("Jugador1", "rojo")
-    jugador2 = Jugador("Jugador2", "azul")
+    partida = Partida("test-001", max_jugadores=2)
+    jugador1 = partida.agregar_jugador("Jugador1", "jugador1", "red")
+    jugador2 = partida.agregar_jugador("Jugador2", "jugador2", "blue")
+    partida.iniciar_partida()
     
-    partida.agregar_jugador(jugador1)
-    partida.agregar_jugador(jugador2)
-    partida.iniciar()
-    
-    # Forzar turno de jugador1
+    # Saltar fase de dados de inicio y forzar turno de jugador1
+    partida.esperando_dados_inicio = False
     partida.turno_actual = 0
     jugador1.es_su_turno = True
     jugador2.es_su_turno = False

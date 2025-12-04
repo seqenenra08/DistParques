@@ -317,10 +317,25 @@ export default function Home() {
     // Estado actualizado
     socket.on('UPDATE', (data) => {
       console.log('[UPDATE]', data.estado);
+      console.log('[UPDATE] Estado actual antes:', {
+        previousPlayer: gameState?.jugador_actual,
+        myPlayerInfo: myPlayerInfo?.nombre,
+        canMove,
+        diceValue,
+        isRolling
+      });
+      
+      // Detectar cambio de turno
+      const previousPlayerName = gameState?.jugador_actual;
+      const currentPlayerName = data.estado.jugador_actual;
+      const turnChanged = previousPlayerName && previousPlayerName !== currentPlayerName;
+      
       setGameState(data.estado);
       
-      // Si no es mi turno, limpiar estado de dados
-      if (myPlayerInfo && data.estado.jugador_actual !== myPlayerInfo.nombre) {
+      // Si cambió el turno, limpiar estado de TODOS los jugadores
+      if (turnChanged) {
+        console.log('[UPDATE] ✅ Turno cambió de', previousPlayerName, 'a', currentPlayerName);
+        console.log('[UPDATE] ✅ Limpiando TODO el estado (canMove -> false)');
         setDiceValue(null);
         setLastDiceRolled(null);
         setCanMove(false);
@@ -331,6 +346,23 @@ export default function Home() {
         setSplitMode(false);
         setSplitMovements([]);
         setCurrentSplitDice(null);
+        setMessage('');
+        setIsRolling(false);
+      } else if (myPlayerInfo && data.estado.jugador_actual !== myPlayerInfo.nombre) {
+        // Si no es mi turno (sin cambio de turno), limpiar estado
+        console.log('[UPDATE] 🔄 No es mi turno, limpiando estado');
+        setDiceValue(null);
+        setLastDiceRolled(null);
+        setCanMove(false);
+        setAvailableMoves([]);
+        setSelectedPiece(null);
+        setShowMoveSelector(false);
+        setCanSplitDice(false);
+        setSplitMode(false);
+        setSplitMovements([]);
+        setCurrentSplitDice(null);
+      } else {
+        console.log('[UPDATE] ⚠️ Es mi turno pero no cambió el turno - manteniendo estado');
       }
     });
 
@@ -493,21 +525,33 @@ export default function Home() {
   };
 
   const handleDiceRoll = () => {
+    console.log('[ROLL] 🎲 Intentando lanzar dados...', {
+      connected,
+      isMyTurn: isMyTurn(),
+      isRolling,
+      canMove,
+      myPlayerInfo: myPlayerInfo?.nombre,
+      currentPlayer: gameState?.jugador_actual
+    });
+    
     if (!connected) {
+      console.log('[ROLL] ❌ Bloqueado: No conectado');
       showNotification('No estás conectado al servidor', 'error');
       return;
     }
     
     if (!isMyTurn()) {
+      console.log('[ROLL] ❌ Bloqueado: No es mi turno');
       showNotification('No es tu turno', 'warning');
       return;
     }
     
     if (isRolling || canMove) {
+      console.log('[ROLL] ❌ Bloqueado: isRolling=', isRolling, ', canMove=', canMove);
       return;
     }
     
-    console.log('[ROLL] Lanzando dados...');
+    console.log('[ROLL] ✅ Lanzando dados...');
     setIsRolling(true);
     emit('ROLL', { jugador: myPlayerInfo.nombre });
   };
