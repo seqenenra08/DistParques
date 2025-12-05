@@ -10,7 +10,7 @@ const RoomSelection = ({ onCreateRoom, onJoinRoom, onBack, availableColors = [],
   const [mode, setMode] = useState('select'); // 'select', 'create', 'join', 'selectColor'
   const [playerName, setPlayerName] = useState('');
   const [roomCode, setRoomCode] = useState('');
-  const [maxPlayers, setMaxPlayers] = useState(4);
+  const maxPlayers = 4; // Fijo en 4 jugadores máximo
   const [numBots, setNumBots] = useState(0);
   const [selectedColor, setSelectedColor] = useState('');
   const [error, setError] = useState('');
@@ -74,8 +74,8 @@ const RoomSelection = ({ onCreateRoom, onJoinRoom, onBack, availableColors = [],
       return;
     }
 
-    // Validar que haya espacio para los bots
-    if (numBots >= maxPlayers) {
+    // Validar que haya espacio para jugadores humanos (máximo 3 bots)
+    if (numBots >= 4) {
       setError('Debe haber al menos 1 espacio para jugadores humanos');
       audioService.playError();
       return;
@@ -184,33 +184,11 @@ const RoomSelection = ({ onCreateRoom, onJoinRoom, onBack, availableColors = [],
               <div className={styles.stepContent}>
                 <div className={styles.paramGrid}>
                   <div className={styles.paramSection}>
-                    <label>SLOTS TOTALES</label>
+                    <label>BOTS ACTIVOS (Máximo 4 jugadores totales)</label>
                     <div className={styles.selectorGrid}>
-                      {[2, 3, 4].map((num) => (
-                        <button
-                          key={num}
-                          className={`${styles.paramButton} ${
-                            maxPlayers === num ? styles.active : ''
-                          }`}
-                          onClick={() => {
-                            setMaxPlayers(num);
-                            if (numBots >= num) {
-                              setNumBots(Math.max(0, num - 1));
-                            }
-                            audioService.playClick();
-                          }}
-                        >
-                          <span className={styles.paramValue}>{num}</span>
-                          <span className={styles.paramLabel}>USERS</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className={styles.paramSection}>
-                    <label>BOTS ACTIVOS</label>
-                    <div className={styles.selectorGrid}>
-                      {[0, 1, 2].map((num) => {
-                        const isDisabled = num >= maxPlayers;
+                      {[0, 1, 2, 3].map((num) => {
+                        // Asegurar que siempre haya al menos 1 espacio para jugador humano
+                        const isDisabled = num >= 4; // Máximo 3 bots (4 total - 1 humano mínimo)
                         return (
                           <button
                             key={num}
@@ -230,6 +208,9 @@ const RoomSelection = ({ onCreateRoom, onJoinRoom, onBack, availableColors = [],
                           </button>
                         );
                       })}
+                    </div>
+                    <div className={styles.paramInfo}>
+                      <span>Jugadores humanos: {4 - numBots} | Bots: {numBots}</span>
                     </div>
                   </div>
                 </div>

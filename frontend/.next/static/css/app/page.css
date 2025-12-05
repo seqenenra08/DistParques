@@ -4591,15 +4591,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
 .RoomSelection_container__yUI0h {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  align-items: stretch;
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   background: #000000;
-  font-family: 'Share Tech Mono', monospace;
   position: relative;
-  overflow: hidden;
-  padding: 20px;
+  font-family: 'Share Tech Mono', monospace;
+  grid-gap: 0;
+  gap: 0;
 }
 
 .RoomSelection_container__yUI0h::before {
@@ -4613,39 +4613,84 @@
   animation: RoomSelection_scanlines__vHj9A 8s linear infinite;
 }
 
+.RoomSelection_container__yUI0h::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: 
+    linear-gradient(transparent 0%, rgba(0, 255, 65, 0.8) 5%, rgba(0, 255, 65, 0.4) 10%, transparent 30%),
+    linear-gradient(transparent 0%, rgba(0, 255, 65, 0.8) 5%, rgba(0, 255, 65, 0.4) 10%, transparent 30%),
+    linear-gradient(transparent 0%, rgba(0, 255, 65, 0.8) 5%, rgba(0, 255, 65, 0.4) 10%, transparent 30%);
+  background-size: 2px 30%, 2px 30%, 2px 30%;
+  background-position: 15% 0%, 50% 0%, 85% 0%;
+  background-repeat: repeat-y;
+  pointer-events: none;
+  animation: RoomSelection_matrix-rain__eyPrU 3s linear infinite;
+  z-index: 1;
+  filter: blur(0.5px);
+}
+
+@keyframes RoomSelection_matrix-rain__eyPrU {
+  from { 
+    background-position: 15% -30%, 50% -30%, 85% -30%;
+  }
+  to { 
+    background-position: 15% 100%, 50% 100%, 85% 100%;
+  }
+}
+
 @keyframes RoomSelection_scanlines__vHj9A {
   0% { transform: translateY(0); }
   100% { transform: translateY(10px); }
 }
 
 .RoomSelection_box__5ZiFv {
-  background: rgba(0, 20, 10, 0.95);
+  background: rgba(0, 10, 0, 0.98);
+  border-right: 4px solid #00ff41;
   border-radius: 0;
-  border-right: 2px solid rgba(0, 255, 65, 0.5);
-  box-shadow: 
-    0 0 40px rgba(0, 255, 65, 0.3),
-    inset 0 0 20px rgba(0, 255, 65, 0.1);
-  padding: 30px;
+  padding: 3rem 2rem;
+  width: 100%;
   height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  animation: RoomSelection_slideInLeft__zB54B 0.4s ease-out;
+  box-shadow: 
+    inset -20px 0 40px rgba(0, 255, 65, 0.1),
+    4px 0 20px rgba(0, 255, 65, 0.3);
+  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(15px);
+  animation: RoomSelection_slideInLeft__zB54B 0.8s ease-out;
   position: relative;
   z-index: 2;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 /* Panel de información lateral derecho */
 .RoomSelection_infoPanel__O0COs {
-  background: rgba(0, 0, 0, 0.8);
-  border-left: 2px solid rgba(0, 255, 255, 0.5);
-  padding: 30px;
+  background: rgba(0, 5, 15, 0.95);
+  border-left: 4px solid #00ffff;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
+  align-items: center;
   position: relative;
-  overflow-y: auto;
+  overflow: hidden;
+}
+
+.RoomSelection_infoPanel__O0COs::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    linear-gradient(45deg, transparent 30%, rgba(0, 255, 255, 0.05) 50%, transparent 70%),
+    repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0, 255, 255, 0.1) 2px, rgba(0, 255, 255, 0.1) 4px);
+  animation: RoomSelection_info-scan__B_v1b 8s linear infinite;
+}
+
+@keyframes RoomSelection_info-scan__B_v1b {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 .RoomSelection_terminalWindow__wnAvJ {
@@ -4662,6 +4707,8 @@
   animation: RoomSelection_pulse-border__HQgh7 3s ease-in-out infinite;
   position: relative;
   overflow: hidden;
+  z-index: 2;
+  max-width: 400px;
 }
 
 .RoomSelection_terminalHeader__KeYMI {
@@ -4855,10 +4902,9 @@
 }
 
 .RoomSelection_paramGrid__HUPtJ {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-gap: 30px;
-  gap: 30px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .RoomSelection_paramSection__xB4UH label {
@@ -4872,7 +4918,7 @@
 
 .RoomSelection_selectorGrid__jTco1 {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   grid-gap: 10px;
   gap: 10px;
 }
@@ -4912,6 +4958,18 @@
 .RoomSelection_paramLabel__E4oQo {
   font-size: 0.7rem;
   opacity: 0.7;
+}
+
+.RoomSelection_paramInfo__uVjj1 {
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(0, 255, 65, 0.1);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  border-radius: 4px;
+  text-align: center;
+  color: #00ff41;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .RoomSelection_colorGrid__VYboL {
@@ -5724,9 +5782,29 @@
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+  .RoomSelection_container__yUI0h {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+  
+  .RoomSelection_box__5ZiFv {
+    height: auto;
+    min-height: 70vh;
+    border-right: none;
+    border-bottom: 4px solid #00ff41;
+  }
+  
+  .RoomSelection_infoPanel__O0COs {
+    border-left: none;
+    border-top: 4px solid #00ffff;
+    min-height: 30vh;
+  }
+}
+
 @media (max-width: 768px) {
   .RoomSelection_box__5ZiFv {
-    padding: 24px;
+    padding: 2rem 1rem;
   }
 
   .RoomSelection_title__qaEly {
@@ -5745,6 +5823,138 @@
 
   .RoomSelection_modeTitle__Gmu_B {
     font-size: 1.2rem;
+  }
+  
+  .RoomSelection_terminalWindow__wnAvJ {
+    padding: 15px;
+  }
+  
+  .RoomSelection_wizardBox__ubyAK {
+    max-width: 100%;
+    padding: 20px;
+  }
+}
+
+/* Estilos adicionales para el diseño hacker */
+.RoomSelection_header__AlRHF {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid rgba(0, 255, 65, 0.3);
+  gap: 8px;
+}
+
+.RoomSelection_titleContainer__vfa10 {
+  flex: 1 1;
+}
+
+.RoomSelection_title__qaEly {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #00ff41;
+  margin-bottom: 0.25rem;
+  text-shadow: 
+    0 0 15px #00ff41,
+    0 0 30px #00ff41;
+  text-align: center;
+  font-family: 'Share Tech Mono', monospace;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  animation: RoomSelection_title-glitch__Cg_Ci 5s infinite;
+  writing-mode: vertical-rl;
+  -webkit-text-orientation: mixed;
+          text-orientation: mixed;
+  transform: rotate(180deg);
+}
+
+@keyframes RoomSelection_title-glitch__Cg_Ci {
+  0%, 90%, 100% { transform: rotate(180deg) translate(0); }
+  91% { transform: rotate(180deg) translate(-2px, 2px); }
+  93% { transform: rotate(180deg) translate(2px, -2px); }
+  95% { transform: rotate(180deg) translate(-2px, -2px); }
+}
+
+.RoomSelection_subtitle__gECpT {
+  font-size: 0.95rem;
+  color: #00ffff;
+  font-weight: 400;
+  text-align: center;
+  text-shadow: 0 0 10px #00ffff;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.RoomSelection_mainContent__Ygzss {
+  width: 100%;
+}
+
+.RoomSelection_icon__ypxXO {
+  font-size: 1.5rem;
+  color: #00ffff;
+  text-shadow: 0 0 10px #00ffff;
+  animation: RoomSelection_icon-pulse__DcwiR 2s ease-in-out infinite;
+}
+
+@keyframes RoomSelection_icon-pulse__DcwiR {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Responsive actualizado para grid */
+@media (max-width: 1024px) {
+  .RoomSelection_container__yUI0h {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+  
+  .RoomSelection_box__5ZiFv {
+    height: auto;
+    min-height: 70vh;
+    border-right: none;
+    border-bottom: 4px solid #00ff41;
+  }
+  
+  .RoomSelection_infoPanel__O0COs {
+    border-left: none;
+    border-top: 4px solid #00ffff;
+    min-height: 30vh;
+  }
+  
+  .RoomSelection_title__qaEly {
+    writing-mode: initial;
+    -webkit-text-orientation: initial;
+            text-orientation: initial;
+    transform: none;
+    font-size: 2.2rem;
+  }
+  
+  @keyframes RoomSelection_title-glitch__Cg_Ci {
+    0%, 90%, 100% { transform: translate(0); }
+    91% { transform: translate(-2px, 2px); }
+    93% { transform: translate(2px, -2px); }
+    95% { transform: translate(-2px, -2px); }
+  }
+}
+
+@media (max-width: 768px) {
+  .RoomSelection_box__5ZiFv {
+    padding: 2rem 1rem;
+  }
+
+  .RoomSelection_title__qaEly {
+    font-size: 2rem;
+  }
+
+  .RoomSelection_backButton__lSXy7 {
+    position: static;
+    margin-bottom: 20px;
+    width: 100%;
+  }
+  
+  .RoomSelection_terminalWindow__wnAvJ {
+    max-width: 100%;
   }
 }
 
