@@ -636,21 +636,25 @@ class Partida:
         entrada_pasillo = self.tablero.ENTRADAS_PASILLO.get(jugador.color)
         
         # Verificar si la ficha debe entrar al pasillo
-        # REGLA: Solo puede entrar si ya completó al menos 68 casillas recorridas
+        # REGLA: Puede entrar al pasillo una vez que haya salido de la cárcel y llegue a su entrada
+        # (no necesita dar vuelta completa, solo pasar por su casilla de salida inicial)
         debe_entrar_pasillo = False
         casillas_en_pasillo = 0
         
-        casillas_tras_movimiento = ficha.casillas_recorridas + casillas
+        # Obtener la casilla de salida para este color
+        casilla_salida = self.tablero.SALIDAS.get(jugador.color)
         
-        # Solo verificar entrada al pasillo si ya completó o completará la vuelta (>=68 casillas)
-        if casillas_tras_movimiento >= 68:
+        # Verificar si la ficha ya pasó por su casilla de salida al menos una vez
+        # Esto significa que salió de la cárcel y ha estado recorriendo el tablero
+        ya_paso_por_salida = ficha.casillas_recorridas > 0
+        
+        if ya_paso_por_salida:
             # Simular el movimiento casilla por casilla para detectar la entrada
             for i in range(1, casillas + 1):
                 pos_intermedia = (posicion_anterior + i) % 68
-                casillas_acumuladas = ficha.casillas_recorridas + i
                 
-                # Detectar si pasa por la entrada del pasillo Y ya completó la vuelta
-                if pos_intermedia == entrada_pasillo and casillas_acumuladas >= 68:
+                # Detectar si pasa por la entrada del pasillo
+                if pos_intermedia == entrada_pasillo:
                     debe_entrar_pasillo = True
                     casillas_en_pasillo = casillas - i  # Casillas restantes para el pasillo
                     print(f"🚪 Ficha {jugador.color}-{ficha.id} ENTRA AL PASILLO en pos {entrada_pasillo} con {casillas_en_pasillo} casillas en pasillo")
