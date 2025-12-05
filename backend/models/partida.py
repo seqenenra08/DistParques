@@ -578,9 +578,13 @@ class Partida:
                 
                 if not fichas_fuera:
                     resultado["accion"] = "sin_movimiento"
+                    # Solo cambiar turno si no es par (con par mantiene turno para lanzar de nuevo)
                     if not self.es_par(dados):
                         self._cambiar_turno()
                         resultado["cambio_turno"] = True
+                    else:
+                        # Con par puede lanzar de nuevo incluso si no tiene movimientos
+                        jugador.permitir_lanzar_de_nuevo()
                 else:
                     resultado["accion"] = "esperando_movimiento"
             
