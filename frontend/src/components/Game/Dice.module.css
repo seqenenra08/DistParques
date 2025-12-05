@@ -624,3 +624,88 @@
     padding: 3px 10px;
   }
 }
+
+/* ==========================================
+   ESTILOS PARA MODO EMBEDDED
+   ========================================== */
+
+.embeddedDiceContainer {
+  background: transparent;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.embeddedHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.embeddedTitle {
+  color: #00ffff;
+  font-size: 1rem;
+  margin: 0;
+  font-weight: bold;
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
+}
+
+.embeddedStatus {
+  color: #00ff41;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-shadow: 0 0 6px rgba(0, 255, 65, 0.6);
+}
+
+.embeddedDoubles {
+  background: linear-gradient(45deg, #ff6b35, #f7931e);
+  color: white;
+  text-align: center;
+  padding: 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  animation: pulse 1s infinite;
+}
+
+.embeddedDiceWrapper {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+}
+
+.embeddedRollBtn {
+  background: linear-gradient(145deg, #00ff41, #00cc33);
+  color: #000;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 
+    0 4px 8px rgba(0, 255, 65, 0.3),
+    inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+.embeddedRollBtn:hover:not(:disabled) {
+  background: linear-gradient(145deg, #00ff55, #00dd44);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 6px 12px rgba(0, 255, 65, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.embeddedRollBtn:disabled {
+  background: linear-gradient(145deg, #555, #333);
+  color: #888;
+  cursor: not-allowed;
+  box-shadow: none;
+}

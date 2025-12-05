@@ -1622,598 +1622,6 @@
     inset 0 0 15px rgba(0, 0, 0, 0.9);
   filter: brightness(1.6);
 }
-/*!*********************************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[7].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[7].use[3]!./src/components/Board/Board.module.css ***!
-  \*********************************************************************************************************************************************************************************************************************************************************************************/
-/* Estilos para el componente Board - Tablero con imagen estática */
-
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-
-.Board_boardContainer__ygdcY {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-  background: #000000;
-  min-height: 100vh;
-  width: 100%;
-  position: relative;
-  font-family: 'Share Tech Mono', monospace;
-}
-
-.Board_boardContainer__ygdcY::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: 
-    repeating-linear-gradient(0deg, rgba(0, 255, 65, 0.03) 0px, transparent 1px, transparent 2px, rgba(0, 255, 65, 0.03) 3px),
-    radial-gradient(ellipse at center, rgba(0, 20, 40, 0.8) 0%, #000000 100%);
-  pointer-events: none;
-  z-index: -1;
-  animation: Board_scanlines__HVzoz 8s linear infinite;
-}
-
-@keyframes Board_scanlines__HVzoz {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(10px); }
-}
-
-.Board_board__rdPHo {
-  display: grid;
-  grid-template-columns: 350px 1fr;
-  grid-gap: 20px;
-  gap: 20px;
-  min-height: 100vh;
-  padding: 20px;
-  background: rgba(0, 20, 10, 0.95);
-  border: 2px solid rgba(0, 255, 65, 0.6);
-  border-radius: 0;
-  -webkit-clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 30px 100%, 0 calc(100% - 30px));
-          clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 30px 100%, 0 calc(100% - 30px));
-  -webkit-backdrop-filter: blur(15px);
-  backdrop-filter: blur(15px);
-  position: relative;
-  z-index: 100;
-  font-family: 'Share Tech Mono', monospace;
-  animation: Board_slideInLeft__C3qtP 0.8s ease-out;
-  box-shadow: 
-    0 0 30px rgba(0, 255, 65, 0.3),
-    inset 0 0 20px rgba(0, 255, 65, 0.1);
-  width: 100%;
-  max-width: none;
-  margin: 0;
-}
-
-@keyframes Board_board-glow__lYIF3 {
-  0% {
-    box-shadow: 
-      0 0 30px rgba(0, 255, 65, 0.5),
-      0 0 60px rgba(0, 255, 65, 0.3),
-      inset 0 0 20px rgba(0, 255, 65, 0.1);
-  }
-  100% {
-    box-shadow: 
-      0 0 40px rgba(0, 255, 255, 0.6),
-      0 0 80px rgba(0, 255, 255, 0.4),
-      inset 0 0 30px rgba(0, 255, 255, 0.15);
-  }
-}
-
-.Board_boardBackground__lcflw {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 101;
-  pointer-events: none;
-}
-
-/* Información del juego superpuesta */
-.Board_gameInfo__o55Do {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 120;
-  background: rgba(0, 10, 0, 0.95);
-  color: #00ff41;
-  padding: 10px;
-  border-radius: 4px;
-  border: 2px solid #00ff41;
-  font-size: 14px;
-  box-shadow: 
-    0 0 20px rgba(0, 255, 65, 0.5),
-    inset 0 0 10px rgba(0, 255, 65, 0.1);
-  font-family: 'Share Tech Mono', monospace;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.Board_currentPlayer__gu3lX {
-  margin-bottom: 5px;
-}
-
-.Board_playerIndicator__mAiV3 {
-  font-weight: bold;
-}
-
-.Board_playerIndicator__mAiV3.Board_red__61crM {
-  color: #ff4444;
-}
-
-.Board_playerIndicator__mAiV3.Board_blue___ZdyR {
-  color: #4444ff;
-}
-
-.Board_playerIndicator__mAiV3.Board_green__CdYLl {
-  color: #44ff44;
-}
-
-.Board_playerIndicator__mAiV3.Board_yellow__pMpui {
-  color: #ffff44;
-}
-
-.Board_diceDisplay__LZVD0 {
-  font-size: 16px;
-  font-weight: bold;
-  color: #fff;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-/* Información de jugadores */
-.Board_playersInfo__QIQ7z {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  flex-wrap: wrap;
-  max-width: 700px;
-  margin-top: 10px;
-}
-
-.Board_playerInfo__2_dZo {
-  background: rgba(255, 255, 255, 0.9);
-  padding: 10px 15px;
-  border-radius: 8px;
-  border: 2px solid;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  min-width: 120px;
-  text-align: center;
-}
-
-.Board_playerInfo__2_dZo.Board_red__61crM {
-  border-color: #ff4444;
-  background: linear-gradient(135deg, rgba(255, 68, 68, 0.1), rgba(255, 255, 255, 0.9));
-}
-
-.Board_playerInfo__2_dZo.Board_blue___ZdyR {
-  border-color: #4444ff;
-  background: linear-gradient(135deg, rgba(68, 68, 255, 0.1), rgba(255, 255, 255, 0.9));
-}
-
-.Board_playerInfo__2_dZo.Board_green__CdYLl {
-  border-color: #44ff44;
-  background: linear-gradient(135deg, rgba(68, 255, 68, 0.1), rgba(255, 255, 255, 0.9));
-}
-
-.Board_playerInfo__2_dZo.Board_yellow__pMpui {
-  border-color: #ffff44;
-  background: linear-gradient(135deg, rgba(255, 255, 68, 0.1), rgba(255, 255, 255, 0.9));
-}
-
-.Board_playerName__oHWJ5 {
-  font-weight: bold;
-  margin-bottom: 5px;
-  font-size: 14px;
-}
-
-.Board_playerStats__kTiN8 {
-  font-size: 12px;
-  color: #00ffff;
-}
-
-/* Resaltado de cárceles cuando la cuadrícula está activa */
-.Board_prisonHighlight__4B_L_ {
-  position: absolute;
-  border: 2px dashed rgba(255, 255, 255, 0.6);
-  border-radius: 10px;
-  background-color: rgba(0, 0, 0, 0.1);
-  z-index: 105;
-  pointer-events: none;
-}
-
-.Board_prisonLabel__zSKfY {
-  position: absolute;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: #00ff41;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: bold;
-  z-index: 125;
-  pointer-events: none;
-  transform: translate(-50%, -100%);
-  margin-top: -5px;
-}
-
-/* Cuadrícula de referencia */
-.Board_gridLine__Byxj_ {
-  position: absolute;
-  background-color: rgba(255, 0, 0, 0.5);
-  z-index: 110;
-  pointer-events: none;
-}
-
-.Board_gridLineVertical__iRkhk {
-  width: 1px;
-  height: 100%;
-  top: 0;
-}
-
-.Board_gridLineHorizontal___Us2n {
-  height: 1px;
-  width: 100%;
-  left: 0;
-}
-
-.Board_coordinateLabel__DU9JC {
-  position: absolute;
-  font-size: 8px;
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 1px 2px;
-  border-radius: 2px;
-  z-index: 115;
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-  color: #000;
-  font-weight: bold;
-  font-family: 'Share Tech Mono', monospace;
-}
-
-.Board_gridToggleButton__UpBjA {
-  margin-bottom: 10px;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
-
-.Board_gridToggleButton__UpBjA:hover {
-  transform: scale(1.05);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.Board_gridToggleButton__UpBjA.Board_active__bstCP {
-  background-color: #ff4444;
-  color: #00ff41;
-}
-
-.Board_gridToggleButton__UpBjA.Board_inactive__l5cWv {
-  background-color: #44ff44;
-  color: #00ff41;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .Board_boardContainer__ygdcY {
-    padding: 10px;
-  }
-  
-  .Board_gameInfo__o55Do {
-    font-size: 12px;
-    padding: 8px;
-  }
-  
-  .Board_playersInfo__QIQ7z {
-    gap: 10px;
-  }
-  
-  .Board_playerInfo__2_dZo {
-    padding: 8px 10px;
-    min-width: 100px;
-  }
-  
-  .Board_playerName__oHWJ5 {
-    font-size: 12px;
-  }
-  
-  .Board_playerStats__kTiN8 {
-    font-size: 10px;
-  }
-}
-
-/* ==============================================
-   ESTILOS PARA DISEÑO LATERAL CYBERPUNK BOARD
-   ============================================== */
-
-/* Panel de control lateral izquierdo */
-.Board_controlPanel__Zr_cj {
-  background: rgba(0, 20, 10, 0.3);
-  border: 1px solid rgba(0, 255, 65, 0.4);
-  padding: 25px;
-  -webkit-clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
-          clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  height: -moz-fit-content;
-  height: fit-content;
-}
-
-.Board_gameHeader__0WrLv {
-  border-bottom: 2px solid rgba(0, 255, 65, 0.3);
-  padding-bottom: 15px;
-  margin-bottom: 10px;
-}
-
-.Board_headerTitle__fELZA {
-  color: #00ffff;
-  font-size: 1.4rem;
-  margin: 0 0 10px 0;
-  text-align: center;
-  font-weight: bold;
-  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-}
-
-.Board_statusIndicator__sgSsi {
-  color: #00ff41;
-  font-size: 1rem;
-  text-align: center;
-  padding: 8px;
-  background: rgba(0, 255, 65, 0.1);
-  border: 1px solid rgba(0, 255, 65, 0.3);
-  -webkit-clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
-          clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
-}
-
-.Board_sectionLabel__0BP2t {
-  color: #00ffff;
-  font-size: 0.9rem;
-  font-weight: bold;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.Board_playersPanel__ehstS {
-  background: rgba(0, 20, 10, 0.2);
-  border: 1px solid rgba(0, 255, 65, 0.3);
-  padding: 15px;
-  margin-bottom: 20px;
-  -webkit-clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
-          clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
-  flex: 1 1;
-}
-
-.Board_playersList__9lNe8 {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.Board_playerNode__V5bUO {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(0, 40, 20, 0.4);
-  border: 1px solid rgba(0, 255, 65, 0.2);
-  padding: 10px;
-  -webkit-clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
-          clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
-  transition: all 0.3s ease;
-}
-
-.Board_playerNode__V5bUO.Board_activePlayer__d6Fin {
-  background: rgba(0, 255, 65, 0.1);
-  border-color: rgba(0, 255, 65, 0.6);
-  box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
-}
-
-.Board_playerIndicator__mAiV3 {
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-}
-
-.Board_playerInfo__2_dZo {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1;
-}
-
-.Board_playerName__oHWJ5 {
-  color: #ffd700;
-  font-weight: bold;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
-}
-
-.Board_botTag__4RMBq {
-  font-size: 0.8rem;
-  color: #ff8c00;
-  text-shadow: 0 0 5px rgba(255, 140, 0, 0.8);
-}
-
-.Board_activeTag__b6BBh {
-  color: #00ff00;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  background: rgba(0, 255, 0, 0.3);
-  padding: 2px 6px;
-  -webkit-clip-path: polygon(2px 0, calc(100% - 2px) 0, 100% 100%, 0 100%);
-          clip-path: polygon(2px 0, calc(100% - 2px) 0, 100% 100%, 0 100%);
-  border: 1px solid rgba(0, 255, 0, 0.6);
-  text-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
-}
-
-.Board_playerStatus__U_dde {
-  color: #ff69b4;
-  font-size: 0.8rem;
-  text-shadow: 0 0 5px rgba(255, 105, 180, 0.6);
-}
-
-.Board_loadingPlayers__1_l8Y {
-  color: #ffc107;
-  font-style: italic;
-  text-align: center;
-  padding: 10px;
-}
-
-.Board_debugPanel__T8ZpQ {
-  background: rgba(0, 20, 10, 0.2);
-  border: 1px solid rgba(255, 193, 7, 0.3);
-  padding: 15px;
-  -webkit-clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
-          clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
-}
-
-.Board_debugContent__Y2SBH {
-  white-space: pre-line;
-  color: #ffc107;
-  font-size: 0.8rem;
-  line-height: 1.3;
-  font-family: 'Share Tech Mono', monospace;
-}
-
-/* Panel del tablero central derecho */
-.Board_gamePanel___O_Qs {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.Board_boardWrapper__XkhxH {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-  background: rgba(0, 20, 10, 0.2);
-  border: 1px solid rgba(0, 255, 65, 0.4);
-  padding: 20px;
-  -webkit-clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
-          clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
-}
-
-.Board_gameBoard__Fz9Cr {
-  position: relative;
-  border: 3px solid #00ff41;
-  border-radius: 0;
-  box-shadow: 
-    0 0 30px rgba(0, 255, 65, 0.5),
-    0 0 60px rgba(0, 255, 65, 0.3),
-    inset 0 0 20px rgba(0, 255, 65, 0.1);
-  overflow: hidden;
-  z-index: 110;
-  animation: Board_board-glow__lYIF3 3s ease-in-out infinite alternate;
-  -webkit-clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
-          clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
-}
-
-@keyframes Board_board-glow__lYIF3 {
-  0% {
-    box-shadow: 
-      0 0 30px rgba(0, 255, 65, 0.5),
-      0 0 60px rgba(0, 255, 65, 0.3),
-      inset 0 0 20px rgba(0, 255, 65, 0.1);
-  }
-  100% {
-    box-shadow: 
-      0 0 40px rgba(0, 255, 255, 0.6),
-      0 0 80px rgba(0, 255, 255, 0.4),
-      inset 0 0 30px rgba(0, 255, 255, 0.15);
-  }
-}
-
-.Board_boardStats__iuQ7s {
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.Board_statItem__L3rIG {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  background: rgba(0, 40, 20, 0.4);
-  border: 1px solid rgba(0, 255, 65, 0.3);
-  padding: 10px 15px;
-  -webkit-clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
-          clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
-  min-width: 80px;
-}
-
-.Board_statLabel__oB9b_ {
-  color: #00ffff;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.Board_statValue__gRy1V {
-  color: #00ff41;
-  font-size: 1.1rem;
-  font-weight: bold;
-}
-
-/* Animaciones */
-@keyframes Board_slideInLeft__C3qtP {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .Board_board__rdPHo {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
-    gap: 15px;
-  }
-  
-  .Board_controlPanel__Zr_cj {
-    order: 2;
-  }
-  
-  .Board_gamePanel___O_Qs {
-    order: 1;
-  }
-  
-  .Board_boardStats__iuQ7s {
-    gap: 10px;
-  }
-  
-  .Board_statItem__L3rIG {
-    min-width: 60px;
-    padding: 8px 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .Board_playersInfo__QIQ7z {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .Board_playerInfo__2_dZo {
-    width: 150px;
-  }
-}
 /*!*******************************************************************************************************************************************************************************************************************************************************************************!*\
   !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[7].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[7].use[3]!./src/components/Game/Dice.module.css ***!
   \*******************************************************************************************************************************************************************************************************************************************************************************/
@@ -2847,6 +2255,806 @@
   .Dice_sumValue__i3N7R strong {
     font-size: 1.1rem;
     padding: 3px 10px;
+  }
+}
+
+/* ==========================================
+   ESTILOS PARA MODO EMBEDDED
+   ========================================== */
+
+.Dice_embeddedDiceContainer__4PbG3 {
+  background: transparent;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.Dice_embeddedHeader__bpowu {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.Dice_embeddedTitle__6IZkj {
+  color: #00ffff;
+  font-size: 1rem;
+  margin: 0;
+  font-weight: bold;
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
+}
+
+.Dice_embeddedStatus__fhuQE {
+  color: #00ff41;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-shadow: 0 0 6px rgba(0, 255, 65, 0.6);
+}
+
+.Dice_embeddedDoubles__pMPOU {
+  background: linear-gradient(45deg, #ff6b35, #f7931e);
+  color: white;
+  text-align: center;
+  padding: 6px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  animation: Dice_pulse__CPZ5e 1s infinite;
+}
+
+.Dice_embeddedDiceWrapper__AE1rd {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+}
+
+.Dice_embeddedRollBtn__9G9OB {
+  background: linear-gradient(145deg, #00ff41, #00cc33);
+  color: #000;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 
+    0 4px 8px rgba(0, 255, 65, 0.3),
+    inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+.Dice_embeddedRollBtn__9G9OB:hover:not(:disabled) {
+  background: linear-gradient(145deg, #00ff55, #00dd44);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 6px 12px rgba(0, 255, 65, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.Dice_embeddedRollBtn__9G9OB:disabled {
+  background: linear-gradient(145deg, #555, #333);
+  color: #888;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+/*!*********************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[7].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[7].use[3]!./src/components/Board/Board.module.css ***!
+  \*********************************************************************************************************************************************************************************************************************************************************************************/
+/* Estilos para el componente Board - Tablero con imagen estática */
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+.Board_boardContainer__ygdcY {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background: #000000;
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.Board_boardContainer__ygdcY::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: 
+    repeating-linear-gradient(0deg, rgba(0, 255, 65, 0.03) 0px, transparent 1px, transparent 2px, rgba(0, 255, 65, 0.03) 3px),
+    radial-gradient(ellipse at center, rgba(0, 20, 40, 0.8) 0%, #000000 100%);
+  pointer-events: none;
+  z-index: -1;
+  animation: Board_scanlines__HVzoz 8s linear infinite;
+}
+
+@keyframes Board_scanlines__HVzoz {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(10px); }
+}
+
+.Board_board__rdPHo {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  grid-gap: 20px;
+  gap: 20px;
+  min-height: 100vh;
+  padding: 20px;
+  background: rgba(0, 20, 10, 0.95);
+  border: 2px solid rgba(0, 255, 65, 0.6);
+  border-radius: 0;
+  -webkit-clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 30px 100%, 0 calc(100% - 30px));
+          clip-path: polygon(0 0, calc(100% - 30px) 0, 100% 30px, 100% 100%, 30px 100%, 0 calc(100% - 30px));
+  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(15px);
+  position: relative;
+  z-index: 100;
+  font-family: 'Share Tech Mono', monospace;
+  animation: Board_slideInLeft__C3qtP 0.8s ease-out;
+  box-shadow: 
+    0 0 30px rgba(0, 255, 65, 0.3),
+    inset 0 0 20px rgba(0, 255, 65, 0.1);
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+@keyframes Board_board-glow__lYIF3 {
+  0% {
+    box-shadow: 
+      0 0 30px rgba(0, 255, 65, 0.5),
+      0 0 60px rgba(0, 255, 65, 0.3),
+      inset 0 0 20px rgba(0, 255, 65, 0.1);
+  }
+  100% {
+    box-shadow: 
+      0 0 40px rgba(0, 255, 255, 0.6),
+      0 0 80px rgba(0, 255, 255, 0.4),
+      inset 0 0 30px rgba(0, 255, 255, 0.15);
+  }
+}
+
+.Board_boardBackground__lcflw {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 101;
+  pointer-events: none;
+}
+
+/* Información del juego superpuesta */
+.Board_gameInfo__o55Do {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 120;
+  background: rgba(0, 10, 0, 0.95);
+  color: #00ff41;
+  padding: 10px;
+  border-radius: 4px;
+  border: 2px solid #00ff41;
+  font-size: 14px;
+  box-shadow: 
+    0 0 20px rgba(0, 255, 65, 0.5),
+    inset 0 0 10px rgba(0, 255, 65, 0.1);
+  font-family: 'Share Tech Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.Board_currentPlayer__gu3lX {
+  margin-bottom: 5px;
+}
+
+.Board_playerIndicator__mAiV3 {
+  font-weight: bold;
+}
+
+.Board_playerIndicator__mAiV3.Board_red__61crM {
+  color: #ff4444;
+}
+
+.Board_playerIndicator__mAiV3.Board_blue___ZdyR {
+  color: #4444ff;
+}
+
+.Board_playerIndicator__mAiV3.Board_green__CdYLl {
+  color: #44ff44;
+}
+
+.Board_playerIndicator__mAiV3.Board_yellow__pMpui {
+  color: #ffff44;
+}
+
+.Board_diceDisplay__LZVD0 {
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Información de jugadores */
+.Board_playersInfo__QIQ7z {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  max-width: 700px;
+  margin-top: 10px;
+}
+
+.Board_playerInfo__2_dZo {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 2px solid;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  min-width: 120px;
+  text-align: center;
+}
+
+.Board_playerInfo__2_dZo.Board_red__61crM {
+  border-color: #ff4444;
+  background: linear-gradient(135deg, rgba(255, 68, 68, 0.1), rgba(255, 255, 255, 0.9));
+}
+
+.Board_playerInfo__2_dZo.Board_blue___ZdyR {
+  border-color: #4444ff;
+  background: linear-gradient(135deg, rgba(68, 68, 255, 0.1), rgba(255, 255, 255, 0.9));
+}
+
+.Board_playerInfo__2_dZo.Board_green__CdYLl {
+  border-color: #44ff44;
+  background: linear-gradient(135deg, rgba(68, 255, 68, 0.1), rgba(255, 255, 255, 0.9));
+}
+
+.Board_playerInfo__2_dZo.Board_yellow__pMpui {
+  border-color: #ffff44;
+  background: linear-gradient(135deg, rgba(255, 255, 68, 0.1), rgba(255, 255, 255, 0.9));
+}
+
+.Board_playerName__oHWJ5 {
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.Board_playerStats__kTiN8 {
+  font-size: 12px;
+  color: #00ffff;
+}
+
+/* Resaltado de cárceles cuando la cuadrícula está activa */
+.Board_prisonHighlight__4B_L_ {
+  position: absolute;
+  border: 2px dashed rgba(255, 255, 255, 0.6);
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.1);
+  z-index: 105;
+  pointer-events: none;
+}
+
+.Board_prisonLabel__zSKfY {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #00ff41;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  z-index: 125;
+  pointer-events: none;
+  transform: translate(-50%, -100%);
+  margin-top: -5px;
+}
+
+/* Cuadrícula de referencia */
+.Board_gridLine__Byxj_ {
+  position: absolute;
+  background-color: rgba(255, 0, 0, 0.5);
+  z-index: 110;
+  pointer-events: none;
+}
+
+.Board_gridLineVertical__iRkhk {
+  width: 1px;
+  height: 100%;
+  top: 0;
+}
+
+.Board_gridLineHorizontal___Us2n {
+  height: 1px;
+  width: 100%;
+  left: 0;
+}
+
+.Board_coordinateLabel__DU9JC {
+  position: absolute;
+  font-size: 8px;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 1px 2px;
+  border-radius: 2px;
+  z-index: 115;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  color: #000;
+  font-weight: bold;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.Board_gridToggleButton__UpBjA {
+  margin-bottom: 10px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.Board_gridToggleButton__UpBjA:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.Board_gridToggleButton__UpBjA.Board_active__bstCP {
+  background-color: #ff4444;
+  color: #00ff41;
+}
+
+.Board_gridToggleButton__UpBjA.Board_inactive__l5cWv {
+  background-color: #44ff44;
+  color: #00ff41;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .Board_boardContainer__ygdcY {
+    padding: 10px;
+  }
+  
+  .Board_gameInfo__o55Do {
+    font-size: 12px;
+    padding: 8px;
+  }
+  
+  .Board_playersInfo__QIQ7z {
+    gap: 10px;
+  }
+  
+  .Board_playerInfo__2_dZo {
+    padding: 8px 10px;
+    min-width: 100px;
+  }
+  
+  .Board_playerName__oHWJ5 {
+    font-size: 12px;
+  }
+  
+  .Board_playerStats__kTiN8 {
+    font-size: 10px;
+  }
+}
+
+/* ==============================================
+   ESTILOS PARA DISEÑO LATERAL CYBERPUNK BOARD
+   ============================================== */
+
+/* Panel de control lateral izquierdo */
+.Board_controlPanel__Zr_cj {
+  background: rgba(0, 20, 10, 0.3);
+  border: 1px solid rgba(0, 255, 65, 0.4);
+  padding: 25px;
+  -webkit-clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+          clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: -moz-fit-content;
+  height: fit-content;
+}
+
+.Board_gameHeader__0WrLv {
+  border-bottom: 2px solid rgba(0, 255, 65, 0.3);
+  padding-bottom: 15px;
+  margin-bottom: 10px;
+}
+
+.Board_headerTitle__fELZA {
+  color: #00ffff;
+  font-size: 1.4rem;
+  margin: 0 0 10px 0;
+  text-align: center;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.Board_statusIndicator__sgSsi {
+  color: #00ff41;
+  font-size: 1rem;
+  text-align: center;
+  padding: 8px;
+  background: rgba(0, 255, 65, 0.1);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  -webkit-clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+          clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+}
+
+/* Sección de turno */
+.Board_turnSection__bIRnV {
+  margin-bottom: 15px;
+}
+
+.Board_currentPlayerInfo__53HId {
+  margin-top: 10px;
+}
+
+.Board_currentPlayerName__3NpOv {
+  color: #00ffff;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 5px;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+}
+
+.Board_myPlayerInfo__05SGe {
+  color: #00ff41;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.Board_yourTurnIndicator__ZaNDH {
+  color: #ffff00;
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+  background: rgba(255, 255, 0, 0.1);
+  border: 1px solid rgba(255, 255, 0, 0.3);
+  padding: 5px;
+  border-radius: 4px;
+  animation: Board_pulse__twBT8 1.5s infinite;
+}
+
+/* Sección de mensajes */
+.Board_messageSection__VzOdP {
+  margin: 15px 0;
+}
+
+.Board_messageBox__FRbl6 {
+  background: rgba(0, 255, 65, 0.1);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  color: #00ff41;
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: bold;
+  text-shadow: 0 0 8px rgba(0, 255, 65, 0.6);
+}
+
+/* Sección de dados integrada */
+.Board_diceSection__o6zS5 {
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 15px;
+  background: rgba(0, 40, 20, 0.4);
+  margin: 15px 0;
+}
+
+/* Controles de división de dados */
+.Board_splitControlsSection__OtvgD {
+  margin: 15px 0;
+}
+
+.Board_splitButton__mgVJJ {
+  background: linear-gradient(145deg, #ff6b35, #f7931e);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.Board_splitButton__mgVJJ:hover {
+  background: linear-gradient(145deg, #ff7b45, #fa9f2e);
+  transform: translateY(-1px);
+}
+
+.Board_splitModeSection__O4qVw {
+  margin: 15px 0;
+}
+
+.Board_splitModeIndicator__s2yyS {
+  background: rgba(255, 107, 53, 0.1);
+  border: 1px solid rgba(255, 107, 53, 0.3);
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.Board_splitModeIndicator__s2yyS div {
+  color: #ff6b35;
+  margin: 5px 0;
+  font-weight: bold;
+}
+
+.Board_cancelSplitButton__NDFvO {
+  background: linear-gradient(145deg, #ff4444, #cc3333);
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.3s ease;
+}
+
+.Board_cancelSplitButton__NDFvO:hover {
+  background: linear-gradient(145deg, #ff5555, #dd4444);
+}
+
+@keyframes Board_pulse__twBT8 {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.Board_sectionLabel__0BP2t {
+  color: #00ffff;
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.Board_playersPanel__ehstS {
+  background: rgba(0, 20, 10, 0.2);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  padding: 15px;
+  margin-bottom: 20px;
+  -webkit-clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+          clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+  flex: 1 1;
+}
+
+.Board_playersList__9lNe8 {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.Board_playerNode__V5bUO {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 40, 20, 0.4);
+  border: 1px solid rgba(0, 255, 65, 0.2);
+  padding: 10px;
+  -webkit-clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
+          clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
+  transition: all 0.3s ease;
+}
+
+.Board_playerNode__V5bUO.Board_activePlayer__d6Fin {
+  background: rgba(0, 255, 65, 0.1);
+  border-color: rgba(0, 255, 65, 0.6);
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+}
+
+.Board_playerIndicator__mAiV3 {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.Board_playerInfo__2_dZo {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1;
+}
+
+.Board_playerName__oHWJ5 {
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+}
+
+.Board_botTag__4RMBq {
+  font-size: 0.8rem;
+  color: #ff8c00;
+  text-shadow: 0 0 5px rgba(255, 140, 0, 0.8);
+}
+
+.Board_activeTag__b6BBh {
+  color: #00ff00;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: rgba(0, 255, 0, 0.3);
+  padding: 2px 6px;
+  -webkit-clip-path: polygon(2px 0, calc(100% - 2px) 0, 100% 100%, 0 100%);
+          clip-path: polygon(2px 0, calc(100% - 2px) 0, 100% 100%, 0 100%);
+  border: 1px solid rgba(0, 255, 0, 0.6);
+  text-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.Board_playerStatus__U_dde {
+  color: #ff69b4;
+  font-size: 0.8rem;
+  text-shadow: 0 0 5px rgba(255, 105, 180, 0.6);
+}
+
+.Board_loadingPlayers__1_l8Y {
+  color: #ffc107;
+  font-style: italic;
+  text-align: center;
+  padding: 10px;
+}
+
+.Board_debugPanel__T8ZpQ {
+  background: rgba(0, 20, 10, 0.2);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  padding: 15px;
+  -webkit-clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+          clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+}
+
+.Board_debugContent__Y2SBH {
+  white-space: pre-line;
+  color: #ffc107;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  font-family: 'Share Tech Mono', monospace;
+}
+
+/* Panel del tablero central derecho */
+.Board_gamePanel___O_Qs {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.Board_boardWrapper__XkhxH {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  background: rgba(0, 20, 10, 0.2);
+  border: 1px solid rgba(0, 255, 65, 0.4);
+  padding: 20px;
+  -webkit-clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+          clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+
+.Board_gameBoard__Fz9Cr {
+  position: relative;
+  border: 3px solid #00ff41;
+  border-radius: 0;
+  box-shadow: 
+    0 0 30px rgba(0, 255, 65, 0.5),
+    0 0 60px rgba(0, 255, 65, 0.3),
+    inset 0 0 20px rgba(0, 255, 65, 0.1);
+  overflow: hidden;
+  z-index: 110;
+  animation: Board_board-glow__lYIF3 3s ease-in-out infinite alternate;
+  -webkit-clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+          clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+
+@keyframes Board_board-glow__lYIF3 {
+  0% {
+    box-shadow: 
+      0 0 30px rgba(0, 255, 65, 0.5),
+      0 0 60px rgba(0, 255, 65, 0.3),
+      inset 0 0 20px rgba(0, 255, 65, 0.1);
+  }
+  100% {
+    box-shadow: 
+      0 0 40px rgba(0, 255, 255, 0.6),
+      0 0 80px rgba(0, 255, 255, 0.4),
+      inset 0 0 30px rgba(0, 255, 255, 0.15);
+  }
+}
+
+.Board_boardStats__iuQ7s {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.Board_statItem__L3rIG {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: rgba(0, 40, 20, 0.4);
+  border: 1px solid rgba(0, 255, 65, 0.3);
+  padding: 10px 15px;
+  -webkit-clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+          clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+  min-width: 80px;
+}
+
+.Board_statLabel__oB9b_ {
+  color: #00ffff;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.Board_statValue__gRy1V {
+  color: #00ff41;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+/* Animaciones */
+@keyframes Board_slideInLeft__C3qtP {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .Board_board__rdPHo {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 15px;
+  }
+  
+  .Board_controlPanel__Zr_cj {
+    order: 2;
+  }
+  
+  .Board_gamePanel___O_Qs {
+    order: 1;
+  }
+  
+  .Board_boardStats__iuQ7s {
+    gap: 10px;
+  }
+  
+  .Board_statItem__L3rIG {
+    min-width: 60px;
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .Board_playersInfo__QIQ7z {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .Board_playerInfo__2_dZo {
+    width: 150px;
   }
 }
 /*!*************************************************************************************************************************************************************************************************************************************************************************************************!*\
@@ -6419,255 +6627,6 @@
 
   .Celebration_closeButton__j9Fec {
     padding: 14px 35px;
-    font-size: 18px;
-  }
-}
-
-/*!***************************************************************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[14].oneOf[7].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[14].oneOf[7].use[3]!./src/components/Game/AudioControl.module.css ***!
-  \***************************************************************************************************************************************************************************************************************************************************************************************/
-/* Estilos para el componente de Control de Audio */
-
-.AudioControl_audioControl__suWyO {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 1000;
-}
-
-.AudioControl_toggleButton__RltZv {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #00ff41 0%, #00ffff 100%);
-  border: none;
-  font-size: 28px;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.AudioControl_toggleButton__RltZv:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-}
-
-.AudioControl_toggleButton__RltZv:active {
-  transform: scale(0.95);
-}
-
-.AudioControl_controlPanel__9_gPC {
-  position: absolute;
-  bottom: 70px;
-  right: 0;
-  background: rgba(0, 20, 10, 0.8);
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  width: 280px;
-  animation: AudioControl_slideUp__419zJ 0.3s ease-out;
-}
-
-.AudioControl_header__IjQHo {
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #ecf0f1;
-}
-
-.AudioControl_header__IjQHo h3 {
-  margin: 0;
-  font-size: 20px;
-  color: #2c3e50;
-  font-weight: 700;
-}
-
-.AudioControl_muteSection__XaoNq {
-  margin-bottom: 20px;
-}
-
-.AudioControl_muteButton___h1oq {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid #00ff41;
-  background: rgba(0, 20, 10, 0.8);
-  color: #00ff41;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.AudioControl_muteButton___h1oq:hover {
-  background: #00ff41;
-  color: #00ff41;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
-}
-
-.AudioControl_muteButton___h1oq.AudioControl_muted__tCOXR {
-  background: #e74c3c;
-  color: #00ff41;
-  border-color: #e74c3c;
-}
-
-.AudioControl_muteButton___h1oq.AudioControl_muted__tCOXR:hover {
-  background: #c0392b;
-  border-color: #c0392b;
-}
-
-.AudioControl_volumeSection__qB_42 {
-  margin-bottom: 20px;
-}
-
-.AudioControl_volumeSection__qB_42 label {
-  display: block;
-  margin-bottom: 10px;
-  font-weight: 600;
-  color: #2c3e50;
-  font-size: 14px;
-}
-
-.AudioControl_sliderContainer__IaoH3 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-
-.AudioControl_volumeMin__OiZ_B,
-.AudioControl_volumeMax__WvuT8 {
-  font-size: 18px;
-}
-
-.AudioControl_volumeSlider__9QAxk {
-  flex: 1 1;
-  height: 6px;
-  border-radius: 3px;
-  background: #ecf0f1;
-  outline: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-       appearance: none;
-}
-
-.AudioControl_volumeSlider__9QAxk::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #00ff41;
-  cursor: pointer;
-  -webkit-transition: all 0.3s ease;
-  transition: all 0.3s ease;
-}
-
-.AudioControl_volumeSlider__9QAxk::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-  background: #00ffff;
-}
-
-.AudioControl_volumeSlider__9QAxk::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #00ff41;
-  cursor: pointer;
-  border: none;
-  -moz-transition: all 0.3s ease;
-  transition: all 0.3s ease;
-}
-
-.AudioControl_volumeSlider__9QAxk::-moz-range-thumb:hover {
-  transform: scale(1.2);
-  background: #00ffff;
-}
-
-.AudioControl_volumeSlider__9QAxk:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.AudioControl_volumeValue__s0dxW {
-  text-align: center;
-  font-weight: 700;
-  color: #00ff41;
-  font-size: 18px;
-}
-
-.AudioControl_soundList__V7y9l {
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 2px solid #ecf0f1;
-}
-
-.AudioControl_soundListTitle__OKgL_ {
-  font-weight: 600;
-  color: #2c3e50;
-  font-size: 13px;
-  margin-bottom: 10px;
-}
-
-.AudioControl_soundList__V7y9l ul {
-  margin: 0;
-  padding-left: 20px;
-  list-style: none;
-}
-
-.AudioControl_soundList__V7y9l li {
-  font-size: 12px;
-  color: #7f8c8d;
-  margin-bottom: 5px;
-  padding-left: 5px;
-}
-
-.AudioControl_soundList__V7y9l li::before {
-  content: '•';
-  color: #00ff41;
-  font-weight: bold;
-  display: inline-block;
-  width: 15px;
-  margin-left: -15px;
-}
-
-/* Animaciones */
-
-@keyframes AudioControl_slideUp__419zJ {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Responsive */
-
-@media (max-width: 768px) {
-  .AudioControl_audioControl__suWyO {
-    bottom: 10px;
-    right: 10px;
-  }
-
-  .AudioControl_toggleButton__RltZv {
-    width: 50px;
-    height: 50px;
-    font-size: 24px;
-  }
-
-  .AudioControl_controlPanel__9_gPC {
-    width: 250px;
-    padding: 15px;
-    bottom: 60px;
-  }
-
-  .AudioControl_header__IjQHo h3 {
     font-size: 18px;
   }
 }

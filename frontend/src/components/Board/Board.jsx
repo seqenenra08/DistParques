@@ -4,14 +4,34 @@
 
 import React, { useState, useEffect } from 'react';
 import Piece from './Piece';
+import Dice from '../Game/Dice';
 import styles from './Board.module.css';
 import { 
   BOARD_COORDINATES,
   PLAYER_COLORS
 } from '../../utils/constants';
-import audioService from '../../services/audioService';
 
-const Board = ({ gameState, onPieceClick, onBoardClick, canMove = false, currentPlayer = null, currentPlayerColor = null, selectedPieceFromParent = null }) => {
+const Board = ({ 
+  gameState, 
+  onPieceClick, 
+  onBoardClick, 
+  canMove = false, 
+  currentPlayer = null, 
+  currentPlayerColor = null, 
+  selectedPieceFromParent = null, 
+  diceValue = null, 
+  onDiceRoll = null, 
+  isRolling = false, 
+  canRoll = false,
+  myPlayerInfo = null,
+  isMyTurn = () => false,
+  message = null,
+  canSplitDice = false,
+  splitMode = false,
+  splitMovements = [],
+  onEnableSplitMode = null,
+  onCancelSplitMode = null
+}) => {
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [boardSize, setBoardSize] = useState({ width: 700, height: 700 });
   const [pieceOffset, setPieceOffset] = useState({ x: 2, y: 0 }); // Offset ajustable para fichas
@@ -41,9 +61,6 @@ const Board = ({ gameState, onPieceClick, onBoardClick, canMove = false, current
     const [color] = pieceId.split('_');
     console.log('[BOARD] Color de la ficha:', color);
     
-    // 🔊 Reproducir sonido de click al seleccionar ficha
-    audioService.playClick();
-    
     // Si está en modo de liberación de ficha, permitir click en fichas del jugador actual en la cárcel
     if (gameState?.pendingPieceRelease && gameState?.startPhase) {
       console.log('[BOARD] Modo de liberación de ficha activo');
@@ -56,8 +73,6 @@ const Board = ({ gameState, onPieceClick, onBoardClick, canMove = false, current
         return;
       } else {
         console.log('[BOARD] ❌ No es tu ficha');
-        // 🔊 Reproducir sonido de error
-        audioService.playError();
         return;
       }
     }
@@ -65,8 +80,6 @@ const Board = ({ gameState, onPieceClick, onBoardClick, canMove = false, current
     // Solo permitir seleccionar fichas del jugador actual si se puede mover
     if (canMove && currentPlayerColor && color !== currentPlayerColor) {
       console.log(`[BOARD] ❌ No puedes mover fichas ${color}. Es turno de ${currentPlayer} (${currentPlayerColor})`);
-      // 🔊 Reproducir sonido de error
-      audioService.playError();
       return;
     }
     
@@ -276,14 +289,76 @@ const Board = ({ gameState, onPieceClick, onBoardClick, canMove = false, current
       <div className={styles.board}>
         {/* Panel de control lateral izquierdo */}
         <div className={styles.controlPanel}>
-          <div className={styles.gameHeader}>
-            <h3 className={styles.headerTitle}>GAME CONTROL</h3>
+          {/* Información del turno actual */}
+          <div className={styles.turnSection}>
+            <div className={styles.gameHeader}>
+              <h3 className={styles.headerTitle}>TURNO ACTUAL</h3>
+              <div className={styles.currentPlayerInfo}>
+                <div className={styles.currentPlayerName}>
+                  {gameState?.currentPlayer || 'Esperando...'}
+                </div>
+                {myPlayerInfo && (
+                  <div className={styles.myPlayerInfo}>
+                    Tú: {myPlayerInfo.nombre} ({myPlayerInfo.color})
+                  </div>
+                )}
+                {isMyTurn() && <div className={styles.yourTurnIndicator}>¡ES TU TURNO!</div>}
+              </div>
+            </div>
+            
             <div className={styles.statusIndicator}>
               {gameState?.startPhase ? '🚀 START PHASE' : 
                gameState?.pendingPieceRelease ? '⚡ RELEASE MODE' : 
                canMove ? '✓ CAN MOVE' : '⏳ WAITING'}
             </div>
           </div>
+          
+          {/* Mensajes del juego */}
+          {message && (
+            <div className={styles.messageSection}>
+              <div className={styles.messageBox}>
+                {message}
+              </div>
+            </div>
+          )}
+          
+          {/* Componente Dice integrado */}
+          <div className={styles.diceSection}>
+            <Dice
+              value={diceValue}
+              onRoll={onDiceRoll}
+              isRolling={isRolling}
+              canRoll={canRoll}
+              embedded={true}
+            />
+          </div>
+          
+          {/* Controles de división de dados */}
+          {canSplitDice && !splitMode && (
+            <div className={styles.splitControlsSection}>
+              <button 
+                onClick={onEnableSplitMode} 
+                className={styles.splitButton}
+              >
+                ✂️ Dividir dados
+              </button>
+            </div>
+          )}
+
+          {splitMode && (
+            <div className={styles.splitModeSection}>
+              <div className={styles.splitModeIndicator}>
+                <div>🎯 Modo división activo</div>
+                <div>Movimiento {splitMovements.length + 1} de 2</div>
+                <button 
+                  onClick={onCancelSplitMode} 
+                  className={styles.cancelSplitButton}
+                >
+                  ❌ Cancelar
+                </button>
+              </div>
+            </div>
+          )}
           
           {/* Panel de jugadores */}
           <div className={styles.playersPanel}>

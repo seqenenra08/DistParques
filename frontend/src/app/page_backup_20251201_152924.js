@@ -9,7 +9,6 @@ import Lobby from '../components/Menu/Lobby';
 import TurnOrderDetermination from '../components/Menu/TurnOrderDetermination';
 import Rules from '../components/Menu/Rules';
 import Celebration from '../components/Game/Celebration';
-import AudioControl from '../components/Game/AudioControl';
 import MoveSelector from '../components/Game/MoveSelector';
 import Notification from '../components/Notification/Notification';
 import { 
@@ -18,7 +17,6 @@ import {
 } from '../utils/mockData';
 import { SPECIAL_POSITIONS, PLAYER_COLORS } from '../utils/constants';
 import styles from './page.module.css';
-import audioService from '../services/audioService';
 
 export default function Home() {
   const { socket, connected, emit } = useSocket();
@@ -212,16 +210,11 @@ export default function Home() {
     console.log('[STATE CHANGE] ✋ canMove cambió a:', canMove);
   }, [canMove]);
   
-  // Inicializar servicio de audio al montar el componente
   useEffect(() => {
-    const initAudio = async () => {
-      await audioService.initialize();
-      console.log('[AUDIO] Servicio de audio inicializado');
     };
     
     // Inicializar después de una interacción del usuario (requisito del navegador)
     const handleFirstInteraction = () => {
-      initAudio();
       // Remover los listeners después de la primera interacción
       document.removeEventListener('click', handleFirstInteraction);
       document.removeEventListener('keydown', handleFirstInteraction);
@@ -274,7 +267,6 @@ export default function Home() {
         console.log('[dice_rolled] 🤖 No es mi turno - activando animación visual');
         setIsRolling(true);
         // Reproducir sonido de dados
-        audioService.playDiceRoll();
       }
       
       // ✅ Sincronizar con la animación de los dados (1s)
@@ -310,7 +302,6 @@ export default function Home() {
           // CASO 1: Sacó par - puede sacar ficha
           if (data.needs_piece_selection === true) {
             console.log('[dice_rolled] ✅ Sacó PAR! Puede sacar ficha de la cárcel');
-            audioService.playDoubles();
             setCanMove(true);
             setMessage(`🎲🎲 ¡PARES! Selecciona una ficha para sacar de la cárcel`);
             return;
@@ -319,7 +310,6 @@ export default function Home() {
           // CASO 2: No sacó par y se acabaron los intentos - turno perdido
           if (data.turn_passed === true) {
             console.log('[dice_rolled] ❌ Agotó los 3 intentos sin sacar par');
-            audioService.playError();
             setCanMove(false);
             setMessage(`❌ No sacaste par en 3 intentos. Turno perdido.`);
             
@@ -380,7 +370,6 @@ export default function Home() {
       
       if (data.success) {
         // 🔊 Reproducir sonido de movimiento de ficha
-        audioService.playPieceMove();
         
         // Actualizar estado del juego CON LAS FICHAS ACTUALIZADAS
         if (data.game_state) {
@@ -436,7 +425,6 @@ export default function Home() {
       } else {
         console.error('Error al liberar ficha:', data.error);
         // 🔊 Reproducir sonido de error
-        audioService.playError();
         setMessage(`Error: ${data.error}`);
         setTimeout(() => {
           setMessage('');
@@ -457,7 +445,6 @@ export default function Home() {
       
       if (data.success) {
         // 🔊 Reproducir sonido de movimiento de ficha
-        audioService.playPieceMove();
         
         // Actualizar movimientos disponibles
         if (data.available_moves !== undefined) {
@@ -529,7 +516,6 @@ export default function Home() {
         if (data.captured && data.captured.length > 0) {
           console.log('Fichas capturadas:', data.captured);
           // 🔊 Reproducir sonido de captura
-          audioService.playPieceCapture();
           const capturedColors = data.captured.map(p => p.color).join(', ');
           setMessage(`¡Capturaste ${data.captured.length} ficha(s) ${capturedColors}!`);
           setTimeout(() => setMessage(''), 3000);
@@ -538,7 +524,6 @@ export default function Home() {
         if (data.reached_goal) {
           console.log('¡Ficha llegó a la meta!');
           // 🔊 Reproducir sonido de meta
-          audioService.playPieceGoal();
           setMessage('¡Ficha llegó a la meta!');
           setTimeout(() => setMessage(''), 3000);
         }
@@ -553,7 +538,6 @@ export default function Home() {
       } else {
         console.error('Error al mover ficha:', data.error);
         // 🔊 Reproducir sonido de error
-        audioService.playError();
       }
     });
 
@@ -583,7 +567,6 @@ export default function Home() {
       console.log('Juego terminado. Ganador:', data.winner);
       
       // 🔊 Reproducir sonido de victoria
-      audioService.playGameWin();
       
       // Mostrar celebración
       setWinner({
@@ -608,7 +591,6 @@ export default function Home() {
         console.log('[DEBUG] Jugador actual inicial:', data.game_state?.current_player);
         
         // 🔊 Reproducir sonido de inicio de juego
-        audioService.playGameStart();
         
         // Salir de la fase de determinación de orden si estamos ahí
         setInTurnOrderDetermination(false);
@@ -722,7 +704,6 @@ export default function Home() {
         setInLobby(false);
         setInTurnOrderDetermination(false);
         
-        audioService.playSuccess();
       } else {
         console.error('Error al iniciar juego:', data.error);
       }
@@ -778,7 +759,6 @@ export default function Home() {
       // ✅ SOLO mostrar transición visual si el jugador realmente cambió
       if (playerChanged) {
         // 🔊 Reproducir sonido de cambio de turno
-        audioService.playTurnPass();
         
         // Bloquear interacciones solo durante la animación visual
         setIsTransitioning(true);
@@ -861,7 +841,6 @@ export default function Home() {
           sessionStorage.setItem('is_host', 'true');
         }
         
-        audioService.playSuccess();
         
         // Iniciar la partida automáticamente (sin pasar por el lobby)
         console.log('[ROOM] Iniciando partida automáticamente...');
@@ -871,7 +850,6 @@ export default function Home() {
           });
         }, 500);
       } else {
-        audioService.playError();
         showNotification('Error al crear sala: ' + data.error, 'error');
       }
     });
@@ -897,9 +875,7 @@ export default function Home() {
           sessionStorage.setItem('is_host', data.is_host ? 'true' : 'false');
         }
         
-        audioService.playSuccess();
       } else {
-        audioService.playError();
         showNotification('Error al unirse: ' + data.error, 'error');
       }
     });
@@ -914,7 +890,6 @@ export default function Home() {
         setAvailableColors(data.available_colors);
       }
       
-      audioService.playPlayerJoin();
     });
 
     // Información de la sala (para selección de color)
@@ -931,7 +906,6 @@ export default function Home() {
         setShowColorSelector(true);
       } else if (!data.success) {
         console.log('[ROOM] ⚠️ ERROR DETECTADO - Reproduciendo sonido y mostrando notificación');
-        audioService.playError();
         showNotification(data.error || 'Error al obtener información de la sala', 'error');
         // Limpiar el estado para que el usuario pueda volver a intentar
         setShowColorSelector(false);
@@ -970,7 +944,6 @@ export default function Home() {
       setGameStarted(false); // Todavía no iniciamos el juego
       
       // Reproducir sonido
-      audioService.playClick();
     });
 
     // Reconexión exitosa a un juego en curso
@@ -994,13 +967,11 @@ export default function Home() {
           setGameStarted(true);
           setInLobby(false);
           
-          audioService.playSuccess();
         } else {
           // Todavía en lobby
           setInLobby(true);
           setGameStarted(false);
           
-          audioService.playSuccess();
         }
       }
     });
@@ -1014,7 +985,6 @@ export default function Home() {
       setInLobby(true);
       setGameStarted(false);
       
-      audioService.playSuccess();
     });
 
     // Fallo al reconectar
@@ -1150,7 +1120,6 @@ export default function Home() {
       setSelectedPiece(null);
       
       // Reproducir sonido de dados
-      audioService.playDiceRoll();
       
       // Simular lanzamiento de dados con animación
       setTimeout(() => {
@@ -1168,7 +1137,6 @@ export default function Home() {
           
           if (isDoubles) {
             console.log('[DEBUG] ¡DOBLES! Puede sacar ficha de la cárcel');
-            audioService.playDoubles();
             setCanMove(true);
             setMessage('¡DOBLES! Selecciona una ficha para sacar de la cárcel');
             
@@ -1303,7 +1271,6 @@ export default function Home() {
     // Validación adicional: verificar que sea mi turno (para multijugador)
     if (myPlayerName && gameState.currentPlayer !== myPlayerName && !isTestMode) {
       console.log('[ERROR] No es tu turno! Mi nombre:', myPlayerName, ', Turno actual:', gameState.currentPlayer);
-      audioService.playError();
       return;
     }
     
@@ -1422,7 +1389,6 @@ export default function Home() {
       // Validación adicional: verificar que sea mi turno (para multijugador)
       if (myPlayerName && gameState.currentPlayer !== myPlayerName && !isTestMode) {
         console.log('[ERROR] No es tu turno! Mi nombre:', myPlayerName, ', Turno actual:', gameState.currentPlayer);
-        audioService.playError();
         setMessage('¡No es tu turno!');
         setTimeout(() => setMessage(''), 2000);
         return;
@@ -1464,7 +1430,6 @@ export default function Home() {
           // Modo local: liberar la ficha directamente
           console.log('[DEBUG] Modo local - liberando ficha sin servidor');
           
-          audioService.playPieceMove();
           
           // Obtener la posición de salida según el color
           const startPositions = { red: 39, blue: 22, green: 5, yellow: 56 };
@@ -1521,7 +1486,6 @@ export default function Home() {
     // ✅ Permitir movimiento si canMove está activo O si hay movimientos disponibles
     if (!canMove && (!availableMoves || availableMoves.length === 0)) {
       console.log('[ERROR] Primero lanza el dado! canMove:', canMove, ', availableMoves:', availableMoves);
-      audioService.playError();
       setMessage('Primero debes lanzar los dados');
       setTimeout(() => setMessage(''), 2000);
       return;
@@ -1541,7 +1505,6 @@ export default function Home() {
       if (piece && piece.position === -1) {
         console.log('[ERROR] No puedes mover una ficha que está en la cárcel!');
         console.log('[ERROR] Ficha:', piece);
-        audioService.playError();
         setMessage('No puedes mover una ficha que está en la cárcel. Necesitas sacar dobles para liberarla.');
         setTimeout(() => setMessage(''), 3000);
         return;
@@ -1554,7 +1517,6 @@ export default function Home() {
     // Si hay múltiples opciones de movimiento, mostrar selector
     if (availableMoves && availableMoves.length > 1) {
       console.log('[DEBUG] Múltiples movimientos disponibles, mostrando selector');
-      audioService.playClick();
       setPendingPieceForMove(pieceId);
       setSelectedPiece(pieceId);
       setShowMoveSelector(true);
@@ -1571,7 +1533,6 @@ export default function Home() {
       }
       console.log('[DEBUG] Creando movimientos desde diceValue:', moves);
       setAvailableMoves(moves);
-      audioService.playClick();
       setPendingPieceForMove(pieceId);
       setSelectedPiece(pieceId);
       setShowMoveSelector(true);
@@ -1613,7 +1574,6 @@ export default function Home() {
     if (socket && connected) {
       socket.emit('create_room', data);
     } else {
-      audioService.playError();
       showNotification('No estás conectado al servidor', 'error');
     }
   };
@@ -1623,7 +1583,6 @@ export default function Home() {
     if (socket && connected) {
       socket.emit('join_room', data);
     } else {
-      audioService.playError();
       showNotification('No estás conectado al servidor', 'error');
     }
   };
@@ -1633,10 +1592,8 @@ export default function Home() {
     if (socket && connected && isHost) {
       socket.emit('start_game_from_lobby', {});
     } else if (!isHost) {
-      audioService.playError();
       showNotification('Solo el host puede iniciar el juego', 'warning');
     } else {
-      audioService.playError();
       showNotification('No estás conectado al servidor', 'error');
     }
   };
@@ -1685,7 +1642,6 @@ export default function Home() {
     setLobbyPlayers([]);
     
     // Reproducir sonido
-    audioService.playClick();
   };
 
   const handleStartGame = (gameConfig) => {
@@ -1920,8 +1876,6 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      {/* Control de audio */}
-      <AudioControl />
       
       {/* Celebración de victoria */}
       {showCelebration && winner && (

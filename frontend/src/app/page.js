@@ -7,13 +7,11 @@ import Dice from '../components/Game/Dice';
 import Menu from '../components/Menu/Menu';
 import Rules from '../components/Menu/Rules';
 import Celebration from '../components/Game/Celebration';
-import AudioControl from '../components/Game/AudioControl';
 
 import TurnOrderDetermination from '../components/Menu/TurnOrderDetermination';
 import Notification from '../components/Notification/Notification';
 import { initialGameState } from '../utils/mockData';
 import styles from './page.module.css';
-import audioService from '../services/audioService';
 
 export default function Home() {
   const { socket, connected, emit } = useSocket();
@@ -55,15 +53,16 @@ export default function Home() {
   const [splitMode, setSplitMode] = useState(false);
   const [splitMovements, setSplitMovements] = useState([]);
   const [currentSplitDice, setCurrentSplitDice] = useState(null);
+
+  // Normaliza el estado recibido del servidor para asegurar que siempre exista currentPlayer
+  const normalizeState = (estado) => {
+    const current = estado?.jugador_actual ?? estado?.currentPlayer ?? estado?.turno_actual ?? null;
+    return { ...estado, currentPlayer: current };
+  };
   
-  // Inicializar audio
   useEffect(() => {
-    const initAudio = async () => {
-      await audioService.initialize();
-    };
     
     const handleFirstInteraction = () => {
-      initAudio();
       document.removeEventListener('click', handleFirstInteraction);
       document.removeEventListener('keydown', handleFirstInteraction);
     };
@@ -106,7 +105,6 @@ export default function Home() {
           setRoomPlayers(data.estado_sala.jugadores);
         }
         
-        audioService.playSuccess();
         showNotification(`Sala creada: ${data.codigo_sala}`, 'success');
       }
     });
@@ -119,13 +117,11 @@ export default function Home() {
       if (data.esperando_dados_inicio) {
         console.log('[PARTIDA_INICIADA] 🎲 Esperando dados iniciales para determinar orden');
         setShowTurnOrderDetermination(true);
-        setGameState(data.estado);
-        audioService.playGameStart();
+        setGameState(normalizeState(data.estado));
       } else {
         // Iniciar juego directamente (modo antiguo)
         setGameStarted(true);
-        setGameState(data.estado);
-        audioService.playGameStart();
+        setGameState(normalizeState(data.estado));
       }
     });
 
@@ -146,29 +142,26 @@ export default function Home() {
       setLastDiceRolled(data.dados);
       
       if (data.error) {
-        audioService.playError();
         showNotification(data.error, 'error');
         return;
       }
       
       // Si todas están en cárcel y no sacó par
       if (data.todas_en_carcel && !data.es_par) {
-        audioService.playError();
         
         // Si se pasó el turno (agotó los 3 intentos)
         if (data.turn_passed) {
-          showNotification('❌ Agotaste los 3 intentos sin sacar par. Turno perdido.', 'error');
           setTimeout(() => {
             setDiceValue(null);
             setLastDiceRolled(null);
             setMessage('');
             setCanMove(false);
             setIsRolling(false);
-          }, 2500);
+          }, 1000);
           return;
         }
         
-        showNotification(`❌ Sin par (${data.attempts_used}/${data.attempts_used + data.attempts_remaining}) - ${data.attempts_remaining > 0 ? 'Intenta de nuevo' : 'Turno perdido'}`, 'warning');
+
         
         // Si aún tiene intentos, mantener los dados visibles
         if (data.can_retry) {
@@ -190,10 +183,7 @@ export default function Home() {
       // Si sacó par con todas en cárcel
       if (data.todas_en_carcel && data.es_par) {
         console.log('[DICE_RESULT] ✅ Par con todas en cárcel - Dados:', data.dados);
-        audioService.playDiceRoll();
-        audioService.playDoubles();
         setCanMove(true);
-        showNotification('✅ ¡PAR! Selecciona una ficha para sacarla de la cárcel', 'success');
         setMessage('✅ ¡PAR! Haz clic en una ficha de la cárcel para sacarla');
         
         // Preparar movimientos (para sacar de cárcel)
@@ -202,10 +192,8 @@ export default function Home() {
       }
       
       // Puede mover (caso normal)
-      audioService.playDiceRoll();
       if (data.es_par) {
-        audioService.playDoubles();
-        showNotification('🎲 ¡Dobles! Podrás lanzar de nuevo después de mover', 'info');
+        // Los dobles se manejan silenciosamente
       }
       
       setCanMove(true);
@@ -248,12 +236,10 @@ export default function Home() {
       console.log('[MOVE_RESULT]', data);
       
       if (data.error) {
-        audioService.playError();
         showNotification(data.error, 'error');
         return;
       }
       
-      audioService.playPieceMove();
       
       // Limpiar estado de movimiento
       setCanMove(false);
@@ -267,30 +253,19 @@ export default function Home() {
       setSplitMovements([]);
       setCurrentSplitDice(null);
       
-      // Mostrar mensaje de acción
-      const accion = data.accion;
-      if (accion === 'sacar_carcel') {
-        showNotification('✅ Ficha sacada de la cárcel', 'success');
-      } else if (accion === 'llego_meta') {
-        audioService.playPieceGoal();
-        showNotification('🏁 ¡Ficha llegó a la META!', 'success');
-      } else if (data.fichas_capturadas && data.fichas_capturadas.length > 0) {
-        audioService.playPieceCapture();
-        showNotification(`💥 ¡Capturaste ${data.fichas_capturadas.length} ficha(s)!`, 'success');
-      }
+      // Las acciones del juego se manejan visualmente sin notificaciones molestas
       
       // Verificar victoria
       if (data.ganador) {
         setWinner({ name: data.ganador, color: gameState.currentPlayer });
         setShowCelebration(true);
-        audioService.playGameWin();
       }
     });
 
     // Cambio de turno
     socket.on('TURN_CHANGE', (data) => {
       console.log('[TURN_CHANGE]', data);
-      setGameState(data.estado);
+      setGameState(normalizeState(data.estado));
       
       // Limpiar estado de dados y movimientos
       setDiceValue(null);
@@ -305,11 +280,7 @@ export default function Home() {
       setMessage('');
       setIsRolling(false);
       
-      // Mostrar notificación del cambio de turno
-      if (data.razon === 'intentos_agotados') {
-        audioService.playError();
-        showNotification(data.mensaje || `Turno de ${data.jugador_actual}`, 'info');
-      }
+      // Los cambios de turno se manejan silenciosamente
     });
 
     // Estado actualizado
@@ -328,7 +299,7 @@ export default function Home() {
       const currentPlayerName = data.estado.jugador_actual;
       const turnChanged = previousPlayerName && previousPlayerName !== currentPlayerName;
       
-      setGameState(data.estado);
+      setGameState(normalizeState(data.estado));
       
       // Si cambió el turno, limpiar estado de TODOS los jugadores
       if (turnChanged) {
@@ -373,8 +344,7 @@ export default function Home() {
       console.log('[JUGADOR_UNIDO]', data);
       if (data.estado_sala && data.estado_sala.jugadores) {
         setRoomPlayers(data.estado_sala.jugadores);
-        showNotification(`${data.jugador} se ha unido a la sala`, 'info');
-        audioService.playClick();
+        // Jugador se unió silenciosamente
       }
     });
 
@@ -384,7 +354,7 @@ export default function Home() {
       if (data.exito) {
         setAvailableColors(data.colores);
         setPendingRoomCode(data.codigo_sala);
-        showNotification('Selecciona tu color', 'info');
+        // Selección de color se maneja en la interfaz
       }
     });
 
@@ -410,7 +380,6 @@ export default function Home() {
         setAvailableColors([]);
         setPendingRoomCode(null);
         
-        audioService.playSuccess();
         showNotification(`Te has unido a la sala ${data.codigo_sala}`, 'success');
       }
     });
@@ -418,8 +387,7 @@ export default function Home() {
     // Dado inicial lanzado (para determinar orden)
     socket.on('DADO_INICIO', (data) => {
       console.log('[DADO_INICIO]', data);
-      audioService.playDiceRoll();
-      showNotification(`${data.jugador} sacó ${data.valor}`, 'info');
+      // Resultado de dados para orden se muestra visualmente
     });
 
     // Turno determinado (orden establecido)
@@ -427,15 +395,13 @@ export default function Home() {
       console.log('[TURNO_DETERMINADO]', data);
       // NO cerrar el componente aquí, dejar que el usuario vea los resultados
       // El componente TurnOrderDetermination manejará este evento
-      audioService.playSuccess();
-      showNotification(data.mensaje || `¡${data.jugador_inicial} comienza!`, 'success');
+      // El orden se muestra en la interfaz
     });
 
     // Error del servidor
     socket.on('ERROR', (data) => {
       console.log('[ERROR]', data);
       showNotification(data.mensaje || 'Error desconocido', 'error');
-      audioService.playError();
     });
 
     // Limpieza
@@ -462,8 +428,9 @@ export default function Home() {
   };
 
   const isMyTurn = () => {
-    if (!myPlayerInfo || !gameState.currentPlayer) return false;
-    return gameState.currentPlayer === myPlayerInfo.nombre;
+    const current = gameState?.currentPlayer || gameState?.jugador_actual || null;
+    if (!myPlayerInfo || !current) return false;
+    return current === myPlayerInfo.nombre;
   };
 
   // Handlers
@@ -538,7 +505,6 @@ export default function Home() {
     
     if (!isMyTurn()) {
       console.log('[ROLL] ❌ Bloqueado: No es mi turno');
-      showNotification('No es tu turno', 'warning');
       return;
     }
     
@@ -556,14 +522,10 @@ export default function Home() {
     console.log('[PIECE CLICK]', pieceId);
     
     if (!canMove) {
-      audioService.playError();
-      showNotification('Primero debes lanzar los dados', 'warning');
       return;
     }
     
     if (!isMyTurn()) {
-      audioService.playError();
-      showNotification('No es tu turno', 'warning');
       return;
     }
     
@@ -571,12 +533,9 @@ export default function Home() {
     
     // Verificar que sea mi ficha
     if (color !== myPlayerInfo.color) {
-      audioService.playError();
-      showNotification('No es tu ficha', 'warning');
       return;
     }
     
-    audioService.playClick();
     
     // Verificar si la ficha está en la cárcel
     const player = gameState.players?.find(p => p.color === color);
@@ -592,7 +551,6 @@ export default function Home() {
       // El backend validará si puede sacar de la cárcel
       // Solo verificamos que haya lanzado los dados
       if (!canMove) {
-        audioService.playError();
         showNotification('Debes lanzar los dados primero', 'warning');
         return;
       }
@@ -607,7 +565,6 @@ export default function Home() {
       
       // Verificar que no se use la misma ficha dos veces
       if (splitMovements.some(m => m.id_ficha === pieceId_num)) {
-        audioService.playError();
         showNotification('No puedes mover la misma ficha dos veces', 'warning');
         return;
       }
@@ -663,7 +620,6 @@ export default function Home() {
     setSplitMovements([]);
     setCurrentSplitDice(diceValue[0]);
     setMessage(`Selecciona una ficha para moverla ${diceValue[0]} casillas`);
-    audioService.playClick();
   };
 
   const handleCancelSplitMode = () => {
@@ -672,7 +628,6 @@ export default function Home() {
     setSplitMovements([]);
     setCurrentSplitDice(null);
     setMessage(`Dados: ${diceValue[0]} + ${diceValue[1]} = ${diceValue[0] + diceValue[1]}`);
-    audioService.playClick();
   };
 
   const movePiece = (pieceId, diceValueToUse) => {
@@ -733,7 +688,6 @@ export default function Home() {
       setMyPlayerInfo(null);
       
       // Reproducir sonido
-      audioService.playClick();
       
       // Opcional: desconectar del servidor si está en modo multijugador
       if (roomCode && socket) {
@@ -755,9 +709,10 @@ export default function Home() {
 
   // Obtener color del jugador actual
   const getCurrentPlayerColor = () => {
-    if (!gameState?.players || !gameState?.currentPlayer) return null;
+    const current = gameState?.currentPlayer || gameState?.jugador_actual;
+    if (!gameState?.players || !current) return null;
     const currentPlayerData = gameState.players.find(p => 
-      p.nombre === gameState.currentPlayer || p.name === gameState.currentPlayer
+      p.nombre === current || p.name === current
     );
     return currentPlayerData?.color || null;
   };
@@ -835,7 +790,6 @@ export default function Home() {
                       onClick={() => {
                         navigator.clipboard.writeText(roomCode);
                         showNotification('Código copiado al portapapeles', 'success');
-                        audioService.playClick();
                       }}
                     >
                       COPY
@@ -960,7 +914,6 @@ Ready State: ${myPlayerInfo?.es_host ? 'HOST_CONTROL' : 'AWAITING_START'}`}
 
   return (
     <div className={styles.container}>
-      <AudioControl />
       
       {showCelebration && winner && (
         <Celebration winner={winner} onClose={handleCloseCelebration} />
@@ -991,78 +944,22 @@ Ready State: ${myPlayerInfo?.es_host ? 'HOST_CONTROL' : 'AWAITING_START'}`}
               currentPlayer={gameState.currentPlayer}
               currentPlayerColor={getCurrentPlayerColor()}
               selectedPieceFromParent={selectedPiece}
-            />
-          </div>
-
-          <div className={styles.controlsSection}>
-            <div className={styles.turnInfo}>
-              <h2>Turno Actual</h2>
-              <p className={styles.currentPlayerName}>
-                {gameState.currentPlayer || 'Esperando...'}
-              </p>
-              {myPlayerInfo && (
-                <p className={styles.myInfo}>
-                  Tú: {myPlayerInfo.nombre} ({myPlayerInfo.color})
-                </p>
-              )}
-              {isMyTurn() && <p className={styles.yourTurn}>¡ES TU TURNO!</p>}
-            </div>
-
-            <Dice
-              value={diceValue}
-              onRoll={handleDiceRoll}
+              diceValue={diceValue}
+              onDiceRoll={handleDiceRoll}
               isRolling={isRolling}
               canRoll={isMyTurn() && !canMove && !isRolling}
+              myPlayerInfo={myPlayerInfo}
+              isMyTurn={isMyTurn}
+              message={message}
+              canSplitDice={canSplitDice}
+              splitMode={splitMode}
+              splitMovements={splitMovements}
+              onEnableSplitMode={handleEnableSplitMode}
+              onCancelSplitMode={handleCancelSplitMode}
             />
-
-            {canSplitDice && !splitMode && (
-              <div className={styles.splitButtonsContainer}>
-                <button 
-                  onClick={handleEnableSplitMode} 
-                  className={styles.splitButton}
-                >
-                  ✂️ Dividir dados
-                </button>
-              </div>
-            )}
-
-            {splitMode && (
-              <div className={styles.splitModeIndicator}>
-                <p>🎯 Modo división activo</p>
-                <p>Movimiento {splitMovements.length + 1} de 2</p>
-                <button 
-                  onClick={handleCancelSplitMode} 
-                  className={styles.cancelSplitButton}
-                >
-                  ❌ Cancelar
-                </button>
-              </div>
-            )}
-
-            {message && (
-              <div className={styles.messageBox}>
-                {message}
-              </div>
-            )}
-
-            <div className={styles.playersInfo}>
-              <h3>Jugadores</h3>
-              {gameState.players?.map(player => (
-                <div 
-                  key={player.player_id} 
-                  className={`${styles.playerCard} ${player.es_su_turno ? styles.activePlayer : ''}`}
-                >
-                  <div className={styles.playerColor} style={{ backgroundColor: player.color }}></div>
-                  <div className={styles.playerDetails}>
-                    <span className={styles.playerName}>{player.nombre}</span>
-                    <span className={styles.playerStats}>
-                      Meta: {player.pieces_in_home || 0}/4
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
+
+
         </div>
       </main>
 

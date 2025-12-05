@@ -4,7 +4,6 @@
 
 import React, { useState } from 'react';
 import styles from './RoomSelection.module.css';
-import audioService from '../../services/audioService';
 
 const RoomSelection = ({ onCreateRoom, onJoinRoom, onBack, availableColors = [], showColorSelector = false, onRoomInfoReceived }) => {
   const [mode, setMode] = useState('select'); // 'select', 'create', 'join', 'selectColor'
@@ -41,13 +40,11 @@ const RoomSelection = ({ onCreateRoom, onJoinRoom, onBack, availableColors = [],
   ];
 
   const handleModeSelect = (selectedMode) => {
-    audioService.playClick();
     setMode(selectedMode);
     setError('');
   };
 
   const handleBack = () => {
-    audioService.playClick();
     if (mode === 'selectColor') {
       // Si está en selección de color, volver a join
       setMode('join');
@@ -64,24 +61,20 @@ const RoomSelection = ({ onCreateRoom, onJoinRoom, onBack, availableColors = [],
   const handleCreateRoom = () => {
     if (!playerName.trim()) {
       setError('Por favor ingresa tu nombre');
-      audioService.playError();
       return;
     }
 
     if (!selectedColor) {
       setError('Por favor selecciona un color');
-      audioService.playError();
       return;
     }
 
     // Validar que haya espacio para jugadores humanos (máximo 3 bots)
     if (numBots >= 4) {
       setError('Debe haber al menos 1 espacio para jugadores humanos');
-      audioService.playError();
       return;
     }
 
-    audioService.playClick();
     onCreateRoom({ playerName, maxPlayers, numBots, color: selectedColor });
   };
 
@@ -89,25 +82,21 @@ const RoomSelection = ({ onCreateRoom, onJoinRoom, onBack, availableColors = [],
     // Validar nombre primero
     if (!playerName.trim()) {
       setError('Por favor ingresa tu nombre');
-      audioService.playError();
       return;
     }
 
     // Validar que el nombre no esté duplicado (esto se verificará en el backend)
     if (playerName.trim().length < 2) {
       setError('El nombre debe tener al menos 2 caracteres');
-      audioService.playError();
       return;
     }
 
     if (!roomCode.trim() || roomCode.length !== 6) {
       setError('Por favor ingresa un código de sala válido (6 caracteres)');
-      audioService.playError();
       return;
     }
 
     console.log('[RoomSelection] Validando sala y obteniendo colores disponibles');
-    audioService.playClick();
     // Guardar el código de la sala y solicitar información al backend
     const upperRoomCode = roomCode.toUpperCase();
     setJoinedRoomCode(upperRoomCode);
@@ -120,11 +109,9 @@ const RoomSelection = ({ onCreateRoom, onJoinRoom, onBack, availableColors = [],
   const handleConfirmColor = () => {
     if (!selectedColor) {
       setError('Por favor selecciona un color');
-      audioService.playError();
       return;
     }
 
-    audioService.playClick();
     onJoinRoom({ playerName, roomCode: joinedRoomCode, color: selectedColor });
   };
 
@@ -198,7 +185,6 @@ const RoomSelection = ({ onCreateRoom, onJoinRoom, onBack, availableColors = [],
                             onClick={() => {
                               if (!isDisabled) {
                                 setNumBots(num);
-                                audioService.playClick();
                               }
                             }}
                             disabled={isDisabled}
@@ -236,7 +222,6 @@ const RoomSelection = ({ onCreateRoom, onJoinRoom, onBack, availableColors = [],
                       } ${styles[color.id]}`}
                       onClick={() => {
                         setSelectedColor(color.id);
-                        audioService.playClick();
                       }}
                     >
                       <div className={styles.colorIcon}>{color.emoji}</div>
@@ -442,7 +427,6 @@ const RoomSelection = ({ onCreateRoom, onJoinRoom, onBack, availableColors = [],
                       onClick={() => {
                         if (isAvailable) {
                           setSelectedColor(color.id);
-                          audioService.playClick();
                         }
                       }}
                       disabled={!isAvailable}

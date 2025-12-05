@@ -4,7 +4,6 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './Dice.module.css';
-import audioService from '../../services/audioService';
 
 const Dice = ({ 
   value = null,  // Ahora puede ser un array [dice1, dice2] o null
@@ -13,7 +12,8 @@ const Dice = ({
   disabled = false,
   playerColor = 'blue',
   noMovesAvailable = false,
-  startPhaseAttempts = null  // { current: 1, max: 3 } para mostrar "1/3"
+  startPhaseAttempts = null,  // { current: 1, max: 3 } para mostrar "1/3"
+  embedded = false  // Nuevo: modo embebido para integrar en otros paneles
 }) => {
   const [animating, setAnimating] = useState(false);
   const [displayedValues, setDisplayedValues] = useState([null, null]);
@@ -42,7 +42,6 @@ const Dice = ({
       // 🔊 Reproducir sonido de dobles si los dados son iguales
       if (value[0] === value[1] && !animating) {
         setTimeout(() => {
-          audioService.playDoubles();
         }, 300);
       }
       // NO limpiar showResults aquí - dejar que la animación lo maneje
@@ -73,7 +72,6 @@ const Dice = ({
     setDisplayedValues([null, null]); // ✅ Limpiar valores al iniciar nueva tirada
     
     // 🔊 Reproducir sonido de dados
-    audioService.playDiceRoll();
     
     // Llamar al callback para enviar al servidor
     if (onRoll) {
@@ -125,6 +123,66 @@ const Dice = ({
   // Detectar si se sacaron dobles
   const isDoubles = hasValues && displayedValues[0] === displayedValues[1];
 
+  // Modo embebido simplificado
+  if (embedded) {
+    return (
+      <div className={styles.embeddedDiceContainer}>
+        <div className={styles.embeddedHeader}>
+          <h4 className={styles.embeddedTitle}>🎲 DADOS</h4>
+          <div className={styles.embeddedStatus}>
+            {disabled ? '⏳ ESPERANDO' : 
+             (animating || isRolling) ? '🎲 LANZANDO' :
+             noMovesAvailable ? '⚠️ SIN MOVIMIENTOS' : 
+             '✓ LISTO'}
+          </div>
+        </div>
+        
+        {isDoubles && (
+          <div className={styles.embeddedDoubles}>¡DOBLES! 🎲</div>
+        )}
+        
+        <div className={styles.embeddedDiceWrapper}>
+          <button className={diceClasses} onClick={onRoll} disabled={disabled}>
+            <div className={styles.diceFace}>
+              {(animating || isRolling) ? (
+                <div className={styles.rollingText}>🎲</div>
+              ) : hasValues ? (
+                renderDots(displayedValues[0])
+              ) : (
+                <div className={styles.emptyDice}></div>
+              )}
+            </div>
+          </button>
+          
+          <button className={diceClasses} onClick={onRoll} disabled={disabled}>
+            <div className={styles.diceFace}>
+              {(animating || isRolling) ? (
+                <div className={styles.rollingText}>🎲</div>
+              ) : hasValues ? (
+                renderDots(displayedValues[1])
+              ) : (
+                <div className={styles.emptyDice}></div>
+              )}
+            </div>
+          </button>
+        </div>
+        
+        {!disabled && (
+          <button
+            onClick={onRoll}
+            disabled={disabled}
+            className={styles.embeddedRollBtn}
+          >
+            {(animating || isRolling) ? 'LANZANDO...' : 
+             noMovesAvailable ? 'SALTAR TURNO' : 
+             'LANZAR DADOS'}
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // Modo normal (no embedded)
   return (
     <div className={styles.diceContainer}>
       {/* Banner de DOBLES - se muestra cuando hay dobles */}
@@ -150,6 +208,7 @@ const Dice = ({
         
         <div className={styles.diceInterface}>
           <div className={styles.diceWrapper}>
+
             {/* Primer dado */}
             <button
               className={diceClasses}

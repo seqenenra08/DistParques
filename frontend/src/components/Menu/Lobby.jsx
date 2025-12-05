@@ -4,7 +4,6 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './Lobby.module.css';
-import audioService from '../../services/audioService';
 
 const Lobby = ({ 
   roomCode, 
@@ -34,7 +33,6 @@ const Lobby = ({
 
   const copyRoomCode = () => {
     navigator.clipboard.writeText(roomCode);
-    audioService.playClick();
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -43,17 +41,14 @@ const Lobby = ({
     if (socket) {
       const newReadyState = !isReady;
       socket.emit('set_ready', { ready: newReadyState });
-      audioService.playClick();
     }
   };
 
   const handleStartGame = () => {
-    audioService.playClick();
     onStartGame();
   };
 
   const handleLeave = () => {
-    audioService.playClick();
     onLeaveLobby();
   };
 

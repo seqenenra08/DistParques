@@ -4,7 +4,6 @@
 
 import React, { useEffect } from 'react';
 import styles from './Notification.module.css';
-import audioService from '../../services/audioService';
 
 const Notification = ({ message, type = 'info', onClose, duration = 4000 }) => {
   useEffect(() => {
@@ -32,7 +31,6 @@ const Notification = ({ message, type = 'info', onClose, duration = 4000 }) => {
   };
 
   const handleClose = () => {
-    audioService.playClick();
     onClose();
   };
 

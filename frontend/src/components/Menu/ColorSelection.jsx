@@ -4,7 +4,6 @@
 
 import React, { useState } from 'react';
 import styles from './ColorSelection.module.css';
-import audioService from '../../services/audioService';
 
 const COLORS = [
   { id: 'red', name: 'Rojo', color: '#dc2626' },
@@ -22,7 +21,6 @@ const ColorSelection = ({ numberOfPlayers, onColorsSelected, onBack }) => {
 
   const handleColorSelect = (colorId) => {
     // 🔊 Reproducir sonido de selección
-    audioService.playClick();
     
     const newSelectedColors = [...selectedColors];
     newSelectedColors[currentPlayer - 1] = colorId;
@@ -41,7 +39,6 @@ const ColorSelection = ({ numberOfPlayers, onColorsSelected, onBack }) => {
 
   const handleBack = () => {
     // 🔊 Reproducir sonido de click
-    audioService.playClick();
     
     if (currentPlayer > 1) {
       setCurrentPlayer(currentPlayer - 1);
@@ -55,7 +52,6 @@ const ColorSelection = ({ numberOfPlayers, onColorsSelected, onBack }) => {
 
   const handleFinish = () => {
     // 🔊 Reproducir sonido de confirmación
-    audioService.playClick();
     
     const players = selectedColors.map((colorId, index) => ({
       id: `player_${colorId}`, // Usar el color como ID

@@ -7,12 +7,10 @@ import Dice from '../components/Game/Dice';
 import Menu from '../components/Menu/Menu';
 import Rules from '../components/Menu/Rules';
 import Celebration from '../components/Game/Celebration';
-import AudioControl from '../components/Game/AudioControl';
 import MoveSelector from '../components/Game/MoveSelector';
 import Notification from '../components/Notification/Notification';
 import { initialGameState } from '../utils/mockData';
 import styles from './page.module.css';
-import audioService from '../services/audioService';
 
 export default function Home() {
   const { socket, connected, emit } = useSocket();
@@ -40,14 +38,10 @@ export default function Home() {
   const [pendingPieceForMove, setPendingPieceForMove] = useState(null);
   const [selectedPiece, setSelectedPiece] = useState(null);
   
-  // Inicializar audio
   useEffect(() => {
-    const initAudio = async () => {
-      await audioService.initialize();
     };
     
     const handleFirstInteraction = () => {
-      initAudio();
       document.removeEventListener('click', handleFirstInteraction);
       document.removeEventListener('keydown', handleFirstInteraction);
     };
@@ -75,7 +69,6 @@ export default function Home() {
           color: data.jugador.color,
           es_host: data.jugador.es_host
         });
-        audioService.playSuccess();
         
         // Iniciar partida automáticamente
         setTimeout(() => {
@@ -89,7 +82,6 @@ export default function Home() {
       console.log('[PARTIDA_INICIADA]', data);
       setGameStarted(true);
       setGameState(data.estado);
-      audioService.playGameStart();
     });
 
     // Resultado de lanzamiento de dados
@@ -100,7 +92,6 @@ export default function Home() {
       setDiceValue(data.dados);
       
       if (data.error) {
-        audioService.playError();
         showNotification(data.error, 'error');
         return;
       }
@@ -116,9 +107,7 @@ export default function Home() {
       }
       
       // Puede mover
-      audioService.playDiceRoll();
       if (data.es_par) {
-        audioService.playDoubles();
       }
       
       setCanMove(true);
@@ -138,12 +127,10 @@ export default function Home() {
       console.log('[MOVE_RESULT]', data);
       
       if (data.error) {
-        audioService.playError();
         showNotification(data.error, 'error');
         return;
       }
       
-      audioService.playPieceMove();
       
       // Limpiar estado de movimiento
       setCanMove(false);
@@ -158,10 +145,8 @@ export default function Home() {
       if (accion === 'sacar_carcel') {
         setMessage('✅ Ficha sacada de la cárcel');
       } else if (accion === 'llego_meta') {
-        audioService.playPieceGoal();
         setMessage('🏁 ¡Ficha llegó a la META!');
       } else if (data.fichas_capturadas && data.fichas_capturadas.length > 0) {
-        audioService.playPieceCapture();
         setMessage(`💥 ¡Capturaste ${data.fichas_capturadas.length} ficha(s)!`);
       }
       
@@ -171,7 +156,6 @@ export default function Home() {
       if (data.ganador) {
         setWinner({ name: data.ganador, color: gameState.currentPlayer });
         setShowCelebration(true);
-        audioService.playGameWin();
       }
     });
 
@@ -236,7 +220,6 @@ export default function Home() {
     }
     
     if (!isMyTurn()) {
-      showNotification('No es tu turno', 'warning');
       return;
     }
     
@@ -253,14 +236,10 @@ export default function Home() {
     console.log('[PIECE CLICK]', pieceId);
     
     if (!canMove) {
-      audioService.playError();
-      showNotification('Primero debes lanzar los dados', 'warning');
       return;
     }
     
     if (!isMyTurn()) {
-      audioService.playError();
-      showNotification('No es tu turno', 'warning');
       return;
     }
     
@@ -268,12 +247,9 @@ export default function Home() {
     
     // Verificar que sea mi ficha
     if (color !== myPlayerInfo.color) {
-      audioService.playError();
-      showNotification('No es tu ficha', 'warning');
       return;
     }
     
-    audioService.playClick();
     
     // Si hay múltiples opciones de movimiento, mostrar selector
     if (availableMoves.length > 1) {
@@ -367,7 +343,6 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      <AudioControl />
       
       {showCelebration && winner && (
         <Celebration winner={winner} onClose={handleCloseCelebration} />

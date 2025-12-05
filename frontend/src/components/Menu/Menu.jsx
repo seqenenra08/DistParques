@@ -8,7 +8,6 @@ import ColorSelection from './ColorSelection';
 import TurnOrderDetermination from './TurnOrderDetermination';
 import Settings from './Settings';
 import RoomSelection from './RoomSelection';
-import audioService from '../../services/audioService';
 
 const Menu = ({ onStartGame, onShowRules, onCreateRoom, onJoinRoom, availableColors = [], showColorSelector = false, onRoomInfoReceived }) => {
   const [selectedPlayers, setSelectedPlayers] = useState(2);
@@ -31,31 +30,26 @@ const Menu = ({ onStartGame, onShowRules, onCreateRoom, onJoinRoom, availableCol
 
   const handleStartGame = () => {
     // 🔊 Reproducir sonido de click
-    audioService.playClick();
     setCurrentStep('players');
   };
   
   const handleContinueToBots = () => {
     // 🔊 Reproducir sonido de click
-    audioService.playClick();
     setCurrentStep('bots');
   };
 
   const handleContinueToLobby = () => {
     // 🔊 Reproducir sonido de click
-    audioService.playClick();
     setCurrentStep('lobby');
   };
 
   const handleMultiplayerGame = () => {
     // 🔊 Reproducir sonido de click
-    audioService.playClick();
     setCurrentStep('roomSelection');
   };
 
   const handleStartGameFromLobby = () => {
     // 🔊 Reproducir sonido de click
-    audioService.playClick();
     
     // Generar jugadores con colores aleatorios
     const allColors = ['red', 'blue', 'green', 'yellow'];
@@ -94,7 +88,6 @@ const Menu = ({ onStartGame, onShowRules, onCreateRoom, onJoinRoom, availableCol
     console.log('[MENU] Order determined, starting game:', orderedPlayers);
     
     // 🔊 Reproducir sonido de click
-    audioService.playClick();
     
     // Pasar los jugadores ordenados al componente padre
     onStartGame({
@@ -105,44 +98,37 @@ const Menu = ({ onStartGame, onShowRules, onCreateRoom, onJoinRoom, availableCol
 
   const handleBackToMenu = () => {
     // 🔊 Reproducir sonido de click
-    audioService.playClick();
     setCurrentStep('menu');
   };
   
   const handleBackToPlayers = () => {
     // 🔊 Reproducir sonido de click
-    audioService.playClick();
     setCurrentStep('players');
   };
 
   const handleBackToBots = () => {
     // 🔊 Reproducir sonido de click
-    audioService.playClick();
     setCurrentStep('bots');
   };
 
   const handleBackToLobby = () => {
     // 🔊 Reproducir sonido de click
-    audioService.playClick();
     setCurrentStep('lobby');
   };
   
   const handleSelectPlayers = (numPlayers) => {
     // 🔊 Reproducir sonido de click
-    audioService.playClick();
     setSelectedPlayers(numPlayers);
     setSelectedBots(0); // Reset bots al cambiar número de jugadores
   };
 
   const handleSelectBots = (numBots) => {
     // 🔊 Reproducir sonido de click
-    audioService.playClick();
     setSelectedBots(numBots);
   };
 
   const handleShowSettings = () => {
     // 🔊 Reproducir sonido de click
-    audioService.playClick();
     setShowSettings(true);
   };
 

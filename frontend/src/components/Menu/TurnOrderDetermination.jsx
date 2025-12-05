@@ -4,7 +4,6 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './TurnOrderDetermination.module.css';
-import audioService from '../../services/audioService';
 
 const BOARD_ORDER = ['red', 'green', 'yellow', 'blue']; // Orden antihorario en el tablero
 
@@ -152,7 +151,6 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
       setTiedPlayers([]);
       
       console.log('[TURN ORDER] Estado actualizado - activePlayers:', sortedTiedPlayers);
-      audioService.playClick();
     };
     
     const handleRerollStarted = () => {
@@ -169,7 +167,6 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
       setTiedPlayers([]);
       setIsTiebreaker(false);
       setActivePlayers(sortedPlayers);
-      audioService.playClick();
     };
     
     const handleTurnoDeterminado = (data) => {
@@ -198,7 +195,6 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
         calculateFinalOrder(finalResults);
       }
       
-      audioService.playSuccess();
     };
     
     const handleComenzarJuego = (data) => {
@@ -230,14 +226,12 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
     // En modo multijugador, solo permitir lanzar al jugador actual
     if (isMultiplayer && currentPlayer.id !== myPlayerId) {
       console.log('[TURN ORDER] No es tu turno de lanzar');
-      audioService.playError();
       return;
     }
     
     setIsRolling(true);
     
     // 🔊 Reproducir sonido de dados girando
-    audioService.playDiceRoll();
     
     // Animar el dado mostrando valores aleatorios
     let iterations = 0;
@@ -260,7 +254,6 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
       setAnimatedValue(result);
       
       // 🔊 Reproducir sonido de click al mostrar resultado
-      audioService.playClick();
       
       // En modo multijugador, emitir al servidor usando protocolo correcto
       if (isMultiplayer && socket && roomCode) {
@@ -336,14 +329,12 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
     // En modo multijugador, solo el host puede iniciar desempate
     if (isMultiplayer && !isHost) {
       console.log('[TIEBREAKER] Solo el host puede iniciar el desempate');
-      audioService.playError();
       return;
     }
     
     console.log('[TIEBREAKER] Starting tiebreaker for:', tiedPlayers.map(p => p.name));
     
     // 🔊 Reproducir sonido de click
-    audioService.playClick();
     
     // En modo multijugador, emitir al servidor y ESPERAR el evento de vuelta
     if (isMultiplayer && socket && roomCode) {
@@ -402,7 +393,6 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
     
     // 🔊 Reproducir fanfarria especial al determinar el orden
     setTimeout(() => {
-      audioService.playOrderDetermined();
     }, 300);
   };
 
@@ -410,7 +400,6 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
     // En modo multijugador, solo el host puede continuar
     if (isMultiplayer && !isHost) {
       console.log('[ORDER DETERMINATION] Solo el host puede iniciar el juego');
-      audioService.playError();
       return;
     }
     
@@ -419,7 +408,6 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
     console.log('[ORDER DETERMINATION] Number of players:', finalOrder.length);
     
     // 🔊 Reproducir sonido de confirmación
-    audioService.playClick();
     
     // En modo multijugador, enviar mensaje al servidor para que todos comiencen
     if (isMultiplayer && socket && roomCode) {
@@ -438,14 +426,12 @@ const TurnOrderDetermination = ({ players, onOrderDetermined, onBack, socket, ro
     // En modo multijugador, solo el host puede reiniciar
     if (isMultiplayer && !isHost) {
       console.log('[ORDER DETERMINATION] Solo el host puede reiniciar');
-      audioService.playError();
       return;
     }
     
     console.log('[ORDER DETERMINATION] Rerolling dice...');
     
     // 🔊 Reproducir sonido de click
-    audioService.playClick();
     
     // En modo multijugador, emitir al servidor y ESPERAR el evento de vuelta
     if (isMultiplayer && socket && roomCode) {

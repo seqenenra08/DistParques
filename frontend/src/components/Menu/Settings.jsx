@@ -4,11 +4,8 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './Settings.module.css';
-import audioService from '../../services/audioService';
 
 const Settings = ({ onClose }) => {
-  const [volume, setVolume] = useState(0.5);
-  const [isMuted, setIsMuted] = useState(false);
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
   const [showConfetti, setShowConfetti] = useState(true);
   const [gameSpeed, setGameSpeed] = useState('normal');
@@ -21,27 +18,17 @@ const Settings = ({ onClose }) => {
     const savedSettings = localStorage.getItem('parcheesiSettings');
     if (savedSettings) {
       const settings = JSON.parse(savedSettings);
-      setVolume(settings.volume ?? 0.5);
-      setIsMuted(settings.isMuted ?? false);
       setAnimationsEnabled(settings.animationsEnabled ?? true);
       setShowConfetti(settings.showConfetti ?? true);
       setGameSpeed(settings.gameSpeed ?? 'normal');
       setTheme(settings.theme ?? 'default');
       setLanguage(settings.language ?? 'es');
       setShowTutorial(settings.showTutorial ?? true);
-
-      // Aplicar volumen inicial
-      audioService.setVolume(settings.volume ?? 0.5);
-      if (settings.isMuted) {
-        audioService.toggleMute();
-      }
     }
   }, []);
 
   const saveSettings = () => {
     const settings = {
-      volume,
-      isMuted,
       animationsEnabled,
       showConfetti,
       gameSpeed,
@@ -52,77 +39,44 @@ const Settings = ({ onClose }) => {
     localStorage.setItem('parcheesiSettings', JSON.stringify(settings));
   };
 
-  const handleVolumeChange = (e) => {
-    const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    audioService.setVolume(newVolume);
-    
-    // Si estaba silenciado y cambiamos el volumen, quitar el silencio
-    if (isMuted && newVolume > 0) {
-      setIsMuted(false);
-      audioService.toggleMute();
-    }
-    
-    saveSettings();
-  };
 
-  const handleToggleMute = () => {
-    const newMutedState = audioService.toggleMute();
-    setIsMuted(newMutedState);
-    saveSettings();
-    
-    // Reproducir sonido de confirmación solo si se está desmuteando
-    if (!newMutedState) {
-      setTimeout(() => {
-        audioService.playClick();
-      }, 100);
-    }
-  };
 
   const handleToggleAnimations = () => {
     const newState = !animationsEnabled;
     setAnimationsEnabled(newState);
-    audioService.playClick();
     saveSettings();
   };
 
   const handleToggleConfetti = () => {
     const newState = !showConfetti;
     setShowConfetti(newState);
-    audioService.playClick();
     saveSettings();
   };
 
   const handleGameSpeedChange = (speed) => {
     setGameSpeed(speed);
-    audioService.playClick();
     saveSettings();
   };
 
   const handleThemeChange = (newTheme) => {
     setTheme(newTheme);
-    audioService.playClick();
     saveSettings();
   };
 
   const handleLanguageChange = (lang) => {
     setLanguage(lang);
-    audioService.playClick();
     saveSettings();
   };
 
   const handleToggleTutorial = () => {
     const newState = !showTutorial;
     setShowTutorial(newState);
-    audioService.playClick();
     saveSettings();
   };
 
   const handleResetSettings = () => {
     if (window.confirm('¿Estás seguro de que quieres restablecer todos los ajustes?')) {
       // Valores por defecto
-      setVolume(0.5);
-      setIsMuted(false);
       setAnimationsEnabled(true);
       setShowConfetti(true);
       setGameSpeed('normal');
@@ -130,34 +84,18 @@ const Settings = ({ onClose }) => {
       setLanguage('es');
       setShowTutorial(true);
 
-      // Aplicar al servicio de audio
-      audioService.setVolume(0.5);
-      if (isMuted) {
-        audioService.toggleMute();
-      }
-
       // Limpiar localStorage
       localStorage.removeItem('parcheesiSettings');
-
-      audioService.playClick();
     }
   };
 
   const handleClose = () => {
-    audioService.playClick();
     onClose();
   };
 
-  const handleTestSound = () => {
-    audioService.playDiceRoll();
-  };
 
-  const getVolumeIcon = () => {
-    if (isMuted || volume === 0) return '🔇';
-    if (volume < 0.3) return '🔈';
-    if (volume < 0.7) return '🔉';
-    return '🔊';
-  };
+
+
 
   return (
     <div className={styles.overlay}>
@@ -170,58 +108,7 @@ const Settings = ({ onClose }) => {
         </div>
 
         <div className={styles.content}>
-          {/* SECCIÓN DE AUDIO */}
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>
-              <span className={styles.sectionIcon}>🔊</span>
-              Audio
-            </h2>
 
-            <div className={styles.settingItem}>
-              <div className={styles.settingLabel}>
-                <span>Silenciar Sonidos</span>
-                <span className={styles.settingDescription}>
-                  Desactiva todos los efectos de sonido
-                </span>
-              </div>
-              <button
-                className={`${styles.toggleButton} ${isMuted ? styles.toggleActive : ''}`}
-                onClick={handleToggleMute}
-              >
-                {isMuted ? 'Silenciado' : 'Activo'}
-              </button>
-            </div>
-
-            <div className={styles.settingItem}>
-              <div className={styles.settingLabel}>
-                <span>Volumen {getVolumeIcon()}</span>
-                <span className={styles.settingDescription}>
-                  Ajusta el nivel de audio del juego
-                </span>
-              </div>
-              <div className={styles.volumeControl}>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.05"
-                  value={volume}
-                  onChange={handleVolumeChange}
-                  className={styles.slider}
-                  disabled={isMuted}
-                />
-                <span className={styles.volumeValue}>
-                  {Math.round(volume * 100)}%
-                </span>
-              </div>
-            </div>
-
-            <div className={styles.settingItem}>
-              <button className={styles.testButton} onClick={handleTestSound}>
-                🎲 Probar Sonido
-              </button>
-            </div>
-          </div>
 
           {/* SECCIÓN DE VISUALES */}
           <div className={styles.section}>
