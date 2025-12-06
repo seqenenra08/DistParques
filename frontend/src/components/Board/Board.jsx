@@ -328,7 +328,7 @@ const Board = ({
               value={diceValue}
               onRoll={onDiceRoll}
               isRolling={isRolling}
-              canRoll={canRoll}
+              disabled={!canRoll}
               embedded={true}
             />
           </div>

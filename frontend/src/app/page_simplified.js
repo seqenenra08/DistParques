@@ -131,6 +131,12 @@ export default function Home() {
         return;
       }
       
+      // Solo procesar si es el turno actual del que está jugando
+      // El MOVE_RESULT se hace broadcast pero solo el jugador que se está moviendo debe procesarlo
+      if (myPlayerInfo && gameState && gameState.currentPlayer !== myPlayerInfo.nombre) {
+        console.log('[MOVE_RESULT] ⏭️ Ignorando - no es mi turno');
+        return;
+      }
       
       // Limpiar estado de movimiento
       setCanMove(false);
@@ -139,6 +145,7 @@ export default function Home() {
       setAvailableMoves([]);
       setPendingPieceForMove(null);
       setShowMoveSelector(false);
+      setIsRolling(false);
       
       // Mostrar mensaje de acción
       const accion = data.accion;
@@ -162,7 +169,37 @@ export default function Home() {
     // Estado actualizado
     socket.on('UPDATE', (data) => {
       console.log('[UPDATE]', data.estado);
+      
+      const previousPlayerName = gameState?.currentPlayer;
+      const currentPlayerName = data.estado?.currentPlayer || data.estado?.jugador_actual;
+      const turnChanged = previousPlayerName && previousPlayerName !== currentPlayerName;
+      const isMyTurnNow = myPlayerInfo && currentPlayerName === myPlayerInfo.nombre;
+      
       setGameState(data.estado);
+      
+      if (!isMyTurnNow) {
+        // No es mi turno, limpiar TODO
+        console.log('[UPDATE] 🔄 No es mi turno, limpiando estado');
+        setDiceValue(null);
+        setCanMove(false);
+        setSelectedPiece(null);
+        setAvailableMoves([]);
+        setIsRolling(false);
+      } else if (turnChanged) {
+        // Es mi turno y CAMBIÓ (acabo de recibir el turno)
+        console.log('[UPDATE] ✅ Recibí el turno, limpiando datos previos');
+        setDiceValue(null);
+        setCanMove(false);
+        setSelectedPiece(null);
+        setAvailableMoves([]);
+        setIsRolling(false);
+      } else {
+        // Es mi turno y NO cambió (continuación del turno)
+        console.log('[UPDATE] 📋 Turno continúa, limpiando datos pero mantiendo canMove');
+        setDiceValue(null);
+        setSelectedPiece(null);
+        setIsRolling(false);
+      }
     });
 
     // Información de fichas
@@ -394,7 +431,7 @@ export default function Home() {
               value={diceValue}
               onRoll={handleDiceRoll}
               isRolling={isRolling}
-              canRoll={isMyTurn() && !canMove && !isRolling}
+              disabled={!(isMyTurn() && !canMove && !isRolling)}
             />
 
             {message && (

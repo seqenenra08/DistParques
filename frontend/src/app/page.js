@@ -240,6 +240,12 @@ export default function Home() {
         return;
       }
       
+      // Solo procesar si es el turno actual del que está jugando
+      // El MOVE_RESULT se hace broadcast pero solo el jugador que se está moviendo debe procesarlo
+      if (myPlayerInfo && gameState && gameState.jugador_actual !== myPlayerInfo.nombre) {
+        console.log('[MOVE_RESULT] ⏭️ Ignorando - no es mi turno (jugador actual:', gameState.jugador_actual, ', yo:', myPlayerInfo.nombre, ')');
+        return;
+      }
       
       // Limpiar estado de movimiento
       setCanMove(false);
@@ -252,6 +258,7 @@ export default function Home() {
       setSplitMode(false);
       setSplitMovements([]);
       setCurrentSplitDice(null);
+      setIsRolling(false);
       
       // Las acciones del juego se manejan visualmente sin notificaciones molestas
       
@@ -288,23 +295,23 @@ export default function Home() {
       console.log('[UPDATE]', data.estado);
       console.log('[UPDATE] Estado actual antes:', {
         previousPlayer: gameState?.jugador_actual,
+        currentPlayer: data.estado?.jugador_actual,
         myPlayerInfo: myPlayerInfo?.nombre,
         canMove,
         diceValue,
         isRolling
       });
       
-      // Detectar cambio de turno
       const previousPlayerName = gameState?.jugador_actual;
       const currentPlayerName = data.estado.jugador_actual;
       const turnChanged = previousPlayerName && previousPlayerName !== currentPlayerName;
+      const isMyTurnNow = myPlayerInfo && currentPlayerName === myPlayerInfo.nombre;
       
       setGameState(normalizeState(data.estado));
       
-      // Si cambió el turno, limpiar estado de TODOS los jugadores
-      if (turnChanged) {
-        console.log('[UPDATE] ✅ Turno cambió de', previousPlayerName, 'a', currentPlayerName);
-        console.log('[UPDATE] ✅ Limpiando TODO el estado (canMove -> false)');
+      if (!isMyTurnNow) {
+        // No es mi turno, limpiar TODO
+        console.log('[UPDATE] 🔄 No es mi turno, limpiando estado completo');
         setDiceValue(null);
         setLastDiceRolled(null);
         setCanMove(false);
@@ -316,9 +323,9 @@ export default function Home() {
         setCurrentSplitDice(null);
         setMessage('');
         setIsRolling(false);
-      } else if (myPlayerInfo && data.estado.jugador_actual !== myPlayerInfo.nombre) {
-        // Si no es mi turno (sin cambio de turno), limpiar estado
-        console.log('[UPDATE] 🔄 No es mi turno, limpiando estado');
+      } else if (turnChanged) {
+        // Es mi turno y CAMBIÓ (acabo de recibir el turno)
+        console.log('[UPDATE] ✅ Recibí el turno, limpiando datos previos');
         setDiceValue(null);
         setLastDiceRolled(null);
         setCanMove(false);
@@ -328,8 +335,16 @@ export default function Home() {
         setSplitMode(false);
         setSplitMovements([]);
         setCurrentSplitDice(null);
+        setMessage('');
+        setIsRolling(false);
       } else {
-        console.log('[UPDATE] ⚠️ Es mi turno pero no cambió el turno - manteniendo estado');
+        // Es mi turno y NO cambió (continuación del turno, relanzar dados)
+        console.log('[UPDATE] 📋 Turno continúa, limpiando datos pero mantiendo canMove');
+        setDiceValue(null);
+        setLastDiceRolled(null);
+        setSelectedPiece(null);
+        setMessage('');
+        setIsRolling(false);
       }
     });
 
