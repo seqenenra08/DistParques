@@ -1194,11 +1194,13 @@ class ServidorSalas:
         resultado["tipo"] = "MOVE_RESULT"
         await websocket.send(json.dumps(resultado))
         
-        # Broadcast estado actualizado
-        await self.broadcast_sala(codigo_sala, {
-            "tipo": "UPDATE",
-            "estado": self._enviar_estado_actualizado(sala)
-        })
+        # Solo broadcast estado actualizado si NO es un error que mantiene turno
+        if not resultado.get('mantener_turno', False):
+            # Broadcast estado actualizado
+            await self.broadcast_sala(codigo_sala, {
+                "tipo": "UPDATE",
+                "estado": self._enviar_estado_actualizado(sala)
+            })
         
         # Si cambió el turno, ejecutar bot si es necesario
         if resultado.get('cambio_turno', False):
@@ -1259,11 +1261,13 @@ class ServidorSalas:
         resultado["tipo"] = "MOVE_RESULT"
         await websocket.send(json.dumps(resultado))
         
-        # Broadcast estado actualizado
-        await self.broadcast_sala(codigo_sala, {
-            "tipo": "UPDATE",
-            "estado": self._enviar_estado_actualizado(sala)
-        })
+        # Solo broadcast estado actualizado si NO es un error que mantiene turno
+        if not resultado.get('mantener_turno', False):
+            # Broadcast estado actualizado
+            await self.broadcast_sala(codigo_sala, {
+                "tipo": "UPDATE",
+                "estado": self._enviar_estado_actualizado(sala)
+            })
         
         # Si cambió el turno, ejecutar bot si es necesario
         if resultado.get('cambio_turno', False):

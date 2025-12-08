@@ -457,7 +457,14 @@ class Partida:
                         # Segunda llamada desde MOVE - ejecutar sacar ficha
                         ficha = jugador.fichas[id_ficha]
                         if not ficha.esta_en_carcel():
-                            return {"error": f"La ficha {id_ficha} no está en la cárcel."}
+                            # Sacó par pero eligió una ficha que NO está en cárcel
+                            fichas_en_carcel = [f.id for f in jugador.fichas if f.esta_en_carcel()]
+                            return {
+                                "error": f"La ficha {id_ficha} no está en la cárcel. Fichas en cárcel: {fichas_en_carcel}",
+                                "puede_intentar_otra": True,
+                                "mantener_turno": True,
+                                "fichas_sugeridas": fichas_en_carcel
+                            }
                         
                         exito = self._sacar_ficha_carcel(jugador, id_ficha)
                         if exito:
@@ -518,14 +525,18 @@ class Partida:
                 if id_ficha is not None:
                     ficha = jugador.fichas[id_ficha]
                     if not ficha.esta_en_carcel():
-                        return {"error": f"La ficha {id_ficha} no está en la cárcel. Fichas en cárcel: {[f.id for f in jugador.fichas if f.esta_en_carcel()]}"}
-                    
-                    exito = self._sacar_ficha_carcel(jugador, id_ficha)
-                    if exito:
-                        resultado["accion"] = "sacar_carcel"
-                        # Con par puede tirar de nuevo, no cambiar turno
-                        jugador.permitir_lanzar_de_nuevo()
-                        return resultado
+                        # El jugador sacó par y tiene fichas en cárcel, pero eligió una ficha que NO está en cárcel
+                        # Esto es válido: puede elegir sacar de cárcel O mover una que ya está fuera
+                        # NO devolver error, continuar con la lógica de movimiento normal
+                        pass
+                    else:
+                        # La ficha está en cárcel, sacarla
+                        exito = self._sacar_ficha_carcel(jugador, id_ficha)
+                        if exito:
+                            resultado["accion"] = "sacar_carcel"
+                            # Con par puede tirar de nuevo, no cambiar turno
+                            jugador.permitir_lanzar_de_nuevo()
+                            return resultado
                 else:
                     # Sacó par pero no especificó ficha, esperar movimiento
                     return resultado
@@ -535,10 +546,47 @@ class Partida:
                 ficha = jugador.fichas[id_ficha]
                 
                 if ficha.esta_en_carcel():
-                    return {"error": f"La ficha {id_ficha} está en la cárcel. Necesitas sacar PAR para liberarla."}
+                    # Buscar fichas que SÍ se pueden mover
+                    fichas_movibles = [i for i in range(4) if not jugador.fichas[i].esta_en_carcel() 
+                                      and not jugador.fichas[i].esta_en_meta() 
+                                      and jugador.puede_mover(i, suma_dados)]
+                    
+                    if fichas_movibles:
+                        return {
+                            "error": f"La ficha {id_ficha} está en la cárcel. Selecciona otra ficha: {fichas_movibles}",
+                            "puede_intentar_otra": True,
+                            "mantener_turno": True,
+                            "fichas_sugeridas": fichas_movibles
+                        }
+                    else:
+                        return {
+                            "error": f"La ficha {id_ficha} está en la cárcel y no tienes otras fichas que puedas mover.",
+                            "puede_intentar_otra": False,
+                            "mantener_turno": False
+                        }
                 
                 if not jugador.puede_mover(id_ficha, suma_dados):
-                    return {"error": f"No puedes mover la ficha {id_ficha}. Intenta con otra ficha."}
+                    # Buscar fichas que SÍ se pueden mover
+                    fichas_movibles = [i for i in range(4) if not jugador.fichas[i].esta_en_carcel() 
+                                      and not jugador.fichas[i].esta_en_meta() 
+                                      and jugador.puede_mover(i, suma_dados)]
+                    
+                    if fichas_movibles:
+                        return {
+                            "error": f"No puedes mover la ficha {id_ficha} con estos dados. Prueba con: {fichas_movibles}",
+                            "puede_intentar_otra": True,
+                            "mantener_turno": True,
+                            "fichas_sugeridas": fichas_movibles
+                        }
+                    else:
+                        # No hay fichas movibles - cambiar turno
+                        self._cambiar_turno()
+                        return {
+                            "error": f"No puedes mover ninguna ficha con estos dados. Turno perdido.",
+                            "puede_intentar_otra": False,
+                            "mantener_turno": False,
+                            "cambio_turno": True
+                        }
                 
                 # Verificar si el movimiento es válido (no se pasa de la meta)
                 if ficha.estado == EstadoFicha.PASILLO_FINAL:

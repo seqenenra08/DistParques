@@ -236,7 +236,30 @@ export default function Home() {
       console.log('[MOVE_RESULT]', data);
       
       if (data.error) {
-        showNotification(data.error, 'error');
+        // Mostrar fichas sugeridas en el error si las hay
+        let errorMsg = data.error;
+        if (data.fichas_sugeridas && data.fichas_sugeridas.length > 0) {
+          errorMsg += ` → Fichas disponibles: ${data.fichas_sugeridas.join(', ')}`;
+        }
+        showNotification(errorMsg, 'warning');
+        
+        // Si el error permite intentar con otra ficha, NO limpiar el estado
+        if (data.mantener_turno || data.puede_intentar_otra) {
+          console.log('[MOVE_RESULT] ⚠️ Error pero puedes intentar con otra ficha');
+          console.log('[MOVE_RESULT] 🎲 Manteniendo: diceValue=', diceValue, ', canMove=', canMove);
+          // Solo limpiar la ficha seleccionada para que pueda elegir otra
+          setSelectedPiece(null);
+          // MANTENER canMove en true para que pueda seleccionar otra ficha
+          setCanMove(true);
+          return;
+        }
+        
+        // Si es un error grave, limpiar todo
+        setCanMove(false);
+        setDiceValue(null);
+        setLastDiceRolled(null);
+        setSelectedPiece(null);
+        setIsRolling(false);
         return;
       }
       
